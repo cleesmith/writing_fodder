@@ -47,7 +47,9 @@ You need to prepare these files before running the tool:
 
 The basic command to generate a new chapter is:
 
-python write_next_chapter_claude37sonnet.py --request "Chapter 9: The Dark Forest"
+```
+python -B write_next_chapter_claude37sonnet.py --request "Chapter 9: The Dark Forest"
+```
 
 This will create a new Chapter 9 titled "The Dark Forest" based on your outline and previous chapters.
 
@@ -83,7 +85,9 @@ When you run the tool, it creates two files:
 
 ## Example Command
 
-python write_next_chapter_claude37sonnet.py --request "Chapter 5: The Unexpected Visitor" --lang French --save_dir my_french_novel
+```
+python -B write_next_chapter_claude37sonnet.py --request "Chapter 5: The Unexpected Visitor" --lang French --save_dir my_french_novel
+```
 
 This would generate Chapter 5 in French and save it to the "my_french_novel" directory.
 
