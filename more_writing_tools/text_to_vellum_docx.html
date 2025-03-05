@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Text to Vellum to DOCX</title>
+  <style>
+    :root {
+      --background-color: #ffffff;
+      --text-color: #000000;
+      --button-bg-color: #007bff;
+      --button-hover-bg-color: #0056b3;
+      --button-text-color: #ffffff;
+    }
+    body.dark-mode {
+      --background-color: #121212;
+      --text-color: #e0e0e0;
+      --button-bg-color: #1e90ff;
+      --button-hover-bg-color: #1a73e8;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    input[type="file"] {
+      margin-bottom: 10px;
+    }
+    textarea {
+      width: calc(100% - 40px);
+      height: calc(100% - 200px);
+      box-sizing: border-box;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      border: 1px solid #ccc;
+      padding: 10px;
+      resize: none;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    button:hover {
+      background-color: var(--button-hover-bg-color);
+    }
+    button:active {
+      transform: scale(0.95);
+      opacity: 0.9;
+    }
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: var(--text-color);
+      border: 1px solid var(--text-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+    .title {
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="title">Text to Vellum to DOCX</div>
+  <div style="margin-bottom: 10px; font-size: 14px; text-align: center;">
+    Following Vellum's best practices for chapter formatting
+  </div>
+  <!-- File upload input -->
+  <input type="file" id="fileInput" accept=".txt">
+  <!-- Main textarea for text processing -->
+  <textarea id="inputText"></textarea>
+  <div class="buttons">
+    <button id="uploadButton">process text</button>
+    <button id="vellumButton">vellum</button>
+    <button id="downloadDocxButton">download docx</button>
+    <button id="copyButton">copy</button>
+    <button id="clearButton">clear</button>
+    <button id="darkModeToggle">☀️</button>
+  </div>
+
+  <!-- Using locally hosted script file -->
+  <script src="js/index.js"></script>
+
+  <script>
+    // Helper to focus the textarea
+    function focusTextarea() {
+      document.getElementById('inputText').focus();
+    }
+    window.onload = focusTextarea;
+
+    // Process text: either from file or already in textarea
+    document.getElementById('uploadButton').addEventListener('click', function() {
+      var file = document.getElementById('fileInput').files[0];
+      
+      // If a file is selected, read it and load it into the textarea
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('inputText').value = e.target.result;
+          focusTextarea();
+        }
+        reader.readAsText(file);
+      } else {
+        // If no file is selected, check if there's text in the textarea
+        var textareaContent = document.getElementById('inputText').value.trim();
+        if (textareaContent === '') {
+          // If textarea is empty, give a gentle reminder
+          alert("Please either select a text file or paste content into the text area.");
+        } else {
+          // If there's already text in the textarea, just focus on it
+          focusTextarea();
+        }
+      }
+    });
+
+    // Vellum button: apply Vellum formatting (e.g., remove extra newlines)
+    document.getElementById('vellumButton').addEventListener('click', function() {
+      var inputText = document.getElementById('inputText').value;
+      var vellumText = formatForVellum(inputText);
+      document.getElementById('inputText').value = vellumText;
+      focusTextarea();
+    });
+
+    // Copy button: copy text to clipboard
+    document.getElementById('copyButton').addEventListener('click', function() {
+      var inputText = document.getElementById('inputText').value;
+      navigator.clipboard.writeText(inputText).then(() => {
+        alert("Text copied to clipboard!");
+        focusTextarea();
+      }).catch(() => {
+        alert("Failed to copy text. Please try again.");
+        focusTextarea();
+      });
+    });
+
+    // Clear button: reset everything by reloading the page
+    document.getElementById('clearButton').addEventListener('click', function() {
+      window.location.reload();
+    });
+
+    // Dark mode toggle
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌑';
+      focusTextarea();
+    });
+
+    // Format text for Vellum following best practices
+    function formatForVellum(text) {
+      // Trim leading/trailing whitespace
+      let formattedText = text.trim();
+      
+      // Replace sequences of 8 or more blank lines with a special marker for chapter breaks
+      formattedText = formattedText.replace(/\n{8,}/g, '\n\n###CHAPTER_BREAK###\n\n');
+      
+      // Replace any remaining sequences of multiple blank lines with a single blank line (scene break)
+      formattedText = formattedText.replace(/\n{2,}/g, '\n\n');
+      
+      // Find chapter headings and format them according to Vellum best practices
+      // Look for patterns like "Chapter 1", "Chapter One", "CHAPTER 1", "Prologue", "Epilogue", etc.
+      const lines = formattedText.split('\n');
+      const formattedLines = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        
+        // If this is a chapter break marker, add a page break before the next chapter heading
+        if (line === '###CHAPTER_BREAK###') {
+          formattedLines.push('[PAGE_BREAK]');
+          continue;
+        }
+        
+        // Check if this line looks like a chapter heading
+        const chapterPattern = /^(chapter\s+\w+|prologue|epilogue|acknowledgments|acknowledgements|afterword|foreword|introduction|preface|appendix|conclusion)/i;
+        if (chapterPattern.test(line.trim())) {
+          // If we're not at the beginning of the document, add a page break before the chapter
+          if (i > 0 && formattedLines[formattedLines.length - 1] !== '[PAGE_BREAK]') {
+            formattedLines.push('[PAGE_BREAK]');
+          }
+          
+          // Mark this as a heading for the DOCX conversion
+          formattedLines.push('[HEADING1]' + line);
+        } else {
+          formattedLines.push(line);
+        }
+      }
+      
+      return formattedLines.join('\n');
+    }
+
+    // Download DOCX button: convert text to DOCX and trigger download
+    document.getElementById('downloadDocxButton').addEventListener('click', function() {
+      var inputText = document.getElementById('inputText').value;
+      generateDocx(inputText);
+    });
+
+    // Modified generateDocx function to properly implement Vellum best practices
+    function generateDocx(text) {
+      // Check if docx is available in global scope
+      if (typeof docx === 'undefined') {
+        alert("DOCX library not loaded properly. Please check your internet connection and try again.");
+        return;
+      }
+      
+      const { Document, Packer, Paragraph, HeadingLevel, PageBreak } = docx;
+      
+      // Split text into lines
+      let lines = text.split('\n');
+      let docElements = [];
+      let inParagraph = false;
+      let currentParagraph = '';
+      
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        
+        // Handle page breaks
+        if (line === '[PAGE_BREAK]') {
+          // If we were in a paragraph, add it before the page break
+          if (inParagraph && currentParagraph.trim()) {
+            docElements.push(new Paragraph(currentParagraph.trim()));
+            currentParagraph = '';
+            inParagraph = false;
+          }
+          
+          // Add page break
+          docElements.push(new Paragraph({
+            children: [new PageBreak()]
+          }));
+          continue;
+        }
+        
+        // Handle headings (Chapter titles, Prologue, etc.)
+        if (line.startsWith('[HEADING1]')) {
+          // If we were in a paragraph, add it before the heading
+          if (inParagraph && currentParagraph.trim()) {
+            docElements.push(new Paragraph(currentParagraph.trim()));
+            currentParagraph = '';
+            inParagraph = false;
+          }
+          
+          // Add heading (remove the [HEADING1] marker)
+          const headingText = line.substring(10);
+          docElements.push(new Paragraph({
+            text: headingText,
+            heading: HeadingLevel.HEADING_1
+          }));
+          continue;
+        }
+        
+        // Handle empty lines (scene breaks)
+        if (line === '') {
+          // If we were in a paragraph, add it before the scene break
+          if (inParagraph && currentParagraph.trim()) {
+            docElements.push(new Paragraph(currentParagraph.trim()));
+            currentParagraph = '';
+            inParagraph = false;
+          }
+          
+          // Add an empty paragraph for the scene break
+          docElements.push(new Paragraph(''));
+          continue;
+        }
+        
+        // Handle regular text
+        if (!inParagraph) {
+          inParagraph = true;
+          currentParagraph = line;
+        } else {
+          // If we already have text in the current paragraph, add a space
+          if (currentParagraph) {
+            currentParagraph += ' ';
+          }
+          currentParagraph += line;
+        }
+      }
+      
+      // Add any remaining paragraph
+      if (inParagraph && currentParagraph.trim()) {
+        docElements.push(new Paragraph(currentParagraph.trim()));
+      }
+      
+      // Create the document
+      let doc = new Document({
+        sections: [{
+          children: docElements
+        }]
+      });
+      
+      // Generate and download the DOCX file
+      Packer.toBlob(doc).then(blob => {
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = 'vellum_formatted.docx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }
+  </script>
+</body>
+</html>

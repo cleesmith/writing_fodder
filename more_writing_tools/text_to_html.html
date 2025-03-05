@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TXT to HTML</title>
+  <style>
+    :root {
+      --button-bg-color: #007bff;
+      --button-text-color: #ffffff;
+      --chapter-border-color: #ff9800;
+      --chapter-bg-dark: #1e1e1e;
+      --chapter-bg-light: #fff7e6;
+    }
+    /* Base (Light Mode) */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #ffffff;
+      color: #000000;
+    }
+    /* Dark Mode */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    /* Toggle Button (Tool Page style) */
+    body:not(.dark-mode) #darkModeToggle {
+      background-color: #444;
+      color: #fff;
+      border-color: #444;
+    }
+    /* Buttons / Row */
+    .buttonRow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .custom-file-button, #downloadButton, #clearButton {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .custom-file-button:hover, #downloadButton:hover, #clearButton:hover {
+      background-color: #0056b3;
+    }
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: inherit;
+      border: 1px solid currentColor;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      text-align: center;
+    }
+    #darkModeToggle:hover {
+      filter: brightness(1.2);
+    }
+    /* Chapter Container */
+    .chapter-container {
+      border: 2px solid var(--chapter-border-color);
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
+      background: var(--chapter-bg-light);
+    }
+    body.dark-mode .chapter-container {
+      background: var(--chapter-bg-dark);
+      border-color: var(--chapter-border-color);
+    }
+    .chapter-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 1.2em;
+      text-indent: 0;
+    }
+    .chapter-text {
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+    .chapter-text p {
+      margin-bottom: 1em;
+    }
+    /* Hide download button initially */
+    #downloadButton {
+      display: none;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <!-- Hidden file input for TXT files -->
+  <input type="file" id="txtInput" accept=".txt" style="display: none;">
+
+  <div class="buttonRow">
+    <!-- Dark mode toggle button -->
+    <button id="darkModeToggle" title="Switch dark and light mode">☀️</button>
+    <span>Convert</span>
+    <!-- File select button -->
+    <label for="txtInput" class="custom-file-button">selected .txt file</label>
+    <span>to HTML below</span>
+    <!-- Download and clear buttons -->
+    <button id="downloadButton">or <i>download</i> as .html file</button>
+    <button id="clearButton">clear</button>
+  </div>
+
+  <div id="chapters"></div>
+
+  <script>
+    // Global storage for chapters and file base name
+    let chapters = [];
+    let txtBaseName = "document";
+
+    // Toggle dark/light mode on the tool page
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+
+    // Listen for TXT file selection
+    document.getElementById("txtInput").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      txtBaseName = file.name.replace(/\.[^/.]+$/, "");
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const text = e.target.result;
+        processTextFile(text);
+      };
+      
+      reader.readAsText(file);
+    });
+    
+    // Extremely simple approach to find chapters
+    function processTextFile(text) {
+      // Reset chapters array
+      chapters = [];
+      
+      // Skip the outline section if present
+      let contentText = text;
+      if (text.includes("=== OUTLINE ===") && text.includes("=== END OUTLINE ===")) {
+        contentText = text.split("=== END OUTLINE ===")[1].trim();
+      }
+      
+      // Simply divide the text whenever we see a "Chapter N:" or "Chapter N." pattern
+      // First, get all the positions where chapters start
+      const chapterMarkers = [];
+      
+      // This regex matches "Chapter" followed by a space, one or more digits, and then either a colon or period
+      const searchPattern = /Chapter \d+[:.]/g;
+      let match;
+      
+      while ((match = searchPattern.exec(contentText)) !== null) {
+        chapterMarkers.push({
+          position: match.index,
+          text: match[0]
+        });
+      }
+      
+      // Now extract each chapter
+      for (let i = 0; i < chapterMarkers.length; i++) {
+        const startPos = chapterMarkers[i].position;
+        const endPos = (i < chapterMarkers.length - 1) ? chapterMarkers[i + 1].position : contentText.length;
+        
+        // Get the chapter text
+        const chapterText = contentText.substring(startPos, endPos).trim();
+        
+        // Extract the first line as the title
+        const firstLineEnd = chapterText.indexOf('\n');
+        const titleLine = firstLineEnd > -1 ? chapterText.substring(0, firstLineEnd).trim() : chapterText;
+        const content = firstLineEnd > -1 ? chapterText.substring(firstLineEnd).trim() : '';
+        
+        // Extract chapter number and title
+        const titleMatch = titleLine.match(/Chapter (\d+)[:.]\s*(.*)/);
+        if (titleMatch) {
+          const chapterNumber = titleMatch[1];
+          const chapterTitle = titleMatch[2].trim();
+          
+          // Add to chapters array
+          chapters.push({
+            number: chapterNumber,
+            title: chapterTitle,
+            content: content
+          });
+        }
+      }
+      
+      // If we didn't find any chapters, use the entire text as one chapter
+      if (chapters.length === 0) {
+        chapters.push({
+          number: "1",
+          title: txtBaseName,
+          content: contentText
+        });
+      }
+      
+      // Display chapters and show download button
+      displayChapters(chapters);
+      document.getElementById("downloadButton").style.display = "inline-block";
+    }
+
+    // Format and display chapters on the page
+    function displayChapters(chapters) {
+      const container = document.getElementById("chapters");
+      container.innerHTML = "";
+      
+      chapters.forEach(chapter => {
+        const chapterDiv = document.createElement("div");
+        chapterDiv.className = "chapter-container";
+        
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "chapter-title";
+        titleDiv.textContent = `Chapter ${chapter.number}: ${chapter.title}`;
+        chapterDiv.appendChild(titleDiv);
+        
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "chapter-text";
+        
+        // Format the content with paragraphs
+        const paragraphs = chapter.content.split(/\n\s*\n/);
+        paragraphs.forEach(paragraph => {
+          if (paragraph.trim()) {
+            const p = document.createElement("p");
+            p.textContent = paragraph.trim();
+            contentDiv.appendChild(p);
+          }
+        });
+        
+        chapterDiv.appendChild(contentDiv);
+        container.appendChild(chapterDiv);
+      });
+    }
+
+    // Download all chapters as a single HTML file with dark mode toggle
+    document.getElementById("downloadButton").addEventListener("click", function() {
+      if (!chapters.length) {
+        alert("No chapters to download.");
+        return;
+      }
+      
+      let finalHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${txtBaseName} - Converted TXT</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background: #ffffff; 
+      color: #000000; 
+      transition: background 0.3s, color 0.3s; 
+      line-height: 1.5;
+    }
+    .chapter-container { 
+      border: 2px solid #ff9800; 
+      border-radius: 4px; 
+      padding: 10px; 
+      margin-bottom: 15px; 
+      background: #fff7e6; 
+    }
+    .chapter-title { 
+      font-weight: bold; 
+      margin-bottom: 8px; 
+      font-size: 1.2em; 
+    }
+    .chapter-text p {
+      margin-bottom: 1em;
+    }
+    /* Dark mode styles */
+    body.dark-mode { 
+      background: #121212; 
+      color: #e0e0e0; 
+    }
+    body.dark-mode .chapter-container { 
+      background: #1e1e1e; 
+      border-color: #ff9800; 
+    }
+    /* Dark mode toggle button (small circular button) */
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: inherit;
+      border: 1px solid currentColor;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      text-align: center;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+    }
+    #darkModeToggle:hover {
+      filter: brightness(1.2);
+    }
+  </style>
+</head>
+<body>
+  <button id="darkModeToggle" title="Switch dark and light mode">☀️</button>
+`;
+      
+      chapters.forEach(chapter => {
+        finalHtml += `<div class="chapter-container">`;
+        finalHtml += `<div class="chapter-title">Chapter ${chapter.number}: ${chapter.title}</div>`;
+        finalHtml += `<div class="chapter-text">`;
+        
+        // Format paragraphs
+        const paragraphs = chapter.content.split(/\n\s*\n/);
+        paragraphs.forEach(paragraph => {
+          if (paragraph.trim()) {
+            finalHtml += `<p>${paragraph.trim()}</p>`;
+          }
+        });
+        
+        finalHtml += `</div></div>`;
+      });
+      
+      finalHtml += `
+  <script>
+    document.getElementById('darkModeToggle').addEventListener('click', function(){
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+  <\/script>
+</body>
+</html>`;
+
+      const blob = new Blob([finalHtml], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = txtBaseName + ".html";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // Clear the displayed chapters and reset global storage
+    document.getElementById("clearButton").addEventListener("click", function() {
+      document.getElementById("chapters").innerHTML = "";
+      chapters = [];
+      document.getElementById("downloadButton").style.display = "none";
+    });
+  </script>
+</body>
+</html>

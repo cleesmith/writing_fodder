@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EPUB to Plain Text</title>
+  <style>
+    :root {
+      --button-bg-color: #007bff;
+      --button-text-color: #ffffff;
+      --chapter-border-color: #ff9800;
+      --chapter-bg-dark: #1e1e1e;
+      --chapter-bg-light: #fff7e6;
+    }
+    /* Base (Light Mode) */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #ffffff;
+      color: #000000;
+    }
+    /* Dark Mode */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    /* Toggle Button (adjusts based on mode) */
+    body:not(.dark-mode) #darkModeToggle {
+      background-color: #444;
+      color: #fff;
+      border-color: #444;
+    }
+    /* Buttons / Row */
+    .buttonRow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .custom-file-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .custom-file-button:hover {
+      background-color: #0056b3;
+    }
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: inherit;
+      border: 1px solid currentColor;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      text-align: center;
+    }
+    #darkModeToggle:hover {
+      filter: brightness(1.2);
+    }
+    #downloadButton {
+      display: none;
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #downloadButton:hover {
+      background-color: #0056b3;
+    }
+    /* Chapter Container */
+    .chapter-container {
+      border: 2px solid var(--chapter-border-color);
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
+      background: var(--chapter-bg-light);
+    }
+    body.dark-mode .chapter-container {
+      background: var(--chapter-bg-dark);
+      border-color: var(--chapter-border-color);
+    }
+    .chapter-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 1.2em;
+      /* This CSS affects only the webpage display */
+      text-indent: 20px;
+    }
+    .chapter-text {
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <!-- Hidden file input for EPUB files -->
+  <input type="file" id="epubInput" accept=".epub" style="display: none;">
+
+  <div class="buttonRow">
+    <!-- Dark mode toggle button -->
+    <button id="darkModeToggle" title="Switch dark and light mode">☀️</button>
+    <span>Convert</span>
+    <!-- File select button labeled "selected .epub file" -->
+    <label for="epubInput" class="custom-file-button">selected .epub file</label>
+    <span>to plain text below</span>
+    <button id="downloadButton">or <i>download</i> as .txt file</button>
+  </div>
+
+  <div id="chapters"></div>
+
+  <script src="js/jszip.min.js"></script>
+  <script>
+    // global storage for chapters and file base name
+    let chapters = [];
+    let epubBaseName = "manuscript";
+
+    // toggle dark/light mode
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+
+    // listen for EPUB file selection
+    document.getElementById("epubInput").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      epubBaseName = file.name.replace(/\.[^/.]+$/, "");
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+        JSZip.loadAsync(arrayBuffer).then(async function(zip) {
+          try {
+            // 1. locate the OPF file via META-INF/container.xml
+            const containerFile = zip.file("META-INF/container.xml");
+            if (!containerFile) throw new Error("META-INF/container.xml not found.");
+            const containerXml = await containerFile.async("text");
+            const containerDoc = new DOMParser().parseFromString(containerXml, "application/xml");
+            const rootfileElement = containerDoc.querySelector("rootfile");
+            if (!rootfileElement) throw new Error("OPF file reference not found.");
+            const opfPath = rootfileElement.getAttribute("full-path");
+            if (!opfPath) throw new Error("OPF file path is missing.");
+            // Get the base path (e.g. if opfPath is "OEBPS/content.opf", base = "OEBPS/")
+            const basePath = opfPath.includes("/") ? opfPath.substring(0, opfPath.lastIndexOf("/") + 1) : "";
+
+            // 2. read the OPF file
+            const opfFile = zip.file(opfPath);
+            if (!opfFile) throw new Error("OPF file not found: " + opfPath);
+            const opfXml = await opfFile.async("text");
+            const opfDoc = new DOMParser().parseFromString(opfXml, "application/xml");
+
+            // 3. build a manifest (id → href)
+            const manifest = {};
+            opfDoc.querySelectorAll("manifest > item").forEach(item => {
+              const id = item.getAttribute("id");
+              const href = item.getAttribute("href");
+              manifest[id] = href;
+            });
+
+            // 4. get the spine (reading order)
+            const spineItems = [];
+            opfDoc.querySelectorAll("spine > itemref").forEach(itemref => {
+              const idref = itemref.getAttribute("idref");
+              if (manifest[idref]) {
+                spineItems.push(manifest[idref]);
+              }
+            });
+
+            // 5. process each chapter file from the spine
+            chapters = [];
+            // define a list of unwanted titles.
+            const unwantedTitles = ["TITLE PAGE", "COPYRIGHT"];
+
+            for (const itemHref of spineItems) {
+              const chapterPath = basePath + itemHref;
+              const chapterFile = zip.file(chapterPath);
+              if (!chapterFile) {
+                console.warn("Chapter file not found:", chapterPath);
+                continue;
+              }
+              const chapterContent = await chapterFile.async("text");
+              
+              // parse the chapter content into a DOM
+              const doc = new DOMParser().parseFromString(chapterContent, "text/html");
+              
+              // extract and store the title from the first <h1>
+              let titleElement = doc.querySelector("h1");
+              let title = titleElement ? titleElement.textContent.trim() : "";
+              
+              // remove the <h1> so it won't be included again in the body text
+              if (titleElement) {
+                titleElement.remove();
+              }
+              
+              // filter out unwanted titles
+              if (title && unwantedTitles.includes(title.toUpperCase())) {
+                console.log("Skipping non-chapter content:", title);
+                continue;
+              }
+              
+              // extract the rest of the body text and split into paragraphs
+              let bodyText = doc.body ? doc.body.textContent.trim() : "";
+              const textBlocks = bodyText.split(/\n\s*\n/).filter(block => block.trim() !== "");
+              
+              // if this is the CONTENTS page, ensure all chapter entries are uniformly indented.
+              if (title.toUpperCase() === "CONTENTS") {
+                for (let i = 0; i < textBlocks.length; i++) {
+                  // If a line is non-empty and does not start with whitespace, add an indent.
+                  if (textBlocks[i].trim() && !/^\s/.test(textBlocks[i])) {
+                    textBlocks[i] = "        " + textBlocks[i];
+                  }
+                }
+              }
+              
+              // if there's no title (thus default would be used) and content is too short, skip this chapter.
+              if (!title && textBlocks.join("").length < 100) {
+                console.log("Skipping empty or minimal chapter:", title || "No title");
+                continue;
+              }
+              
+              chapters.push({ title: title, textBlocks: textBlocks });
+            }
+
+            displayChapters(chapters);
+            // reveal the download button now that chapters exist
+            document.getElementById("downloadButton").style.display = "inline-block";
+          } catch (error) {
+            console.error("Error processing EPUB:", error);
+            alert("Error processing EPUB: " + error.message);
+          }
+        }).catch(err => {
+          console.error("Error reading EPUB file:", err);
+          alert("Error reading EPUB file: " + err.message);
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // display chapters on the page
+    function displayChapters(chapters) {
+      const container = document.getElementById("chapters");
+      container.innerHTML = "";
+      chapters.forEach((chapter, index) => {
+        const combinedText = chapter.textBlocks.join("\n\n");
+        const chapterDiv = document.createElement("div");
+        chapterDiv.className = "chapter-container";
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "chapter-title";
+        // only show a title if one exists
+        titleDiv.textContent = chapter.title || "";
+        const textDiv = document.createElement("div");
+        textDiv.className = "chapter-text";
+        textDiv.textContent = combinedText;
+        if (titleDiv.textContent) {
+          chapterDiv.appendChild(titleDiv);
+        }
+        chapterDiv.appendChild(textDiv);
+        container.appendChild(chapterDiv);
+      });
+    }
+
+    // download all chapters as a single .txt file
+    document.getElementById("downloadButton").addEventListener("click", function() {
+      if (!chapters.length) {
+        alert("No chapters to download.");
+        return;
+      }
+      let allText = "";
+      chapters.forEach((ch, idx) => {
+        if (ch.title) {
+          allText += ch.title + "\n\n";
+        }
+        allText += ch.textBlocks.join("\n\n") + "\n\n";
+      });
+      const blob = new Blob([allText], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = epubBaseName + ".txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>

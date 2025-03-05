@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Writing Tools</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="tools for writers">
+
+  <link rel="stylesheet" href="css/w3.css">
+  <link href="fontawesome/css/all.min.css" rel="stylesheet">
+  <!-- <script src="https://kit.fontawesome.com/51f425cc73.js" crossorigin="anonymous"></script> -->
+  <style>
+    :root {
+      --button-bg-color: #007bff;
+      --button-text-color: #ffffff;
+      --chapter-border-color: #ff9800;
+      --chapter-bg-dark: #1e1e1e;
+      --chapter-bg-light: #fff7e6;
+    }
+    
+    body, h1, h2, h3, h4, h5, h6  {
+      font-family: Helvetica, Arial, sans-serif;
+    }
+    
+    /* Base (Light Mode) */
+    body {
+      background: #ffffff;
+      color: #000000;
+      transition: background 0.3s, color 0.3s;
+    }
+    
+    /* Dark Mode */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .w3-card-4,
+    body.dark-mode .w3-container {
+      background-color: #1e1e1e !important;
+      color: #e0e0e0 !important;
+    }
+    
+    body.dark-mode .w3-border-bottom {
+      border-color: #444 !important;
+    }
+    
+    body.dark-mode a {
+      color: #90caf9 !important;
+    }
+    
+    body.dark-mode .w3-black {
+      background-color: #000 !important;
+    }
+    
+    body.dark-mode .w3-text-black {
+      color: #e0e0e0 !important;
+    }
+    
+    /* Dark mode toggle button */
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: inherit;
+      border: 1px solid currentColor;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      text-align: center;
+      margin-left: 15px;
+      flex-shrink: 0;
+    }
+    
+    #darkModeToggle:hover {
+      filter: brightness(1.2);
+    }
+    
+    /* Toggle Button (Tool Page style) */
+    body:not(.dark-mode) #darkModeToggle {
+      background-color: #444;
+      color: #fff;
+      border-color: #444;
+    }
+  </style>
+</head>
+
+<body class="w3-xlarge w3-image dark-mode">
+
+<div class="w3-row-padding w3-padding-16 w3-container w3-margin">
+  <div class="w3-content w3-panel">
+
+    <div class="w3-card-4 w3-margin w3-round-large" style="width:100%;">
+      <header class="w3-container w3-border-bottom">
+        <h2 style="display: flex; align-items: center; justify-content: space-between;">
+          <span>
+            <i class="fa-solid fa-computer w3-text-amber" style="font-size:50px;"></i>
+            Free HTML/Javacript for writers
+          </span>
+          <!-- Dark Mode Toggle Button -->
+          <button id="darkModeToggle" title="Switch dark and light mode">☀️</button>
+        </h2>
+      </header>
+      <div class="w3-container w3-border-bottom">
+        <p>
+          <span class="w3-tooltip">
+            <a href="docx_readable_download.html" target="_blank" style="text-decoration:none;" title="DOCX to plain text chapters with .txt download">
+              <i class="fa-regular fa-file-word w3-text-blue w3-margin-top" style="font-size:50px; margin-right:25px;"></i>
+              <small><i><b>DOCX</b> to plain text with <b>.txt</b> <span class="w3-text-red">download</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="epub_readable_download.html" target="_blank" style="text-decoration:none;" title="EPUB to plain text with .txt download">
+              <i class="fa-solid fa-book w3-text-black w3-margin-top" style="font-size:50px; margin-right:25px;"></i>
+              <small><i><b>EPUB</b> to plain text with <b>.txt</b> <span class="w3-text-red">download</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="epub_to_html.html" target="_blank" style="text-decoration:none;" title="EPUB to HTML with .html">
+              <i class="fa-solid fa-book w3-text-black w3-margin-top" style="font-size:50px; margin-right:25px;"></i>
+              <small><i><b>EPUB</b> to HTML with <b>.html</b> <span class="w3-text-red">download</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="markdown_to_text.html" target="_blank" style="text-decoration:none;" title="Markdown to plain text with .txt download">
+              <i class="fa-brands fa-markdown w3-text-light-blue w3-margin-top" style="font-size:40px; margin-right:17px;"></i>
+              <small><i><b>Markdown</b> to plain text with <b>.txt</b> <span class="w3-text-red">download</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="pdf_readable_download.html" target="_blank" style="text-decoration:none;" title="PDF to plain text with .txt download">
+              <i class="fa-solid fa-file-pdf w3-text-black w3-margin-top" style="font-size:50px; margin-right:25px;"></i>
+              <small><i><b>PDF</b> to plain text <span class="w3-tiny">(but it does <b>not</b> remove the page headers/numbers)</span> with <b>.txt</b> <span class="w3-text-red">download</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="text_to_html.html" target="_blank" style="text-decoration:none;" title="Text .txt to HTML with .html download">
+              <i class="fa-solid fa-person-digging w3-text-black w3-margin-top" style="font-size:45px; margin-right:12px;"></i>
+              <small><i><b>Text</b> .txt to HTML with <b>.html</b> <span class="w3-text-red">download</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="text_to_vellum_docx.html" target="_blank" style="text-decoration:none;" title="Text to Vellum to DOCX">
+              <i class="fa-solid fa-person-digging fa-flip-horizontal w3-text-pink w3-margin-top" style="font-size:45px; margin-right:12px;"></i>
+              <small><i><b>Text to Vellum to DOCX</b> with <b>.docx</b> <span class="w3-text-red">download</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="text_to_freq.html" target="_blank" style="text-decoration:none;" title="Text to Word Frequency">
+              <i class="fa-solid fa-person-digging w3-text-red w3-margin-top" style="font-size:45px; margin-right:12px;"></i>
+              <small><i><b>Text to Word Frequency</b> - count occurrences of each word</i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="po_po_for_ai_isms.html" target="_blank" style="text-decoration:none;" title="AI-isms">
+              <i class="fa-solid fa-person-digging fa-flip-horizontal w3-text-green w3-margin-top" style="font-size:45px; margin-right:12px;"></i>
+              <small><i><b>AI-isms</b> - detect common AI-isms in text</i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="wrap_paragraphs.html" target="_blank" style="text-decoration:none;" title="Wrap Paragraphs">
+              <i class="fa-solid fa-book-open-reader w3-text-purple w3-margin-top" style="font-size:50px; margin-right:15px;"></i>
+              <small><i><b>wrap paragraphs</b> - to copy/paste for: reading <span class="w3-tiny">(wrap paragraphs at 70 characters)</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="unwrap_paragraphs.html" target="_blank" style="text-decoration:none;" title="Unwrap Paragraphs">
+              <i class="fa-solid fa-pencil w3-text-orange w3-margin-top" style="font-size:50px; margin-right:15px;"></i>
+              <small><i><b>unwrap paragraphs</b> - to copy/paste for: Vellum and TTS audio <span class="w3-tiny">(it's easier with Chunks below)</span></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="tts4000.html" target="_blank" style="text-decoration:none;" title="Text to proper Chunks for TextToSpeech audio">
+              <i class="fa-regular fa-file-audio w3-text-gray w3-margin-top" style="font-size:50px; margin-right:25px;"></i>
+              <small><i><b>Text to proper Chunks <span class="w3-tiny">(of 1000 to 5000 characters)</span> for TextToSpeech (TTS) audio</b></i></small>
+            </a>
+          </span>
+          <br>
+          <span class="w3-tooltip">
+            <a href="docx_to_blocks.html" target="_blank" style="text-decoration:none;" title="Debug DOCX as HTML blocks (like: p, h1)">
+              <i class="fa-solid fa-bug w3-text-brown w3-margin-top" style="font-size:50px; margin-right:15px;"></i>
+              <small><i>helps debug DOCX by viewing HTML blocks <span class="w3-tiny">(for example: p, h1, h2, and so on)</span></i></small>
+            </a>
+          </span>
+        </p>
+      </div>
+      <footer class="w3-container w3-border-bottom">
+        <h5>
+          <span class="w3-small"><i class="fa-solid fa-star-of-life w3-text-red"></i></span>
+          <span class="w3-text-red">download</span> is <b>not</b> from a server, rather it's directly from the page in the browser, same as a local save.
+        </h5>
+      </footer>
+    </div>
+
+    <div class="w3-card-4 w3-margin w3-round-large" style="width:100%;">
+      <header class="w3-container w3-border-bottom">
+        <h2>
+          <i class="fa-solid fa-computer w3-text-amber" style="font-size:50px;"></i>
+          Github open source projects
+        </h2>
+      </header>
+      <div class="w3-container w3-border-bottom">
+        <p>
+          <span class="w3-tooltip">
+            <a href="https://github.com/cleesmith" target="_blank" style="text-decoration:none;" title="GitHub">
+              <i class="fa-brands fa-github w3-margin-top" style="font-size:50px; margin-right:15px;"></i>
+              see all of my free open source GitHub projects
+            </a>
+          </span>
+          <br><br>
+          <span class="w3-tooltip">
+            <a href="https://github.com/cleesmith/chrome_extensions" target="_blank" style="text-decoration:none;" title="Chrome Extensions">
+              <small><i>
+                <i class="fa-solid fa-file-pen" style="color: green; font-size:50px; margin-right:10px;"></i>
+                <b>Chrome Extensions</b> - download a <b>.txt</b> file of the entire page from a ChatGPT or Claude chat
+              </i></small>
+            </a>
+          </span>
+          <br><br>
+          <span class="w3-tooltip">
+            <a href="https://github.com/cleesmith/Transcriber" target="_blank" style="text-decoration:none;" title="Transcriber">
+              <small><i>
+                <i class="fa-solid fa-file-video" style="color: #B197FC; font-size:50px; margin-right:25px;"></i>
+                <b>Transcriber</b> - convert YouTube video to audio to proper readable manuscript <span class="w3-tiny">(requires Python & Whisper)</span>
+              </i></small>
+            </a>
+          </span>
+        </p>
+      </div>
+      <footer class="w3-container w3-border-bottom">
+        <h5>
+          Javascript and Python code.
+        </h5>
+      </footer>
+    </div>
+
+  </div>
+</div>
+
+<div class="w3-container w3-black w3-opacity w3-padding-64">
+  <div class="w3-panel w3-leftbar">
+    <p>
+      <i class="fa fa-quote-left w3-xlarge"></i>
+      <i class="w3-serif w3-xlarge w3-text-blue">
+        Any sufficiently advanced technology is indistinguishable from magic.
+      </i>
+      <i class="fa fa-quote-right w3-xlarge"></i>
+      <i class="fa-solid fa-minus"></i>Arthur C. Clarke
+    </p>
+    <br>
+  </div>
+</div>
+
+<!-- JavaScript for Dark Mode Toggle -->
+<script>
+  // Wait for DOM to load
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get the toggle button and body
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const body = document.body;
+    
+    // Toggle dark mode when button is clicked
+    darkModeToggle.addEventListener('click', function() {
+      body.classList.toggle('dark-mode');
+      this.textContent = body.classList.contains('dark-mode') ? '☀️' : '🌙';
+      
+      // Save preference to localStorage
+      localStorage.setItem('darkMode', body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
+    });
+    
+    // Apply saved preference if it exists
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode === 'disabled') {
+      body.classList.remove('dark-mode');
+      darkModeToggle.textContent = '🌙';
+    }
+  });
+</script>
+
+</body>
+</html>

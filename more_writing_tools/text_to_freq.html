@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Word Frequency Counter</title>
+  <style>
+    :root {
+      --button-bg-color: #007bff;
+      --button-text-color: #ffffff;
+    }
+    /* Base (Light Mode) styles */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #ffffff;
+      color: #000000;
+      margin: 0;
+    }
+    /* Dark Mode overrides */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    /* Top row container styling */
+    .topRow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    /* Dark/light toggle button */
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: inherit;
+      border: 1px solid currentColor;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    /* Styling for the text area */
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    body.dark-mode textarea {
+      background: #2e2e2e;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+    /* Custom button style */
+    .custom-button {
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 14px;
+      text-transform: lowercase;
+    }
+    .custom-button:hover {
+      background-color: #0056b3;
+    }
+    /* Results container */
+    #results {
+      margin-top: 20px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      font-family: monospace;
+      background: #f7f7f7;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    body.dark-mode #results {
+      background: #2e2e2e;
+      border: 1px solid #444;
+    }
+    /* Label style */
+    #wordFreqLabel {
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: lowercase;
+    }
+    /* Search container style */
+    #searchContainer {
+      margin-bottom: 10px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+    }
+    #searchInput {
+      padding: 8px;
+      font-size: 14px;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    body.dark-mode #searchInput {
+      background: #2e2e2e;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+    /* Clear search button style */
+    #clearSearchBtn {
+      padding: 8px 12px;
+      font-size: 11px;
+      background-color: gray; /* var(--button-bg-color);*/
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-transform: lowercase;
+    }
+    #clearSearchBtn:hover {
+      background-color: gray; /* #0056b3;*/
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <!-- Top row with controls -->
+  <div class="topRow">
+    <button id="darkModeToggle" title="switch dark and light mode">☀️</button>
+    <span id="wordFreqLabel">text to word frequency →</span>
+    <button id="frequencyBtn" class="custom-button">freq out</button>
+    <button id="sortAZBtn" class="custom-button">sort a‑z</button>
+    <button id="sortCountBtn" class="custom-button">sort count</button>
+    <button id="copyBtn" class="custom-button">copy</button>
+    <button id="clearBtn" class="custom-button">clear</button>
+  </div>
+  
+  <textarea id="textInput" placeholder="enter text here to count the frequency of each word . . ."></textarea>
+  
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="search words...">
+    <button id="clearSearchBtn" title="clear search">ⓧ</button>
+  </div>
+  
+  <div id="results"></div>
+  
+  <script>
+    var total_chars = 0;
+    var total_words = 0;
+    let currentFrequency = {};
+    let currentOrder = 'alphabetical'; // Tracks current sort order
+    
+    function countWords(str) {
+      if (str.length === 0) {
+        return {};
+      }
+      var output = {};
+
+      total_chars = str.length;
+      // console.log('total_chars=', total_chars);
+      // replace newlines (unix/mac/windows) with space:
+      const noNewlines = str.replace(/(\r\n|\r|\n)/g, " ");
+      var strArr = noNewlines.split(" ");
+      total_words = strArr.length;
+      // console.log('total_words=', total_words);
+
+      // loop through each token/word after splitting
+      for (var i = 0; i < strArr.length; i++) {
+        // remove punctuation from the word and convert to lowercase
+        var word = strArr[i].replace(/[!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~]/g, "").toLowerCase();
+        // skip empty tokens (which can occur if there are extra spaces)
+        if (word === "") continue;
+
+        if (output[word] === undefined) {
+          output[word] = 1;
+        } else {
+          output[word] += 1;
+        }
+        // output_by_word += ` ${word}=${output[word]} `;
+      }
+
+      // return output_by_word;
+      return output;
+    }
+    
+    function renderResults(order, filter = "") {
+      if (!currentFrequency || Object.keys(currentFrequency).length === 0) {
+        document.getElementById('results').textContent = "No frequency data available.";
+        document.getElementById('searchContainer').style.display = "none";
+        return;
+      }
+      
+      let entries = Object.entries(currentFrequency);
+      
+      // Apply filter if provided (case-insensitive substring search)
+      if (filter) {
+        entries = entries.filter(([word]) =>
+          word.toLowerCase().includes(filter.toLowerCase())
+        );
+      }
+      
+      if (order === 'alphabetical') {
+        entries.sort((a, b) => a[0].localeCompare(b[0]));
+      } else if (order === 'count') {
+        entries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+      }
+      
+      const uniqueCount = entries.length;
+      let header = "";
+      if (filter) {
+        header = `filtered words: ${uniqueCount} (out of ${Object.keys(currentFrequency).length})  chars: ${total_chars}  words: ${total_words}\n\n`;
+      } else {
+        header = `unique words: ${uniqueCount}  chars: ${total_chars}  words: ${total_words}\n\n`;
+      }
+      
+      document.getElementById('results').textContent = header + entries.map(([word, count]) => `${word} ${count}`).join("\n");
+      
+      // Show the search container now that frequency data exists
+      document.getElementById('searchContainer').style.display = "flex";
+    }
+    
+    // Dark mode toggle
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+    
+    // Compute word frequency when "freq out" is clicked
+    document.getElementById('frequencyBtn').addEventListener('click', function() {
+      const text = document.getElementById('textInput').value
+                    .trim()
+                    .replace(/[\r\n]+/g, " ")
+                    .replace(/\s+/g, " ");
+      if (!text.trim()) {
+        alert("Please enter some text.");
+        return;
+      }
+      currentFrequency = countWords(text);
+      currentOrder = 'alphabetical';
+      renderResults(currentOrder);
+    });
+    
+    document.getElementById('sortAZBtn').addEventListener('click', function() {
+      if (!currentFrequency || Object.keys(currentFrequency).length === 0) {
+        alert("Please compute frequency first.");
+        return;
+      }
+      currentOrder = 'alphabetical';
+      renderResults(currentOrder, document.getElementById('searchInput').value);
+    });
+    
+    document.getElementById('sortCountBtn').addEventListener('click', function() {
+      if (!currentFrequency || Object.keys(currentFrequency).length === 0) {
+        alert("Please compute frequency first.");
+        return;
+      }
+      currentOrder = 'count';
+      renderResults(currentOrder, document.getElementById('searchInput').value);
+    });
+    
+    // Filter frequency list as user types in the search box
+    document.getElementById('searchInput').addEventListener('input', function() {
+      renderResults(currentOrder, this.value);
+    });
+    
+    document.getElementById('clearSearchBtn').addEventListener('click', function() {
+      document.getElementById('searchInput').value = "";
+      renderResults(currentOrder, "");
+    });
+    
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      const resultsText = document.getElementById('results').textContent;
+      if (!resultsText) {
+        alert("No results to copy.");
+        return;
+      }
+      navigator.clipboard.writeText(resultsText)
+        .then(() => alert("Results copied to clipboard!"))
+        .catch(() => alert("Failed to copy results."));
+    });
+    
+    document.getElementById('clearBtn').addEventListener('click', function() {
+      document.getElementById('textInput').value = "";
+      document.getElementById('results').textContent = "";
+      currentFrequency = {};
+      document.getElementById('searchContainer').style.display = "none";
+    });
+  </script>
+</body>
+</html>

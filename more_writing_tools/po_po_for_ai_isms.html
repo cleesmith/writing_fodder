@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI-ism Po Po</title>
+  <style>
+    :root {
+      --button-bg-color: #7e57c2;
+      --button-text-color: #ffffff;
+    }
+    /* Base (Light Mode) styles */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #ffffff;
+      color: #000000;
+      margin: 0;
+    }
+    /* Dark Mode overrides */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    /* Top row container styling */
+    .topRow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    /* Dark/light toggle button */
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: inherit;
+      border: 1px solid currentColor;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    /* Styling for the text area */
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    body.dark-mode textarea {
+      background: #2e2e2e;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+    /* Custom button style */
+    .custom-button {
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 14px;
+      text-transform: lowercase;
+    }
+    .custom-button:hover {
+      background-color: #5e35b1;
+    }
+    /* Results container */
+    #results {
+      margin-top: 20px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      font-family: monospace;
+      background: #f7f7f7;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    body.dark-mode #results {
+      background: #2e2e2e;
+      border: 1px solid #444;
+    }
+    /* Label style */
+    #appLabel {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    /* Search container style */
+    #searchContainer {
+      margin-bottom: 10px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+    }
+    #searchInput {
+      padding: 8px;
+      font-size: 14px;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    body.dark-mode #searchInput {
+      background: #2e2e2e;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+    /* Highlighted text */
+    mark {
+      background-color: rgba(255, 200, 0, 0.4);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    body.dark-mode mark {
+      background-color: rgba(255, 200, 0, 0.3);
+      color: #ffffff;
+    }
+    /* AI-ism dictionary section */
+    #dictionarySection {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 15px;
+      background-color: #f9f9f9;
+    }
+    body.dark-mode #dictionarySection {
+      background: #1e1e1e;
+      border: 1px solid #444;
+    }
+    #aiIsmList {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      background: #f7f7f7;
+      margin-top: 10px;
+    }
+    body.dark-mode #aiIsmList {
+      background: #2e2e2e;
+      border: 1px solid #444;
+    }
+    .dictionary-entry {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin-bottom: 5px;
+      font-family: monospace;
+    }
+    .dictionary-entry button {
+      background-color: transparent;
+      border: none;
+      color: #cc0000;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 5px;
+      margin-right: 8px;
+    }
+    body.dark-mode .dictionary-entry button {
+      color: #ff6666;
+    }
+    /* Add new word form */
+    #addWordForm {
+      display: flex;
+      gap: 5px;
+      margin-top: 10px;
+    }
+    #newAiIsmInput {
+      flex-grow: 1;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    body.dark-mode #newAiIsmInput {
+      background: #2e2e2e;
+      color: #e0e0e0;
+      border: 1px solid #444;
+    }
+    /* Categories */
+    .category-header {
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 5px;
+    }
+    /* Stats display */
+    #statsDisplay {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    body.dark-mode #statsDisplay {
+      background: #333333;
+    }
+    /* Dictionary actions */
+    .dictionary-actions {
+      display: flex;
+      gap: 5px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    /* Storage indicator */
+    #storageIndicator {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #666;
+      padding: 5px;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+    }
+    body.dark-mode #storageIndicator {
+      color: #aaa;
+      background-color: #333333;
+    }
+    /* Debug panel */
+    #storageDebug {
+      background-color: #ffeeba;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      border: 1px solid #ffc107;
+    }
+    body.dark-mode #storageDebug {
+      background-color: #663c00;
+      border-color: #cc7a00;
+    }
+    /* Hide file input visually but keep it accessible */
+    #importFileInput {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <!-- Debug panel (hidden by default) -->
+  <div id="storageDebug" style="display: none;">
+    <h3>Storage Debug</h3>
+    <div id="storageStatus"></div>
+    <button class="custom-button" style="background-color: #ffa000; margin-top: 10px;" onclick="document.getElementById('storageDebug').style.display='none';">Close</button>
+  </div>
+  
+  <!-- Top row with controls -->
+  <div class="topRow">
+    <button id="darkModeToggle" title="switch dark and light mode">☀️</button>
+    <span id="appLabel">AI-ism Po Po →</span>
+    <button id="detectBtn" class="custom-button">detect AI-isms</button>
+    <button id="highlightBtn" class="custom-button">highlight in text</button>
+    <button id="copyBtn" class="custom-button">copy results</button>
+    <button id="clearBtn" class="custom-button">clear</button>
+  </div>
+  
+  <textarea id="textInput" placeholder="enter text here to analyze for AI-isms..."></textarea>
+  
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="filter results...">
+    <button id="clearSearchBtn" class="custom-button" style="background-color: gray;">ⓧ</button>
+  </div>
+  
+  <div id="results"></div>
+  <div id="statsDisplay" style="display: none;"></div>
+  
+  <!-- AI-ism Dictionary Section -->
+  <div id="dictionarySection">
+    <h3>AI-ism Dictionary</h3>
+    <div id="addWordForm">
+      <input type="text" id="newAiIsmInput" placeholder="add a new AI-ism to the list">
+      <button id="addWordBtn" class="custom-button">add</button>
+    </div>
+    <div class="dictionary-actions">
+      <button id="resetDictionaryBtn" class="custom-button" style="background-color: #d32f2f;">reset to defaults</button>
+      <button id="exportDictionaryBtn" class="custom-button" style="background-color: #388e3c;">export dictionary</button>
+      <!-- New import button and hidden file input -->
+      <input type="file" id="importFileInput" accept=".json">
+      <button id="importDictionaryBtn" class="custom-button" style="background-color: #0288d1;">import dictionary</button>
+      <button id="forceReloadBtn" class="custom-button" style="background-color: #ff9800;">force reload from storage</button>
+      <button id="debugBtn" class="custom-button" style="background-color: #795548;">debug storage</button>
+    </div>
+    <div id="storageIndicator">Loading dictionary...</div>
+    <div id="aiIsmList"></div>
+  </div>
+  
+  <script>
+    // Default AI-ism dictionary
+    const defaultAiIsmDictionary = {
+      // Words
+      "enigmatic": { category: "word", count: 0 },
+      "enigma": { category: "word", count: 0 },
+      "echo": { category: "word", count: 0 },
+      "echoes": { category: "word", count: 0 },
+      "echoing": { category: "word", count: 0 },
+      "whisper": { category: "word", count: 0 },
+      "whispers": { category: "word", count: 0 },
+      "whispering": { category: "word", count: 0 },
+      "juxtaposition": { category: "word", count: 0 },
+      "juxtapose": { category: "word", count: 0 },
+      "nuanced": { category: "word", count: 0 },
+      "nuance": { category: "word", count: 0 },
+      "delve": { category: "word", count: 0 },
+      "delving": { category: "word", count: 0 },
+      "unveil": { category: "word", count: 0 },
+      "unveiling": { category: "word", count: 0 },
+      "myriad": { category: "word", count: 0 },
+      "plethora": { category: "word", count: 0 },
+      "tapestry": { category: "word", count: 0 },
+      "dichotomy": { category: "word", count: 0 },
+      "resonance": { category: "word", count: 0 },
+      "resonate": { category: "word", count: 0 },
+      "profound": { category: "word", count: 0 },
+      "seamlessly": { category: "word", count: 0 },
+      "harmoniously": { category: "word", count: 0 },
+      "intertwine": { category: "word", count: 0 },
+      "intertwining": { category: "word", count: 0 },
+      "meticulous": { category: "word", count: 0 },
+      "meticulously": { category: "word", count: 0 },
+      "captivating": { category: "word", count: 0 },
+      "evocative": { category: "word", count: 0 },
+      "poignant": { category: "word", count: 0 },
+      "ephemeral": { category: "word", count: 0 },
+      "sublime": { category: "word", count: 0 },
+      "ethereal": { category: "word", count: 0 },
+      "visceral": { category: "word", count: 0 },
+      "symphony": { category: "word", count: 0 },
+      "symphonic": { category: "word", count: 0 },
+      "cacophony": { category: "word", count: 0 },
+      "crescendo": { category: "word", count: 0 },
+      "transcend": { category: "word", count: 0 },
+      "transcending": { category: "word", count: 0 },
+      "illuminate": { category: "word", count: 0 },
+      "illuminating": { category: "word", count: 0 },
+      "robust": { category: "word", count: 0 },
+      "synergy": { category: "word", count: 0 },
+      "synergistic": { category: "word", count: 0 },
+      "holistic": { category: "word", count: 0 },
+      "dynamic": { category: "word", count: 0 },
+      "dynamically": { category: "word", count: 0 },
+      
+      // Phrases
+      "dance between": { category: "phrase", count: 0 },
+      "delicate balance": { category: "phrase", count: 0 },
+      "rich tapestry": { category: "phrase", count: 0 },
+      "seamlessly blends": { category: "phrase", count: 0 },
+      "at its core": { category: "phrase", count: 0 },
+      "peeling back the layers": { category: "phrase", count: 0 },
+      "scratching the surface": { category: "phrase", count: 0 },
+      "the interplay between": { category: "phrase", count: 0 },
+      "masterfully executed": { category: "phrase", count: 0 },
+      "stands as a testament to": { category: "phrase", count: 0 },
+      "in the realm of": { category: "phrase", count: 0 },
+      "through the lens of": { category: "phrase", count: 0 },
+      "against the backdrop of": { category: "phrase", count: 0 },
+      "it's worth noting that": { category: "phrase", count: 0 },
+      "it's important to recognize": { category: "phrase", count: 0 },
+      "in essence": { category: "phrase", count: 0 },
+      "to put it simply": { category: "phrase", count: 0 },
+      "i'd be happy to": { category: "phrase", count: 0 },
+      
+      // Structural
+      "absolutely": { category: "structural", count: 0, note: "as opening word" },
+      "certainly": { category: "structural", count: 0, note: "as opening word" },
+      "i'd be happy to help": { category: "structural", count: 0, note: "as opening phrase" },
+      "moreover": { category: "structural", count: 0 },
+      "furthermore": { category: "structural", count: 0 },
+      "additionally": { category: "structural", count: 0 },
+      "tends to": { category: "structural", count: 0 },
+      "often": { category: "structural", count: 0 },
+      "generally": { category: "structural", count: 0 },
+      "typically": { category: "structural", count: 0 },
+      "indeed": { category: "structural", count: 0 },
+      "on one hand": { category: "structural", count: 0 },
+      "on the other hand": { category: "structural", count: 0 }
+    };
+    
+    // Initialize actual working dictionary
+    let aiIsmDictionary = {};
+    
+    // Variables to store analysis results
+    let totalChars = 0;
+    let totalWords = 0;
+    let totalAiIsms = 0;
+    let aiIsmOccurrences = {};
+    let currentOrder = 'alphabetical';
+    
+    // Save dictionary to localStorage with improved error handling and logging
+    function saveDictionary() {
+      try {
+        // Log dictionary before saving
+        console.log("Saving dictionary with " + Object.keys(aiIsmDictionary).length + " entries");
+        
+        // Save to localStorage
+        localStorage.setItem('aiIsmDictionary', JSON.stringify(aiIsmDictionary));
+        
+        // Verify the save worked by reading it back immediately
+        const savedData = localStorage.getItem('aiIsmDictionary');
+        const parsedData = savedData ? JSON.parse(savedData) : null;
+        const entriesCount = parsedData ? Object.keys(parsedData).length : 0;
+        
+        // Update indicator with confirmation
+        document.getElementById('storageIndicator').textContent = 
+          'Dictionary saved with ' + entriesCount + ' entries';
+        
+        // Update debug status
+        updateDebugStatus("Dictionary saved to localStorage", "success");
+        
+        return true;
+      } catch (e) {
+        console.error('Failed to save dictionary to localStorage:', e);
+        document.getElementById('storageIndicator').textContent = 
+          'Failed to save dictionary: ' + e.message;
+        
+        // Update debug status
+        updateDebugStatus("Error saving to localStorage: " + e.message, "error");
+        
+        return false;
+      }
+    }
+    
+    // Load dictionary from localStorage with improved debugging
+    function loadDictionary() {
+      try {
+        console.log("Loading dictionary from localStorage...");
+        updateDebugStatus("Attempting to load dictionary from localStorage...", "info");
+        
+        const savedDictionary = localStorage.getItem('aiIsmDictionary');
+        
+        // Check if we found any data
+        if (!savedDictionary) {
+          console.log("No dictionary found in localStorage");
+          updateDebugStatus("No saved dictionary found in localStorage", "warning");
+          return null;
+        }
+        
+        // Try to parse the data
+        const parsed = JSON.parse(savedDictionary);
+        const entryCount = Object.keys(parsed).length;
+        console.log(`Successfully loaded dictionary with ${entryCount} entries`);
+        updateDebugStatus(`Successfully loaded dictionary with ${entryCount} entries`, "success");
+        
+        return parsed;
+      } catch (e) {
+        console.error('Error loading dictionary from localStorage:', e);
+        updateDebugStatus("Error loading dictionary: " + e.message, "error");
+        return null;
+      }
+    }
+    
+    // Initialize dictionary with better error handling and logging
+    function initializeDictionary() {
+      // Try to load from localStorage first
+      const loadedDictionary = loadDictionary();
+      
+      if (loadedDictionary) {
+        // Use the loaded dictionary
+        aiIsmDictionary = loadedDictionary;
+        document.getElementById('storageIndicator').textContent = 
+          `Custom dictionary loaded with ${Object.keys(aiIsmDictionary).length} entries`;
+      } else {
+        // Use default dictionary
+        console.log("Using default dictionary");
+        aiIsmDictionary = JSON.parse(JSON.stringify(defaultAiIsmDictionary));
+        document.getElementById('storageIndicator').textContent = 
+          'Using default dictionary (will be saved in your browser)';
+      }
+      
+      // Render the dictionary display
+      renderDictionary();
+    }
+    
+    // Update the debug status panel
+    function updateDebugStatus(message, type = "info") {
+      const statusDiv = document.getElementById('storageStatus');
+      const debugPanel = document.getElementById('storageDebug');
+      
+      // Create a new status message with timestamp
+      const now = new Date();
+      const timestamp = now.toLocaleTimeString();
+      const statusMessage = document.createElement('div');
+      
+      // Style based on message type
+      let messageStyle = '';
+      switch(type) {
+        case 'error':
+          messageStyle = 'color: #d32f2f; font-weight: bold;';
+          break;
+        case 'warning':
+          messageStyle = 'color: #ff9800;';
+          break;
+        case 'success':
+          messageStyle = 'color: #388e3c;';
+          break;
+        default:
+          messageStyle = 'color: inherit;';
+      }
+      
+      statusMessage.innerHTML = `<span style="color: #666;">[${timestamp}]</span> <span style="${messageStyle}">${message}</span>`;
+      
+      // Add to the status div
+      statusDiv.appendChild(statusMessage);
+      
+      // Auto-scroll to bottom
+      statusDiv.scrollTop = statusDiv.scrollHeight;
+    }
+    
+    // Render the AI-ism dictionary list
+    function renderDictionary() {
+      const aiIsmList = document.getElementById('aiIsmList');
+      aiIsmList.innerHTML = '';
+      
+      // Group by category
+      const categories = {
+        'word': [],
+        'phrase': [],
+        'structural': []
+      };
+      
+      for (const [term, details] of Object.entries(aiIsmDictionary)) {
+        categories[details.category].push(term);
+      }
+      
+      // Sort entries alphabetically within each category
+      for (const category in categories) {
+        categories[category].sort();
+      }
+      
+      // Words section
+      const wordHeader = document.createElement('div');
+      wordHeader.className = 'category-header';
+      wordHeader.textContent = 'Words:';
+      aiIsmList.appendChild(wordHeader);
+      
+      categories.word.forEach(term => {
+        const entry = createDictionaryEntry(term);
+        aiIsmList.appendChild(entry);
+      });
+      
+      // Phrases section
+      const phraseHeader = document.createElement('div');
+      phraseHeader.className = 'category-header';
+      phraseHeader.textContent = 'Phrases:';
+      aiIsmList.appendChild(phraseHeader);
+      
+      categories.phrase.forEach(term => {
+        const entry = createDictionaryEntry(term);
+        aiIsmList.appendChild(entry);
+      });
+      
+      // Structural patterns section
+      const structuralHeader = document.createElement('div');
+      structuralHeader.className = 'category-header';
+      structuralHeader.textContent = 'Structural Patterns:';
+      aiIsmList.appendChild(structuralHeader);
+      
+      categories.structural.forEach(term => {
+        const entry = createDictionaryEntry(term);
+        aiIsmList.appendChild(entry);
+      });
+    }
+    
+    // Create a dictionary entry element
+    function createDictionaryEntry(term) {
+      const entryDiv = document.createElement('div');
+      entryDiv.className = 'dictionary-entry';
+      
+      // Create delete button and move it to the beginning (left side)
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '×';
+      deleteBtn.title = 'Remove from dictionary';
+      deleteBtn.addEventListener('click', function() {
+        delete aiIsmDictionary[term];
+        saveDictionary(); // Save changes to localStorage
+        renderDictionary();
+      });
+      
+      // Add the delete button first (on the left)
+      entryDiv.appendChild(deleteBtn);
+      
+      // Then add the term
+      const termSpan = document.createElement('span');
+      termSpan.textContent = term;
+      if (aiIsmDictionary[term].note) {
+        termSpan.textContent += ` (${aiIsmDictionary[term].note})`;
+      }
+      entryDiv.appendChild(termSpan);
+      
+      return entryDiv;
+    }
+    
+    // Detect AI-isms in the input text
+    function detectAiIsms(text) {
+      if (!text || text.trim().length === 0) {
+        return {};
+      }
+      
+      // Reset counts
+      for (const term in aiIsmDictionary) {
+        aiIsmDictionary[term].count = 0;
+      }
+      
+      // Count characters and words
+      totalChars = text.length;
+      const words = text.split(/\s+/).filter(word => word.length > 0);
+      totalWords = words.length;
+      
+      // Count AI-ism occurrences
+      const result = {};
+      
+      // Process one paragraph at a time for better phrase matching
+      const paragraphs = text.toLowerCase().split(/\n+/);
+      
+      paragraphs.forEach(paragraph => {
+        // Check for phrases first (to avoid double-counting)
+        for (const term in aiIsmDictionary) {
+          if (aiIsmDictionary[term].category === 'phrase' || aiIsmDictionary[term].category === 'structural') {
+            // Count occurrences in this paragraph
+            const termLower = term.toLowerCase();
+            const regex = new RegExp(termLower, 'gi');
+            const matches = paragraph.match(regex);
+            
+            if (matches) {
+              const count = matches.length;
+              aiIsmDictionary[term].count += count;
+              result[term] = (result[term] || 0) + count;
+            }
+          }
+        }
+        
+        // Now check for individual words
+        const wordsInParagraph = paragraph.split(/\s+/).filter(w => w.length > 0);
+        
+        wordsInParagraph.forEach(word => {
+          // Remove punctuation
+          const cleanWord = word.replace(/[!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~]/g, "").toLowerCase();
+          if (cleanWord === "") return;
+          
+          // Check if it's in our dictionary
+          if (aiIsmDictionary[cleanWord] && aiIsmDictionary[cleanWord].category === 'word') {
+            aiIsmDictionary[cleanWord].count++;
+            result[cleanWord] = (result[cleanWord] || 0) + 1;
+          }
+        });
+      });
+      
+      // Special check for "absolutely" and "certainly" as opening words
+      if (text.trim().toLowerCase().startsWith("absolutely")) {
+        aiIsmDictionary["absolutely"].count++;
+        result["absolutely"] = (result["absolutely"] || 0) + 1;
+      }
+      
+      if (text.trim().toLowerCase().startsWith("certainly")) {
+        aiIsmDictionary["certainly"].count++;
+        result["certainly"] = (result["certainly"] || 0) + 1;
+      }
+      
+      // Count the total AI-isms found
+      totalAiIsms = Object.values(result).reduce((sum, count) => sum + count, 0);
+      
+      return result;
+    }
+    
+    // Render the analysis results
+    function renderResults(order, filter = "") {
+      if (!aiIsmOccurrences || Object.keys(aiIsmOccurrences).length === 0) {
+        document.getElementById('results').textContent = "No AI-isms detected.";
+        document.getElementById('searchContainer').style.display = "none";
+        document.getElementById('statsDisplay').style.display = "none";
+        return;
+      }
+      
+      let entries = Object.entries(aiIsmOccurrences);
+      
+      // Apply filter if provided
+      if (filter) {
+        entries = entries.filter(([term]) =>
+          term.toLowerCase().includes(filter.toLowerCase())
+        );
+      }
+      
+      // Sort entries based on the selected order
+      if (order === 'alphabetical') {
+        entries.sort((a, b) => a[0].localeCompare(b[0]));
+      } else if (order === 'count') {
+        entries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+      }
+      
+      // Get distinct count
+      const uniqueAiIsmsCount = entries.length;
+      
+      // Create header
+      let header = "";
+      if (filter) {
+        header = `filtered ai-isms: ${uniqueAiIsmsCount} (out of ${Object.keys(aiIsmOccurrences).length})\n\n`;
+      } else {
+        header = `detected ai-isms: ${uniqueAiIsmsCount}\n\n`;
+      }
+      
+      // Build the results display
+      document.getElementById('results').textContent = header + entries.map(([term, count]) => {
+        const category = aiIsmDictionary[term] ? aiIsmDictionary[term].category : "unknown";
+        return `${term} (${category}): ${count}`;
+      }).join("\n");
+      
+      // Show the search container now that results exist
+      document.getElementById('searchContainer').style.display = "flex";
+      
+      // Update and show the stats display
+      renderStats();
+    }
+    
+    // Render statistics
+    function renderStats() {
+      const statsDisplay = document.getElementById('statsDisplay');
+      
+      // Calculate AI-ism density (per 100 words)
+      const aiIsmDensity = totalWords > 0 ? (totalAiIsms / totalWords * 100).toFixed(2) : 0;
+      
+      statsDisplay.innerHTML = `
+        <strong>Statistics:</strong>
+        Total Characters: ${totalChars}
+        Total Words: ${totalWords}
+        Total AI-isms: ${totalAiIsms}
+        AI-ism Density: ${aiIsmDensity}% (${totalAiIsms} per ${totalWords} words)
+      `;
+      
+      statsDisplay.style.display = "block";
+    }
+    
+    // Highlight AI-isms in the text input
+    function highlightAiIsmsInText() {
+      const textInput = document.getElementById('textInput');
+      const text = textInput.value;
+      
+      if (!text || text.trim().length === 0) {
+        alert("Please enter some text first.");
+        return;
+      }
+      
+      // Create a highlighted version
+      let highlightedText = text;
+      
+      // Sort terms by length (descending) to handle overlaps properly
+      const terms = Object.keys(aiIsmDictionary).sort((a, b) => b.length - a.length);
+      
+      // First, detect all AI-isms
+      const occurrences = detectAiIsms(text);
+      
+      // Only highlight terms that were found
+      const foundTerms = Object.keys(occurrences);
+      
+      // Create a temporary div to manipulate the HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.textContent = text;
+      
+      // Highlight phrases and structural patterns first
+      foundTerms.filter(term => 
+        aiIsmDictionary[term] && 
+        (aiIsmDictionary[term].category === 'phrase' || aiIsmDictionary[term].category === 'structural')
+      ).sort((a, b) => b.length - a.length).forEach(term => {
+        const regex = new RegExp(`(${term})`, 'gi');
+        tempDiv.innerHTML = tempDiv.innerHTML.replace(regex, '<mark>$1</mark>');
+      });
+      
+      // Then highlight individual words, being careful not to highlight inside already highlighted text
+      foundTerms.filter(term => 
+        aiIsmDictionary[term] && aiIsmDictionary[term].category === 'word'
+      ).forEach(term => {
+        // Create a regex that matches whole words only and not inside markup
+        const regex = new RegExp(`\\b(${term})\\b(?![^<]*>)`, 'gi');
+        tempDiv.innerHTML = tempDiv.innerHTML.replace(regex, '<mark>$1</mark>');
+      });
+      
+      // Create a new result window with the highlighted text
+      const resultWindow = window.open('', '_blank', 'width=800,height=600');
+      
+      // Apply styling to the new window
+      resultWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>AI-ism Highlighting</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              line-height: 1.6;
+              margin: 20px;
+              color: #333;
+            }
+            mark {
+              background-color: rgba(255, 200, 0, 0.4);
+              padding: 0 2px;
+              border-radius: 2px;
+            }
+            .stats {
+              margin-top: 20px;
+              padding: 10px;
+              background-color: #f5f5f5;
+              border-radius: 4px;
+            }
+          </style>
+        </head>
+        <body>
+          <h2>AI-ism Highlighting Results</h2>
+          <div>${tempDiv.innerHTML}</div>
+          <div class="stats">
+            <p><strong>Statistics:</strong></p>
+            <p>Total Characters: ${totalChars}</p>
+            <p>Total Words: ${totalWords}</p>
+            <p>Total AI-isms Found: ${totalAiIsms}</p>
+            <p>AI-ism Density: ${(totalWords > 0 ? (totalAiIsms / totalWords * 100).toFixed(2) : 0)}%</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+    
+    // Export dictionary to JSON file
+    function exportDictionary() {
+      const dataStr = JSON.stringify(aiIsmDictionary, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportLink = document.createElement('a');
+      exportLink.setAttribute('href', dataUri);
+      exportLink.setAttribute('download', 'ai-ism-dictionary.json');
+      document.body.appendChild(exportLink);
+      exportLink.click();
+      document.body.removeChild(exportLink);
+      
+      updateDebugStatus("Dictionary exported to file", "success");
+    }
+    
+    // Import dictionary from file
+    function importDictionary(file) {
+      const reader = new FileReader();
+      
+      reader.onload = function(event) {
+        try {
+          updateDebugStatus("Reading imported file...", "info");
+          const importedData = JSON.parse(event.target.result);
+          
+          // Validate dictionary structure
+          if (!validateDictionaryStructure(importedData)) {
+            alert("The imported file doesn't contain a valid AI-ism dictionary. Make sure you're importing a file that was exported from this tool.");
+            updateDebugStatus("Import failed: Invalid dictionary structure", "error");
+            return;
+          }
+          
+          // Ask user if they want to merge or replace
+          const shouldMerge = confirm(
+            "Do you want to merge the imported dictionary with your existing one?\n\n" +
+            "• Click OK to merge (keeping your existing entries and adding new ones)\n" +
+            "• Click Cancel to replace (this will remove your current dictionary)"
+          );
+          
+          let newDictionary;
+          let statusMessage;
+          
+          if (shouldMerge) {
+            // Merge dictionaries
+            newDictionary = mergeDictionaries(aiIsmDictionary, importedData);
+            statusMessage = `Merged imported dictionary (${Object.keys(importedData).length} entries) with existing dictionary`;
+          } else {
+            // Replace dictionary
+            newDictionary = importedData;
+            statusMessage = `Replaced dictionary with imported data (${Object.keys(importedData).length} entries)`;
+          }
+          
+          // Update the dictionary
+          aiIsmDictionary = newDictionary;
+          
+          // Save to localStorage
+          saveDictionary();
+          
+          // Update UI
+          renderDictionary();
+          
+          alert(`Dictionary successfully ${shouldMerge ? "merged" : "imported"} with ${Object.keys(importedData).length} entries.`);
+          updateDebugStatus(statusMessage, "success");
+          
+        } catch (e) {
+          alert("Error importing dictionary: " + e.message);
+          updateDebugStatus("Import error: " + e.message, "error");
+        }
+      };
+      
+      reader.onerror = function() {
+        alert("Failed to read the file. Please try again.");
+        updateDebugStatus("Import failed: Could not read file", "error");
+      };
+      
+      reader.readAsText(file);
+    }
+    
+    // Validate the structure of an imported dictionary
+    function validateDictionaryStructure(dict) {
+      // Check if it's an object
+      if (typeof dict !== 'object' || dict === null || Array.isArray(dict)) {
+        return false;
+      }
+      
+      // Ensure it has at least one entry
+      if (Object.keys(dict).length === 0) {
+        return false;
+      }
+      
+      // Check a sample of entries to validate structure
+      for (const term in dict) {
+        const entry = dict[term];
+        
+        // Check basic structure
+        if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+          return false;
+        }
+        
+        // Check if it has a category
+        if (!entry.hasOwnProperty('category')) {
+          return false;
+        }
+        
+        // Check if the category is valid
+        if (!['word', 'phrase', 'structural'].includes(entry.category)) {
+          return false;
+        }
+        
+        // Must have a count property
+        if (!entry.hasOwnProperty('count')) {
+          return false;
+        }
+        
+        // For simplicity, we'll check just a few entries
+        if (Object.keys(dict).indexOf(term) > 5) {
+          break;
+        }
+      }
+      
+      return true;
+    }
+    
+    // Merge two dictionaries
+    function mergeDictionaries(currentDict, importedDict) {
+      const result = {...currentDict};
+      let conflicts = 0;
+      
+      for (const term in importedDict) {
+        if (result[term]) {
+          // Term already exists - keep category from current dict
+          conflicts++;
+        } else {
+          // New term - add it from imported dict
+          result[term] = importedDict[term];
+          // Reset count to 0 (since counts are session-specific)
+          result[term].count = 0;
+        }
+      }
+      
+      if (conflicts > 0) {
+        console.log(`Merge info: ${conflicts} conflicting terms were skipped (existing entries were kept)`);
+      }
+      
+      return result;
+    }
+    
+    // Reset dictionary to defaults
+    function resetToDefaults() {
+      if (confirm("Are you sure you want to reset to the default dictionary? This will remove any custom AI-isms you've added.")) {
+        aiIsmDictionary = JSON.parse(JSON.stringify(defaultAiIsmDictionary));
+        saveDictionary();
+        renderDictionary();
+        updateDebugStatus("Dictionary reset to defaults", "warning");
+      }
+    }
+    
+    // Check localStorage accessibility
+    function checkStorage() {
+      try {
+        // Try to set and retrieve a test item
+        localStorage.setItem('testItem', 'test');
+        const testItem = localStorage.getItem('testItem');
+        localStorage.removeItem('testItem');
+        
+        if (testItem === 'test') {
+          updateDebugStatus("localStorage is working properly", "success");
+          return true;
+        } else {
+          updateDebugStatus("localStorage test failed: retrieved value doesn't match", "error");
+          return false;
+        }
+      } catch (e) {
+        updateDebugStatus("localStorage test failed with error: " + e.message, "error");
+        return false;
+      }
+    }
+    
+    // Show debug status of localStorage
+    function showStorageDebug() {
+      document.getElementById('storageDebug').style.display = 'block';
+      document.getElementById('storageStatus').innerHTML = '';
+      
+      // Check localStorage access
+      updateDebugStatus("Checking localStorage accessibility...", "info");
+      const isStorageWorking = checkStorage();
+      
+      // Check if our dictionary is already saved
+      const savedDict = localStorage.getItem('aiIsmDictionary');
+      if (savedDict) {
+        try {
+          const parsed = JSON.parse(savedDict);
+          const entryCount = Object.keys(parsed).length;
+          updateDebugStatus(`Found saved dictionary with ${entryCount} entries`, "info");
+        } catch (e) {
+          updateDebugStatus("Found saved dictionary but couldn't parse it: " + e.message, "error");
+        }
+      } else {
+        updateDebugStatus("No saved dictionary found", "warning");
+      }
+      
+      // Show storage quota info if available
+      if (navigator.storage && navigator.storage.estimate) {
+        navigator.storage.estimate().then(estimate => {
+          const usedMB = (estimate.usage / (1024 * 1024)).toFixed(2);
+          const quotaMB = (estimate.quota / (1024 * 1024)).toFixed(2);
+          const percentUsed = ((estimate.usage / estimate.quota) * 100).toFixed(2);
+          updateDebugStatus(`Storage usage: ${usedMB}MB of ${quotaMB}MB (${percentUsed}%)`, "info");
+        });
+      }
+    }
+    
+    // Initialize the UI and set up event handlers
+    function initializeUI() {
+      // Dark mode toggle
+      document.getElementById('darkModeToggle').addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+      });
+      
+      // Detect AI-isms button
+      document.getElementById('detectBtn').addEventListener('click', function() {
+        const text = document.getElementById('textInput').value;
+        if (!text.trim()) {
+          alert("Please enter some text to analyze.");
+          return;
+        }
+        
+        aiIsmOccurrences = detectAiIsms(text);
+        currentOrder = 'count'; // Default to count order for results
+        renderResults(currentOrder);
+      });
+      
+      // Highlight AI-isms button
+      document.getElementById('highlightBtn').addEventListener('click', function() {
+        highlightAiIsmsInText();
+      });
+      
+      // Search functionality
+      document.getElementById('searchInput').addEventListener('input', function() {
+        renderResults(currentOrder, this.value);
+      });
+      
+      // Clear search button
+      document.getElementById('clearSearchBtn').addEventListener('click', function() {
+        document.getElementById('searchInput').value = "";
+        renderResults(currentOrder, "");
+      });
+      
+      // Copy button
+      document.getElementById('copyBtn').addEventListener('click', function() {
+        const resultsText = document.getElementById('results').textContent;
+        if (!resultsText) {
+          alert("No results to copy.");
+          return;
+        }
+        
+        navigator.clipboard.writeText(resultsText)
+          .then(() => alert("Results copied to clipboard!"))
+          .catch(() => alert("Failed to copy results."));
+      });
+      
+      // Clear button
+      document.getElementById('clearBtn').addEventListener('click', function() {
+        document.getElementById('textInput').value = "";
+        document.getElementById('results').textContent = "";
+        document.getElementById('statsDisplay').style.display = "none";
+        aiIsmOccurrences = {};
+        document.getElementById('searchContainer').style.display = "none";
+      });
+      
+      // Add new AI-ism button
+      document.getElementById('addWordBtn').addEventListener('click', function() {
+        const newTermInput = document.getElementById('newAiIsmInput');
+        const newTerm = newTermInput.value.trim().toLowerCase();
+        
+        if (!newTerm) {
+          alert("Please enter a term to add.");
+          return;
+        }
+        
+        // Check if term already exists
+        if (aiIsmDictionary[newTerm]) {
+          alert(`"${newTerm}" is already in the dictionary.`);
+          return;
+        }
+        
+        // Add the new term (default as "word" category)
+        let category = "word";
+        
+        // Simple heuristic: if it contains a space, it's a phrase
+        if (newTerm.includes(" ")) {
+          category = "phrase";
+        }
+        
+        aiIsmDictionary[newTerm] = { category: category, count: 0 };
+        
+        // Save to localStorage
+        const saveSuccess = saveDictionary();
+        if (saveSuccess) {
+          alert(`Added "${newTerm}" to dictionary and saved to browser storage.`);
+        } else {
+          alert(`Added "${newTerm}" to dictionary but could not save to browser storage.`);
+        }
+        
+        // Re-render the dictionary
+        renderDictionary();
+        
+        // Clear the input
+        newTermInput.value = "";
+      });
+      
+      // Reset dictionary button
+      document.getElementById('resetDictionaryBtn').addEventListener('click', function() {
+        resetToDefaults();
+      });
+      
+      // Export dictionary button
+      document.getElementById('exportDictionaryBtn').addEventListener('click', function() {
+        exportDictionary();
+      });
+      
+      // Import dictionary button
+      document.getElementById('importDictionaryBtn').addEventListener('click', function() {
+        document.getElementById('importFileInput').click();
+      });
+      
+      // File input change handler
+      document.getElementById('importFileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Check if it's a JSON file
+        if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+          alert("Please select a JSON file. The file should have been exported from this tool.");
+          return;
+        }
+        
+        // Process the file
+        importDictionary(file);
+        
+        // Reset the file input so the same file can be selected again
+        this.value = '';
+      });
+      
+      // Force reload button
+      document.getElementById('forceReloadBtn').addEventListener('click', function() {
+        initializeDictionary();
+        alert("Dictionary reloaded from localStorage");
+      });
+      
+      // Debug button
+      document.getElementById('debugBtn').addEventListener('click', function() {
+        showStorageDebug();
+      });
+    }
+    
+    // Wait for the full page to load before initializing
+    window.addEventListener('load', function() {
+      console.log("Window fully loaded, initializing application...");
+      
+      // Initialize the UI
+      initializeUI();
+      
+      // Initialize the dictionary from localStorage or defaults
+      initializeDictionary();
+    });
+  </script>
+</body>
+</html>

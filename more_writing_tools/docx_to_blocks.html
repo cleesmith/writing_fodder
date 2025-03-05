@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Display DOCX as blocks</title>
+  <style>
+    :root {
+      --button-bg-color: #007bff;
+      --button-text-color: #ffffff;
+      --chapter-border-color: #ff9800;
+      --chapter-bg-dark: #1e1e1e;
+      --chapter-bg-light: #fff7e6;
+    }
+    /* Base (Light Mode) styles */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #ffffff;
+      color: #000000;
+    }
+    .docxBlock {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
+      background: #f7f7f7;
+    }
+    /* Highlight chapter blocks in light mode */
+    .docxBlock.chapter {
+      border-width: 2px;
+      border-color: var(--chapter-border-color);
+      background: var(--chapter-bg-light);
+    }
+    /* Dark Mode overrides */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    body.dark-mode .docxBlock {
+      border: 1px solid #444;
+      background: #2e2e2e;
+    }
+    /* Highlight chapter blocks in dark mode */
+    body.dark-mode .docxBlock.chapter {
+      border-width: 2px;
+      border-color: var(--chapter-border-color);
+      background: var(--chapter-bg-dark);
+    }
+    .docxHeader {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .docxHeader button {
+      font-size: 14px;
+      padding: 4px 8px;
+      cursor: pointer;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    .docxHeader button:hover {
+      background-color: #0056b3;
+    }
+    .docxBlock h1,
+    .docxBlock h2,
+    .docxBlock h3,
+    .docxBlock h4,
+    .docxBlock h5,
+    .docxBlock h6 {
+      margin: 0 0 10px;
+    }
+    /* Dark mode toggle button (simple symbol style) */
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: var(--text-color);
+      border: 1px solid var(--text-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    /* Custom file input button */
+    .custom-file-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .custom-file-button:hover {
+      background-color: #0056b3;
+    }
+    /* Container for buttons in one row */
+    .buttonRow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    /* A small message style if nothing is found */
+    .emptyMessage {
+      font-style: italic;
+      margin-top: 20px;
+      color: #888;
+    }
+    body.dark-mode .emptyMessage {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <!-- Hidden file input -->
+  <input type="file" id="docxInput" accept=".docx" style="display: none;">
+  <!-- Button row for custom file input and dark mode toggle -->
+  <div class="buttonRow">
+    <label for="docxInput" class="custom-file-button">Select .docx file</label>
+    <button id="darkModeToggle">☀️</button>
+  </div>
+  <div id="docxResults"></div>
+
+  <!-- Include Mammoth.js -->
+  <script src="js/mammoth.browser.min.js"></script>
+  <script>
+    // Toggle dark/light mode using a simple symbol button.
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+    
+    document.getElementById("docxInput").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+        mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
+          .then(function(result) {
+            // Parse the generated HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(result.value, "text/html");
+            // Select paragraphs and heading elements
+            const blocks = doc.querySelectorAll("p, h1, h2, h3, h4, h5, h6");
+            
+            const resultsDiv = document.getElementById("docxResults");
+            resultsDiv.innerHTML = "";  // Clear previous results
+
+            // If no blocks found, show a small message
+            if (blocks.length === 0) {
+              const emptyMsg = document.createElement("div");
+              emptyMsg.className = "emptyMessage";
+              emptyMsg.textContent = "No text blocks found in the .docx file.";
+              resultsDiv.appendChild(emptyMsg);
+              return;
+            }
+
+            blocks.forEach((block, index) => {
+              const textRaw = block.textContent.trim();
+              const tagName = block.tagName ? block.tagName.toLowerCase() : "p";
+              
+              // Create a container for each block
+              const container = document.createElement("div");
+              container.className = "docxBlock";
+              
+              // Identify "chapter" headings (optional)
+              if (tagName.startsWith('h') || /^chapter\s+\d+/i.test(textRaw)) {
+                container.classList.add("chapter");
+              }
+              
+              // Create a header with the block number + tag type
+              const headerDiv = document.createElement("div");
+              headerDiv.className = "docxHeader";
+              headerDiv.textContent = `Block ${index + 1} <${tagName}>`;
+              
+              // Create a "Copy" button
+              const copyButton = document.createElement("button");
+              copyButton.textContent = "Copy";
+              copyButton.addEventListener("click", function() {
+                navigator.clipboard.writeText(textRaw)
+                  .then(() => alert(`Block ${index + 1} copied to clipboard!`))
+                  .catch(() => alert(`Failed to copy Block ${index + 1}.`));
+              });
+              
+              headerDiv.appendChild(copyButton);
+              
+              // Create a content container to hold the block's HTML
+              const contentDiv = document.createElement("div");
+              contentDiv.innerHTML = block.outerHTML;
+              
+              // Assemble the container
+              container.appendChild(headerDiv);
+              container.appendChild(contentDiv);
+              
+              // Add the container to the results
+              resultsDiv.appendChild(container);
+            });
+          })
+          .catch(function(error) {
+            console.error("Error converting DOCX:", error);
+
+            // If an error occurs, we can show a message
+            const resultsDiv = document.getElementById("docxResults");
+            resultsDiv.innerHTML = "";
+            const errorMsg = document.createElement("div");
+            errorMsg.className = "emptyMessage";
+            errorMsg.textContent = "Failed to parse the .docx file. Check the console for details.";
+            resultsDiv.appendChild(errorMsg);
+          });
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>

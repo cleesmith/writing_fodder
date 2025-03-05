@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Wrap Paragraphs</title>
+    <style>
+        :root {
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --button-bg-color: #007bff;
+            --button-hover-bg-color: #0056b3;
+            --button-text-color: #ffffff;
+        }
+
+        body.dark-mode {
+            --background-color: #121212;
+            --text-color: #e0e0e0;
+            --button-bg-color: #1e90ff;
+            --button-hover-bg-color: #1a73e8;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            width: calc(100% - 40px);
+            height: calc(100% - 160px);
+            box-sizing: border-box;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border: 1px solid #ccc;
+            padding: 10px;
+            resize: none;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover {
+            background-color: var(--button-hover-bg-color);
+        }
+
+        button:active {
+            transform: scale(0.95);
+            opacity: 0.9;
+        }
+
+        #darkModeToggle {
+            font-size: 20px;
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="title">Wrap Paragraphs to copy/paste for: reading</div>
+    <textarea id="inputText"></textarea>
+    <div class="buttons">
+        <button id="wrapButton">Wrap</button>
+        <button id="copyButton">Copy</button>
+        <button id="clearButton">Clear</button>
+        <button id="darkModeToggle">☀️</button>
+    </div>
+
+    <script>
+        function focusTextarea() {
+            document.getElementById('inputText').focus();
+        }
+
+        window.onload = focusTextarea;
+
+        document.getElementById('wrapButton').addEventListener('click', function() {
+            var inputText = document.getElementById('inputText').value;
+            var wrappedText = wrapText(inputText);
+            document.getElementById('inputText').value = wrappedText;
+            focusTextarea();
+        });
+
+        document.getElementById('copyButton').addEventListener('click', function() {
+            var inputText = document.getElementById('inputText').value;
+            navigator.clipboard.writeText(inputText).then(() => {
+                alert("Text copied to clipboard!");
+                focusTextarea();
+            }).catch(() => {
+                alert("Failed to copy text. Please try again.");
+                focusTextarea();
+            });
+        });
+
+        document.getElementById('clearButton').addEventListener('click', function() {
+            document.getElementById('inputText').value = '';
+            focusTextarea();
+        });
+
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌑';
+            focusTextarea();
+        });
+
+        function wrapText(text) {
+            // Wrap each paragraph to a maximum line length of 70 characters
+            return text
+                .split(/\n{2,}/) // Split by paragraphs
+                .map(para => wrapParagraph(para, 70)) // Wrap each paragraph
+                .join('\n\n'); // Join paragraphs with double newlines
+        }
+
+        function wrapParagraph(para, maxLength) {
+            const words = para.split(/\s+/);
+            let wrapped = '';
+            let line = '';
+
+            words.forEach(word => {
+                if (line.length + word.length + 1 > maxLength) {
+                    wrapped += line.trim() + '\n';
+                    line = word + ' ';
+                } else {
+                    line += word + ' ';
+                }
+            });
+
+            if (line.trim()) {
+                wrapped += line.trim();
+            }
+
+            return wrapped;
+        }
+    </script>
+</body>
+</html>

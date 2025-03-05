@@ -96,4 +96,31 @@ If you run into problems:
 - Verify that your Anthropic account has the required Tier 2 or Tier 3 access
 - Try using shorter chapters if you're hitting token limits
 
+---
+
+## Companion Browser Tools for Writers
+
+This repository also includes a collection of browser-based HTML/JavaScript tools that work locally in your browser without sending data to any server. These tools complement the Next Chapter Writer by helping you format, analyze, and prepare your text for different publishing platforms:
+
+### File Conversion Tools
+- DOCX to plain text (.txt)
+- EPUB to plain text (.txt)
+- EPUB to HTML (.html)
+- Markdown to plain text (.txt)
+- PDF to plain text (.txt)
+- Text (.txt) to HTML (.html)
+- Text to Vellum to DOCX (.docx)
+
+### Text Analysis Tools
+- Word Frequency Counter - identifies commonly used words and potential overuse
+- AI-isms Detector - helps spot common AI writing patterns and phrases
+- DOCX HTML Block Viewer - assists with debugging document formatting
+
+### Formatting Tools
+- Paragraph Wrapper - formats text with line breaks at 70 characters (ideal for reading)
+- Paragraph Unwrapper - removes line breaks (useful for Vellum and TTS)
+- Text to Proper Chunks - formats text in 1000-5000 character segments for TextToSpeech
+
+All browser tools work directly in your web browser without sending data to a server, ensuring your writing remains private and secure.
+
 Happy writing!

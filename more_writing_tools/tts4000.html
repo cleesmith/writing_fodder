@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chunk text for TTS</title>
+  <style>
+    :root {
+      --background-color: #ffffff;
+      --text-color: #000000;
+      --button-bg-color: #007bff;
+      --button-hover-bg-color: #0056b3;
+      --button-text-color: #ffffff;
+    }
+
+    body.dark-mode {
+      --background-color: #121212;
+      --text-color: #e0e0e0;
+      --button-bg-color: #1e90ff;
+      --button-hover-bg-color: #1a73e8;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      box-sizing: border-box;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      border: 1px solid #ccc;
+      padding: 10px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .controls label {
+      font-size: 16px;
+      text-transform: lowercase;
+    }
+    
+    .controls input[type="number"] {
+      width: 80px;
+      padding: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+      text-transform: lowercase;
+    }
+
+    button:hover {
+      background-color: var(--button-hover-bg-color);
+    }
+
+    button:active {
+      transform: scale(0.95);
+      opacity: 0.9;
+    }
+
+    /* Dark/light toggle button styles */
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: var(--text-color);
+      border: 1px solid var(--text-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    /* When NOT in dark mode, darken the toggle button’s background 
+       so the white crescent moon is visible. */
+    body:not(.dark-mode) #darkModeToggle {
+      background-color: #444;
+      color: #fff;
+      border-color: #444;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    
+    /* Container for displaying chunk results */
+    #chunkResults {
+      margin-top: 20px;
+    }
+    
+    .chunk {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: var(--background-color);
+    }
+    
+    .chunk-header {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: lowercase;
+    }
+    
+    .chunk pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 0;
+      padding: 5px;
+      background-color: #f7f7f7;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      color: var(--text-color);
+    }
+    
+    /* Dark mode overrides for chunk display */
+    body.dark-mode .chunk pre {
+      background-color: #2e2e2e;
+      border-color: #444;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="title">Chunk text for TTS</div>
+  <textarea id="inputText" placeholder="paste your text here, this works best with unwrapped text . . ."></textarea>
+  
+  <div class="controls">
+    <button id="darkModeToggle" title="switch dark and light mode">☀️</button>
+    &nbsp;&nbsp;
+
+    <label for="maxCharsInput">
+      max chars: <span class="range-message"><i>(range: 1000 to 5000, otherwise: 4000)</i></span>
+    </label>
+    <input type="number" id="maxCharsInput" value="4000" min="1000" max="5000" title="Range: 1000 to 4000">
+    &nbsp;&nbsp;
+
+    <button id="chunkButton">⬱ chunkify</button>
+    &nbsp;&nbsp;
+    <button id="clearButton">clear</button>
+  </div>
+  
+  <!-- Container for displaying chunk results -->
+  <div id="chunkResults"></div>
+
+  <script>
+    // Focus the textarea on load or after actions.
+    function focusTextarea() {
+      document.getElementById('inputText').focus();
+    }
+    window.onload = focusTextarea;
+
+    /**
+     * Splits the provided text into chunks of up to maxChars characters,
+     * ensuring that each chunk ends at the end of a paragraph.
+     * Paragraphs are assumed to be separated by one or more blank lines.
+     * If a single paragraph is longer than maxChars, it becomes its own chunk.
+     */
+    function getChunks(text, maxChars = 5000) {
+      const paragraphs = text.split(/\n\s*\n/)
+                             .map(p => p.trim())
+                             .filter(p => p.length > 0);
+      
+      let chunks = [];
+      let currentChunk = [];
+      let currentLength = 0;
+      
+      function flushChunk() {
+        if (currentChunk.length > 0) {
+          chunks.push(currentChunk.join("\n\n"));
+          currentChunk = [];
+          currentLength = 0;
+        }
+      }
+      
+      paragraphs.forEach(para => {
+        // If a single paragraph exceeds the limit, flush any current chunk and add it separately.
+        if (para.length > maxChars) {
+          flushChunk();
+          chunks.push(para);
+          return;
+        }
+        
+        // Calculate new length if this paragraph is added.
+        let newLength = currentChunk.length === 0 
+                        ? para.length 
+                        : currentLength + 2 + para.length;  // 2 for the "\n\n"
+        
+        if (newLength > maxChars) {
+          flushChunk();
+          currentChunk.push(para);
+          currentLength = para.length;
+        } else {
+          currentChunk.push(para);
+          currentLength = newLength;
+        }
+      });
+      
+      flushChunk();
+      return chunks;
+    }
+    
+    // When "chunkify" is clicked, process the input text and display each chunk with its own copy button.
+    document.getElementById('chunkButton').addEventListener('click', function() {
+      const inputText = document.getElementById('inputText').value;
+      const maxCharsInput = document.getElementById('maxCharsInput').value;
+      const maxChars = parseInt(maxCharsInput, 10) || 4000;
+      
+      const chunksArray = getChunks(inputText, maxChars);
+      
+      const resultsDiv = document.getElementById('chunkResults');
+      resultsDiv.innerHTML = "";  // Clear previous results
+      
+      chunksArray.forEach((chunk, index) => {
+        // Calculate visible character count (excluding newlines) and word count.
+        const visibleCharCount = chunk.replace(/\n/g, '').length;
+        const wordCount = chunk.split(/\s+/).filter(word => word.length > 0).length;
+        
+        // Create container for this chunk.
+        const chunkDiv = document.createElement("div");
+        chunkDiv.className = "chunk";
+        
+        // Create header with divider info.
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "chunk-header";
+        headerDiv.textContent = ` chunk ${index + 1} (characters: ${visibleCharCount}, words: ${wordCount})`;
+        
+        // Create a "copy chunk" button.
+        const copyButton = document.createElement("button");
+        copyButton.textContent = "copy chunk";
+        copyButton.addEventListener("click", function() {
+          navigator.clipboard.writeText(chunk)
+            .then(() => alert(`chunk ${index + 1} copied to clipboard!`))
+            .catch(() => alert(`failed to copy chunk ${index + 1}.`));
+        });
+        
+        // Append the copy button to the header.
+        headerDiv.appendChild(copyButton);
+        
+        // Create a pre element to display the chunk text.
+        const pre = document.createElement("pre");
+        pre.textContent = chunk;
+        
+        // Assemble the chunk container.
+        chunkDiv.appendChild(headerDiv);
+        chunkDiv.appendChild(pre);
+        
+        // Add the chunk to the results container.
+        resultsDiv.appendChild(chunkDiv);
+      });
+      
+      focusTextarea();
+    });
+
+    // Clear button: clears both the input textarea and the chunk results.
+    document.getElementById('clearButton').addEventListener('click', function() {
+      document.getElementById('inputText').value = '';
+      document.getElementById('chunkResults').innerHTML = '';
+      focusTextarea();
+    });
+
+    // Dark Mode Toggle: toggles dark/light mode.
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+  </script>
+</body>
+</html>

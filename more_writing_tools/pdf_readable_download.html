@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PDF to Plain Text Converter</title>
+  <style>
+    :root {
+      --button-bg-color: #007bff;
+      --button-text-color: #ffffff;
+      --border-color: #ccc;
+      --background-light: #ffffff;
+      --text-light: #000000;
+      --background-dark: #121212;
+      --text-dark: #e0e0e0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: var(--background-light);
+      color: var(--text-light);
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-mode {
+      background: var(--background-dark);
+      color: var(--text-dark);
+    }
+    .buttonRow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .custom-file-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .custom-file-button:hover {
+      background-color: #0056b3;
+    }
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent;
+      color: inherit;
+      border: 1px solid currentColor;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      text-align: center;
+    }
+    #darkModeToggle:hover {
+      filter: brightness(1.2);
+    }
+    #downloadButton {
+      display: none;
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #downloadButton:hover {
+      background-color: #0056b3;
+    }
+    #pdfText {
+      white-space: pre-wrap;
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="buttonRow">
+    <!-- Dark mode toggle button at the front -->
+    <button id="darkModeToggle" title="Switch dark and light mode">☀️</button>
+    
+    <span>Convert</span>
+    
+    <!-- File input button labeled "selected .pdf file" -->
+    <label for="pdfInput" class="custom-file-button">selected .pdf file</label>
+    
+    <span>... to plain text below</span>
+    
+    <button id="downloadButton">or <i>download</i> as .txt file</button>
+  </div>
+  
+  <!-- Hidden file input -->
+  <input type="file" id="pdfInput" accept=".pdf" style="display: none;">
+  
+  <div id="pdfText"></div>
+  
+  <!-- PDF.js library -->
+  <script src="js/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "js/pdf.worker.min.js";
+  </script>
+  <script>
+    // Toggle dark/light mode
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+  
+    const pdfInput = document.getElementById("pdfInput");
+    const pdfTextDiv = document.getElementById("pdfText");
+    const downloadButton = document.getElementById("downloadButton");
+    let combinedText = "";
+
+    let pdfBaseName = "pdfToText";
+  
+    pdfInput.addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // derive base name (remove .pdf extension)
+      // e.g. MyStory.pdf => MyStory
+      pdfBaseName = file.name.replace(/\.[^/.]+$/, "");
+      
+      // Read the file as an ArrayBuffer
+      const arrayBuffer = await file.arrayBuffer();
+  
+      // Load the PDF using PDF.js
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      combinedText = "";
+      
+      // Loop through each page and extract text
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const content = await page.getTextContent();
+        // Join all text items on the page and add two empty lines at the end
+        const pageText = content.items.map(item => item.str).join(" ");
+        combinedText += pageText.trim() + "\n\n\n\n";
+      }
+      
+      // Display the extracted text on the webpage
+      pdfTextDiv.textContent = combinedText;
+      
+      // Reveal the download button
+      downloadButton.style.display = "inline-block";
+    });
+  
+    // Download the combined text as a .txt file
+    downloadButton.addEventListener("click", () => {
+      const blob = new Blob([combinedText], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = pdfBaseName + ".txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>

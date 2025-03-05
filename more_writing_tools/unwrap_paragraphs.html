@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Unwrap Paragraphs</title>
+    <style>
+        :root {
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --button-bg-color: #007bff;
+            --button-hover-bg-color: #0056b3;
+            --button-text-color: #ffffff;
+        }
+
+        body.dark-mode {
+            --background-color: #121212;
+            --text-color: #e0e0e0;
+            --button-bg-color: #1e90ff;
+            --button-hover-bg-color: #1a73e8;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            width: calc(100% - 40px);
+            height: calc(100% - 160px);
+            box-sizing: border-box;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border: 1px solid #ccc;
+            padding: 10px;
+            resize: none;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover {
+            background-color: var(--button-hover-bg-color);
+        }
+
+        button:active {
+            transform: scale(0.95);
+            opacity: 0.9;
+        }
+
+        #darkModeToggle {
+            font-size: 20px;
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="title">Unwrap Paragraphs to copy/paste to: TTS/audio, Vellum</div>
+    <textarea id="inputText"></textarea>
+    <div class="buttons">
+        <button id="unwrapButton">Unwrap</button>
+        <button id="vellumButton">Vellum</button>
+        <button id="copyButton">Copy</button>
+        <button id="clearButton">Clear</button>
+        <button id="darkModeToggle">☀️</button>
+    </div>
+
+    <script>
+        function focusTextarea() {
+            document.getElementById('inputText').focus();
+        }
+
+        window.onload = focusTextarea;
+
+        document.getElementById('unwrapButton').addEventListener('click', function() {
+            var inputText = document.getElementById('inputText').value;
+            var cleanedText = cleanText(inputText);
+            document.getElementById('inputText').value = cleanedText;
+            focusTextarea();
+        });
+
+        document.getElementById('vellumButton').addEventListener('click', function() {
+            var inputText = document.getElementById('inputText').value;
+            var vellumText = formatForVellum(inputText);
+            document.getElementById('inputText').value = vellumText;
+            focusTextarea();
+        });
+
+        document.getElementById('copyButton').addEventListener('click', function() {
+            var inputText = document.getElementById('inputText').value;
+            navigator.clipboard.writeText(inputText).then(() => {
+                alert("Text copied to clipboard!");
+                focusTextarea();
+            }).catch(() => {
+                alert("Failed to copy text. Please try again.");
+                focusTextarea();
+            });
+        });
+
+        document.getElementById('clearButton').addEventListener('click', function() {
+            document.getElementById('inputText').value = '';
+            focusTextarea();
+        });
+
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌑';
+            focusTextarea();
+        });
+
+        function cleanText(text) {
+            // Remove Markdown formatting
+            text = text
+                .replace(/^\s*#+\s+/gm, '') // Remove headers (e.g., # Header)
+                .replace(/(\*\*|__)(.*?)\1/g, '$2') // Remove bold (**bold** or __bold__)
+                .replace(/(\*|_)(.*?)\1/g, '$2') // Remove italics (*italic* or _italic_)
+                .replace(/`([^`]+)`/g, '$1') // Remove inline code (`code`)
+                .replace(/^\s*>+\s*/gm, '') // Remove blockquotes
+                .replace(/\[(.*?)\]\(.*?\)/g, '$1'); // Remove links
+
+            // Handle non-standard paragraph separator characters
+            text = text.replace(/\u2029/g, '\n\n'); // Replace paragraph separators with double newlines
+
+            // Ensure paragraphs are separated by exactly one newline
+            text = text
+                .split(/\n{2,}/) // Split into paragraphs by multiple newlines
+                .map(para => para.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').trim()) // Remove newlines and excess spaces in each paragraph
+                .join('\n\n'); // Join paragraphs with a single double newline
+
+            // Add a newline at the start and end of the text
+            return '\n' + text + '\n';
+        }
+
+        function formatForVellum(text) {
+            // Remove top and bottom newlines and extra newlines between paragraphs
+            return text.trim().replace(/\n{2,}/g, '\n');
+        }
+    </script>
+</body>
+</html>

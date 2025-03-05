@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DOCX to plain text chapters</title>
+  <style>
+    :root {
+      --button-bg-color: #007bff;
+      --button-text-color: #ffffff;
+      --chapter-border-color: #ff9800;
+      --chapter-bg-dark: #1e1e1e;
+      --chapter-bg-light: #fff7e6;
+    }
+    /* Base (Light Mode) */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #ffffff;
+      color: #000000;
+    }
+    /* Dark Mode */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+
+    /* When NOT in dark mode, darken the toggle button’s background 
+       so the white crescent moon is visible. */
+    body:not(.dark-mode) #darkModeToggle {
+      background-color: #444;
+      color: #fff;
+      border-color: #444;
+    }
+
+    /* Buttons / Row */
+    .buttonRow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap; /* allow wrapping on narrow screens */
+    }
+    .custom-file-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .custom-file-button:hover {
+      background-color: #0056b3;
+    }
+    #darkModeToggle {
+      font-size: 20px;
+      background-color: transparent; /* overridden by body:not(.dark-mode) if needed */
+      color: var(--text-color);
+      border: 1px solid var(--text-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      text-align: center;
+    }
+    #darkModeToggle:hover {
+      filter: brightness(1.2);
+    }
+    #downloadButton {
+      display: none; /* hidden until we have chapters to download */
+      padding: 10px 15px;
+      background-color: var(--button-bg-color);
+      color: var(--button-text-color);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #downloadButton:hover {
+      background-color: #0056b3;
+    }
+    /* Chapter Container */
+    .chapter-container {
+      border: 2px solid var(--chapter-border-color);
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
+      background: var(--chapter-bg-light);
+    }
+    body.dark-mode .chapter-container {
+      background: var(--chapter-bg-dark);
+      border-color: var(--chapter-border-color);
+    }
+    .chapter-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 1.2em;
+    }
+    .chapter-text {
+      white-space: pre-wrap; /* preserve paragraph breaks */
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <!-- Hidden file input -->
+  <input type="file" id="docxInput" accept=".docx" style="display: none;">
+
+  <div class="buttonRow">
+    <!-- Dark mode toggle button at the front -->
+    <button 
+      id="darkModeToggle" 
+      title="Switch dark and light mode"
+    >
+      ☀️
+    </button>
+
+    <span>Convert</span>
+
+    <!-- File select button labeled "selected .docx file" -->
+    <label for="docxInput" class="custom-file-button">selected .docx file</label>
+
+    <span>(which must have at least 1 chapter, i.e. an &lt;h1&gt; header) ... to plain text below</span>
+
+    <button id="downloadButton">or <i>download</i> as .txt file</button>
+  </div>
+  
+  <div id="chapters"></div>
+  
+  <!-- Use local mammoth.browser.min.js (downloaded to "js/" folder) -->
+  <script src="js/mammoth.browser.min.js"></script>
+  <script>
+    // Headings that indicate "stop" (e.g. back matter).
+    const STOP_TITLES = ["about the author", "website"];
+    
+    // We'll store chapters in an array. Each chapter = { title: string, textBlocks: string[] }
+    let chapters = [];
+    let docxBaseName = "chapters"; // Fallback for download file name
+    
+    // Toggle dark/light mode
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+
+    // Listen for file selection
+    document.getElementById("docxInput").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Derive base name (remove .docx extension)
+      // e.g. MyStory.docx => MyStory
+      docxBaseName = file.name.replace(/\.[^/.]+$/, "");
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+        mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
+          .then(result => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(result.value, "text/html");
+            const blocks = doc.querySelectorAll("p, h1, h2, h3, h4, h5, h6");
+
+            chapters = [];
+            let currentChapter = null;
+            let ignoreFrontMatter = true;
+            let ignoreRest = false;
+
+            blocks.forEach(block => {
+              if (ignoreRest) return; // done reading
+
+              const tagName = block.tagName.toLowerCase();
+              const textRaw = block.textContent.trim();
+              const textLower = textRaw.toLowerCase();
+
+              // 1) Skip everything until first <h1>
+              if (ignoreFrontMatter) {
+                if (tagName === "h1") {
+                  ignoreFrontMatter = false;
+                } else {
+                  return;
+                }
+              }
+
+              // 2) If this heading is a "stop" heading, ignore the rest
+              if (tagName.startsWith("h") && STOP_TITLES.some(title => textLower.startsWith(title))) {
+                ignoreRest = true;
+                return;
+              }
+
+              // 3) If we see a new <h1>, that means a new chapter
+              if (tagName === "h1") {
+                currentChapter = {
+                  title: textRaw,
+                  textBlocks: []
+                };
+                chapters.push(currentChapter);
+              }
+              else {
+                // If there's no current chapter yet, create one
+                if (!currentChapter) {
+                  currentChapter = { title: "Untitled Chapter", textBlocks: [] };
+                  chapters.push(currentChapter);
+                }
+                // Add the block text
+                currentChapter.textBlocks.push(textRaw);
+              }
+            });
+
+            displayChapters(chapters);
+
+            // Show the download button now that we have chapters
+            document.getElementById("downloadButton").style.display = "inline-block";
+          })
+          .catch(err => {
+            console.error("Error converting DOCX:", err);
+          });
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Display the chapters on the page
+    function displayChapters(chapters) {
+      const container = document.getElementById("chapters");
+      container.innerHTML = "";
+
+      chapters.forEach((chapter, index) => {
+        // Combine the text blocks with blank lines between paragraphs
+        const combinedText = chapter.textBlocks.join("\n\n");
+
+        const chapterDiv = document.createElement("div");
+        chapterDiv.className = "chapter-container";
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "chapter-title";
+        titleDiv.textContent = chapter.title || `Chapter ${index + 1}`;
+
+        const textDiv = document.createElement("div");
+        textDiv.className = "chapter-text";
+        textDiv.textContent = combinedText;
+
+        chapterDiv.appendChild(titleDiv);
+        chapterDiv.appendChild(textDiv);
+
+        container.appendChild(chapterDiv);
+      });
+    }
+
+    // When "download as .txt file" is clicked, combine all chapters into one text file and download it.
+    document.getElementById("downloadButton").addEventListener("click", function() {
+      if (!chapters.length) {
+        alert("No chapters to download.");
+        return;
+      }
+
+      // Build the entire text
+      let allText = "";
+      chapters.forEach((ch, idx) => {
+        allText += (ch.title || `Chapter ${idx + 1}`) + "\n\n";
+        allText += ch.textBlocks.join("\n\n") + "\n\n";
+      });
+
+      // Create a Blob and trigger a download
+      const blob = new Blob([allText], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      // Use docxBaseName as the base, then .txt
+      a.download = docxBaseName + ".txt";
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>

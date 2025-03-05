@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown to plain Text</title>
+  <style>
+  :root {
+    --button-bg-color: #007bff;
+    --button-text-color: #ffffff;
+    --container-bg-dark: #1e1e1e;
+    --container-bg-light: #fff7e6;
+    --chapter-border-color: #ff9800;
+  }
+
+  /* Base styles for light mode */
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #ffffff;
+    color: #000000;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  /* Dark mode styles */
+  body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+  }
+
+  /* Button row container */
+  .buttonRow {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* Standard button styling */
+  .custom-button {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .custom-button:hover {
+    background-color: #0056b3;
+  }
+
+  /* Dark mode toggle button */
+  #darkModeToggle {
+    font-size: 20px;
+    background-color: transparent;
+    color: inherit;
+    border: 1px solid currentColor;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  #darkModeToggle:hover {
+    filter: brightness(1.2);
+  }
+
+  /* Light mode toggle button adjustments */
+  body:not(.dark-mode) #darkModeToggle {
+    background-color: #444;
+    color: #fff;
+    border-color: #444;
+  }
+
+  /* Textarea base styles */
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 14px;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+  }
+
+  /* Input textarea specific styles */
+  #mdInput {
+    height: 300px;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  /* Dark mode input textarea */
+  body.dark-mode #mdInput {
+    background: var(--container-bg-dark);
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  /* Output textarea specific styles */
+  #outputText {
+    height: 300px;
+    background: var(--container-bg-light);
+    color: #000000;
+  }
+
+  /* Dark mode output textarea */
+  body.dark-mode #outputText {
+    background: var(--container-bg-dark);
+    color: #e0e0e0;
+    border-color: #444;
+  }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="buttonRow">
+    <!-- Dark mode toggle -->
+    <button id="darkModeToggle" title="Switch dark and light mode">☀️</button>
+    <button id="convertButton" class="custom-button">Convert</button>
+    <span>Markdown to plain text</span>
+    <button id="downloadButton" class="custom-button">or download as .txt</button>
+  </div>
+  
+  <!-- Markdown input area -->
+  <textarea id="mdInput" placeholder="Enter Markdown here..."></textarea>
+  <!-- Plain text output area -->
+  <textarea id="outputText" readonly placeholder="Plain text output..."></textarea>
+  
+  <!-- Include the locally saved remove-markdown.js file -->
+  <script src="js/remove-markdown.js"></script>
+  <script>
+    // Toggle dark/light mode
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+
+    // Convert Markdown to plain text
+    document.getElementById('convertButton').addEventListener('click', function() {
+      var mdText = document.getElementById('mdInput').value;
+      var plainText = removeMarkdown(mdText);
+      document.getElementById('outputText').value = plainText;
+    });
+
+    // Download the plain text as a .txt file
+    document.getElementById('downloadButton').addEventListener('click', function() {
+      var text = document.getElementById('outputText').value;
+      if (!text) {
+        alert('No plain text to download.');
+        return;
+      }
+      var blob = new Blob([text], { type: "text/plain" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "markdown_to_text.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
