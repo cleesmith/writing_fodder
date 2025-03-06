@@ -55,7 +55,7 @@ The basic command to generate a new chapter is:
 python -B write_next_chapter_claude37sonnet.py --request "Chapter 9: The Dark Forest"
 ```
 
-Assuming you have the two files: outline.txt and manuscript.txt *(your novel as-is)*
+Assuming you have the two files: *outline.txt* and *manuscript.txt*
 This will create a new Chapter 9 titled "The Dark Forest" based on your outline and previous chapters.
 
 ## Common Options
@@ -142,5 +142,7 @@ These tools complement the Next Chapter Writer by helping you format, analyze, a
 - Text to Proper Chunks - formats text in 1000-5000 character segments for TextToSpeech
 
 All browser tools work directly in your web browser without sending data to a server, ensuring your writing remains private and secure.
+
+> Say goodbye to the blank page or that blinking, not the best writing, but now you got fodder that followed instructions.
 
 Best of luck with your writing!
