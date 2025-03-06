@@ -1,12 +1,12 @@
-# Next Chapter Writer - AI-powered chapter generation
+# Chapter Writer - AI-powered chapter generation
 
 > <h3>No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transform writer's block into writer's building blocks.</h3>
 
 ---
 
-## What is Next Chapter Writer?
+## What is Chapter Writer?
 
-Next Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style *(as best it can)*.
+Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style *(as best it can)*.
 
 Think of it as a creative partner that helps you overcome writer's block or explore new directions for your story - while maintaining consistency with what you've already written.
 
@@ -58,7 +58,7 @@ This tool is a single python *.py* file with only one dependency: **anthropic's 
 The basic command to generate a new *(the next)* chapter is:
 
 ```
-python -B write_next_chapter_claude37sonnet.py --request "9: The Dark Forest"
+python -B chapter_writer.py --request "9: The Dark Forest"
 ```
 
 Ensure you have at least these two files: *outline.txt* and *manuscript.txt*, and 
@@ -96,7 +96,7 @@ When you run the tool, it creates two files in **--save_dir**, where **XXX** is 
 ## Example Command
 
 ```
-python -B write_next_chapter_claude37sonnet.py --request "Chapter 5: The Unexpected Visitor" --lang French --save_dir my_french_novel
+python -B chapter_writer.py --request "Chapter 5: The Unexpected Visitor" --lang French --save_dir my_french_novel
 ```
 
 This would generate Chapter 5 in French and save it to the "my_french_novel" directory.
@@ -125,7 +125,7 @@ This repository also includes a collection of fast lightweight browser-based HTM
 > ```
 > Or just click <b>File</b> then <b>Open File...</b> in your browser, or bookmark it.
 
-These tools complement the Next Chapter Writer by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
+These tools complement the Chapter Writer by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
 
 ### File Conversion Tools
 - DOCX to plain text (.txt)
