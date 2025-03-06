@@ -124,7 +124,7 @@ These tools complement the Next Chapter Writer by helping you format, analyze, a
 - Markdown to plain text (.txt)
 - PDF to plain text (.txt)
 - Text (.txt) to HTML (.html)
-- Text to Vellum to DOCX (.docx) <small>... so you can <b>Import Word File...</b> into Vellum with proper chapters</small>
+- Text to Vellum to DOCX (.docx) ***... so you can "<b>Import Word File...</b>" into Vellum with proper chapters***
 
 ### Text Analysis Tools
 - Word Frequency Counter - identifies commonly used words and potential overuse
