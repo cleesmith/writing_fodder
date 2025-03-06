@@ -67,7 +67,7 @@ that the **--request** matches the chapter title in *outline.txt* so in this cas
 
 This will create a new Chapter 3 titled "The First Contact" based on your outline and previous chapters.
 
-While *manuscript.txt* must exist, it is ok for it to be empty. Personally, I prefer to write chapter 1 first, so the AI has a good reference to follow for its writing. But if the *manuscript.txt* is empty, the AI will write chapter 1 if requested.
+While *manuscript.txt* must exist, it is ok for it to be empty. Personally, I prefer to write chapter 1 first, so the AI has a good reference to follow for its writing. But if the *manuscript.txt* is empty, the AI *can* write chapter 1, if requested, based on *outline.txt*.
 
 ## Common Options
 
