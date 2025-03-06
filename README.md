@@ -27,7 +27,7 @@ Before you start:
 1. You need Python 3.10 or higher installed on your computer
 2. You need an Anthropic API key 
 3. Your Anthropic account must have Tier 2 or Tier 3 API access level
-4. This tool uses Claude 3.7 Sonnet with "thinking" enabled plus beta version and 128K output<br> &nbsp;&nbsp;&nbsp;*this capability has made a huge improvement in its writing*
+4. This tool uses Claude 3.7 Sonnet with "thinking" enabled plus beta version of 128K output<br> &nbsp;&nbsp;&nbsp;*these new capabilities have made a big improvement in its writing and staying on track*
 5. You need to install the Anthropic Python library (version 0.49.0 recommended)
 
 ## Setup Instructions
