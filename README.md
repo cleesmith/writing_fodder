@@ -105,13 +105,12 @@ If you run into problems:
 ## Companion Browser Tools for Writers
 
 This repository also includes a collection of browser-based HTML/JavaScript tools that work locally in your browser without sending data to any server. 
-<br>
+
 See the folder: 
 
 ```more_writing_tools```
 
-<br>
-These tools complement the Next Chapter Writer by helping you format, analyze, and prepare your text for different publishing platforms:
+These tools complement the Next Chapter Writer by helping you format, analyze, and prepare your text for publishing or covert text to other formats:
 
 ### File Conversion Tools
 - DOCX to plain text (.txt)
