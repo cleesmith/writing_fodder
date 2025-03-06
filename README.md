@@ -54,7 +54,9 @@ You need to prepare these files before running the tool:
 
 ## How to Use
 
-The basic command to generate a new chapter is:
+This tool is a single python *.py* file with only one dependency: **anthropic's sdk**.
+
+The basic command to generate a new *(the next)* chapter is:
 
 ```
 python -B write_next_chapter_claude37sonnet.py --request "Chapter 9: The Dark Forest"
