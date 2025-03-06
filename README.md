@@ -1,7 +1,7 @@
 # Next Chapter Writer - AI-powered chapter generation
 
 
-> **No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions. Transform writer's block into writer's building blocks.**
+**> No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions. Transform writer's block into writer's building blocks.**
 
 ---
 
@@ -73,13 +73,10 @@ This will create a new Chapter 9 titled "The Dark Forest" based on your outline 
 You can customize how the tool works with these options:
 
 - **--lang** - Change the writing language (default: English)
-  Example: --lang Spanish
-
-- **--max_tokens** - Control the maximum length (default: 9000)
-  Example: --max_tokens 12000
+  example: --lang Spanish
 
 - **--save_dir** - Where to save the output files (default: current directory)
-  Example: --save_dir my_novel
+  example: --save_dir yet_another_great_novel
 
 ## Output Files
 
