@@ -48,13 +48,13 @@ You need to prepare these files before running the tool:
 
 1. **outline.txt** - Your story outline with chapter summaries
 2. **manuscript.txt** - Your current manuscript *(all previous chapters)*
-3. **characters.txt** (optional) - Information about your characters
+3. **characters.txt** &nbsp;*(optional)* - Information about your characters
 
 > Examples of these 3 files are included.
 
 ## How to Use
 
-This tool is a single python *.py* file with only one dependency: **anthropic's sdk**.
+This tool is a single python *.py* file with only one dependency: **anthropic's sdk** installed using pip.
 
 The basic command to generate a new *(the next)* chapter is:
 
