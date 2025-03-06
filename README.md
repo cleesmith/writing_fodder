@@ -126,6 +126,7 @@ This repository also includes a collection of fast lightweight browser-based HTM
 > open all_tools.html
 > ```
 > Or just click <b>File</b> then <b>Open File...</b> in your browser, or bookmark it.
+> &nbsp;
 > Or use them here in this repo:
 > [More Writing Tools](https://cleesmith.github.io/writing_fodder/more_writing_tools/all_tools.html)
 
