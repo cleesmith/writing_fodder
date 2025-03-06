@@ -42,8 +42,10 @@ Before you start:
 You need to prepare these files before running the tool:
 
 1. **outline.txt** - Your story outline with chapter summaries
-2. **manuscript.txt** - Your current manuscript (all previous chapters)
+2. **manuscript.txt** - Your current manuscript *(all previous chapters)*
 3. **characters.txt** (optional) - Information about your characters
+
+> Examples of these 3 files are included.
 
 ## How to Use
 
@@ -53,6 +55,7 @@ The basic command to generate a new chapter is:
 python -B write_next_chapter_claude37sonnet.py --request "Chapter 9: The Dark Forest"
 ```
 
+Assuming you have the two files: outline.txt and manuscript.txt *(your novel as-is)*
 This will create a new Chapter 9 titled "The Dark Forest" based on your outline and previous chapters.
 
 ## Common Options
