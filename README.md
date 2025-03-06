@@ -17,7 +17,7 @@ Think of it as a creative partner that helps you overcome writer's block or expl
 - Maintains consistency with your existing storyline and characters <br>&nbsp;&nbsp;&nbsp;*AI's tend to add new characters, either your outline forgot them, or the AI is being overly creative*
 - Follows natural dialogue patterns and narrative pacing
 - Formats text according to standard writing conventions
-- Saves both the **generated chapter** and the **AI's "thinking process"** &nbsp;&nbsp;&nbsp;*which can provide insights into the AI's creative decisions often leading to* **prompt** *adjustments*
+- Saves both the **generated chapter** and the **AI's "thinking process"** <br>&nbsp;&nbsp;&nbsp;*which can provide insights into the AI's creative decisions often leading to* **prompt** *adjustments*
 - Works in multiple languages &nbsp;&nbsp;&nbsp;*default is English, but I lightly tested: French, Spanish, Polish)*
 
 ## Requirements
