@@ -77,6 +77,11 @@ You can customize how the tool works with these options:
 - **--save_dir** - Where to save the output files (default: current directory)
   example: --save_dir yet_another_great_novel
 
+To see all command options:
+```
+python -B chapter_writer.py -h  
+```
+
 ## Output Files
 
 When you run the tool, it creates two files in **--save_dir**, where **XXX** is the chapter number with leading zeros to help your dir/folder show chapters in numerical order:
