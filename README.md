@@ -1,4 +1,4 @@
-# Next Chapter Writer - AI-powered chapter generation for writers
+# Next Chapter Writer - AI-powered chapter generation
 
 
 > **No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions. Transform writer's block into writer's building blocks.**
@@ -7,7 +7,7 @@
 
 ## What is Next Chapter Writer?
 
-Next Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style.
+Next Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style *(as best it can)*.
 
 Think of it as a creative partner that helps you overcome writer's block or explore new directions for your story - while maintaining consistency with what you've already written.
 
@@ -39,8 +39,8 @@ Before you start:
    	```
 
 3. Set up your Anthropic API key in your environment:
-   - On Windows: set ANTHROPIC_API_KEY=your_api_key_here
-   - On Mac/Linux: export ANTHROPIC_API_KEY=your_api_key_here
+   - On Windows: **set ANTHROPIC_API_KEY=**your_api_key_here
+   - On Mac/Linux: **export ANTHROPIC_API_KEY=**your_api_key_here
 
 ## Required Files
 
