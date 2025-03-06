@@ -106,11 +106,14 @@ If you run into problems:
 
 ## Companion Browser Tools for Writers
 
-This repository also includes a collection of browser-based HTML/JavaScript tools that work locally in your browser without sending data to any server. 
+This repository also includes a collection of fast lightweight browser-based HTML/JavaScript tools that work locally in your browser. 
 
-See the folder: 
-
-```more_writing_tools```
+> There's no installation:
+> ```
+> cd more_writing_tools
+> open all_tools.html
+> ```
+> Or just click <b>File</b> then <b>Open File...</b> in your browser, or bookmark it.
 
 These tools complement the Next Chapter Writer by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
 
