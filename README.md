@@ -64,7 +64,7 @@ You can customize how the tool works with these options:
   Example: --max_tokens 12000
 
 - **--save_dir** - Where to save the output files (default: current directory)
-  Example: --save_dir my_chapters
+  Example: --save_dir my_novel
 
 ## Output Files
 
@@ -73,7 +73,7 @@ When you run the tool, it creates two files:
 1. **XXX_chapter_TIMESTAMP.txt** - The generated chapter text
    (XXX is the chapter number with leading zeros)
 
-2. **XXX_thinking_TIMESTAMP.txt** - Notes on the AI's creative process
+2. **XXX_thinking_TIMESTAMP.txt** - What the AI was thinking
    (This can help you understand why certain narrative choices were made)
 
 ## Writing Tips When Using This Tool
@@ -106,7 +106,10 @@ If you run into problems:
 
 This repository also includes a collection of browser-based HTML/JavaScript tools that work locally in your browser without sending data to any server. 
 <br>
-See the folder: ```more_writing_tools```
+See the folder: 
+
+```more_writing_tools```
+
 <br>
 These tools complement the Next Chapter Writer by helping you format, analyze, and prepare your text for different publishing platforms:
 
