@@ -38,16 +38,16 @@ Before you start:
    	```
 
 3. Set up your Anthropic API key in your environment:
-   - On Windows: **set ANTHROPIC_API_KEY=your_api_key_here**
-   - On Mac/Linux: **export ANTHROPIC_API_KEY=your_api_key_here**
+   - on Windows: **set ANTHROPIC_API_KEY=your_api_key_here**
+   - on Mac/Linux: **export ANTHROPIC_API_KEY=your_api_key_here**
 
 ## Required Files
 
 You need to prepare these files before running the tool:
 
-1. **outline.txt** - Your story outline with chapter summaries
-2. **manuscript.txt** - Your current manuscript *(all previous chapters)*
-3. **characters.txt** &nbsp;*(optional)* - Information about your characters
+1. **outline.txt** - your story outline with chapter summaries
+2. **manuscript.txt** - your current manuscript *(all previous chapters)*
+3. **characters.txt** &nbsp;*(optional)* - information about your characters
 
 > Examples of these 3 files are included.
 
@@ -58,23 +58,22 @@ This tool is a single python *.py* file with only one dependency: **anthropic's 
 The basic command to generate a new *(the next)* chapter is:
 
 ```
-python -B chapter_writer.py --request "9: The Dark Forest"
+python -B chapter_writer.py --request "3. The First Contact"
 ```
 
 Ensure you have at least these two files: *outline.txt* and *manuscript.txt*, and 
 that the **--request** matches the chapter title in *outline.txt* so in this case:
-*"9: The Dark Forest"* must be a line with a number in your outline.
+*"3. The First Contact"* must be a line with a number in your outline.
 
-This will create a new Chapter 9 titled "The Dark Forest" based on your outline and previous chapters.
+This will create a new Chapter 3 titled "The First Contact" based on your outline and previous chapters.
 
 ## Common Options
 
 You can customize how the tool works with these options:
 
-- **--lang** - change the writing language (default: English)
-  example: --lang Spanish
+- **--lang** - change the writing language (default: English)<br> example: --lang Spanish
 
-- **--save_dir** - where to save the output files (default: current directory)<br> example: --save_dir yet_another_great_novel
+- **--save_dir** - where to save the output files (default: current directory/folder)<br> example: --save_dir yet_another_great_novel
 
 To see all command options:
 ```
@@ -100,10 +99,10 @@ When you run the tool, it creates two files in **--save_dir**, where **XXX** is 
 ## Example Command
 
 ```
-python -B chapter_writer.py --request "Chapter 5: The Unexpected Visitor" --lang French --save_dir my_french_novel
+python -B chapter_writer.py --request "3. The First Contact" --lang French --save_dir mon_roman_français
 ```
 
-This would generate Chapter 5 in French and save it to the "my_french_novel" directory.
+This would generate Chapter 3 in French and save it to the "mon_roman_français" directory.
 
 ## Need Help?
 
@@ -112,7 +111,6 @@ If you run into problems:
 - Make sure your outline and manuscript files exist and are properly formatted
 - Check that your API key is set correctly
 - Verify that your Anthropic account has the required Tier 2 or Tier 3 access
-- Try using shorter chapters if you're hitting token limits
 
 ---
 
@@ -143,7 +141,7 @@ These tools complement the Chapter Writer by helping you format, analyze, and co
 ### Text Analysis Tools
 - Word Frequency Counter - identifies commonly used words and potential overuse
 - AI-isms Detector - helps spot common AI writing patterns and phrases
-- DOCX HTML Block Viewer - assists with debugging document formatting
+- DOCX HTML Block Viewer - assists with debugging .docx formatting
 
 ### Formatting Tools
 - Paragraph Wrapper - formats text with line breaks at 70 characters (ideal for reading)
