@@ -125,11 +125,8 @@ This repository also includes a collection of fast lightweight browser-based HTM
 > cd more_writing_tools
 > open all_tools.html
 > ```
-> Or just click <b>File</b> then <b>Open File...</b> in your browser, or bookmark it for later.
-> &nbsp;<br>
-> Or use them here in this repo:
-> &nbsp;<br>
-> [More Writing Tools](https://cleesmith.github.io/writing_fodder/more_writing_tools/all_tools.html)
+> Or just click <b>File</b> then <b>Open File...</b> in your browser, or bookmark it for later.<br>
+> Or use them here in this repo: &nbsp;&nbsp;&nbsp;[More Writing Tools](https://cleesmith.github.io/writing_fodder/more_writing_tools/all_tools.html)
 
 These tools complement the Chapter Writer by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
 
