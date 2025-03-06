@@ -62,7 +62,8 @@ The basic command to generate a new *(the next)* chapter is:
 python -B write_next_chapter_claude37sonnet.py --request "Chapter 9: The Dark Forest"
 ```
 
-Assuming you have the two files: *outline.txt* and *manuscript.txt*
+Ensure you have at least these two files: *outline.txt* and *manuscript.txt*.
+
 This will create a new Chapter 9 titled "The Dark Forest" based on your outline and previous chapters.
 
 ## Common Options
