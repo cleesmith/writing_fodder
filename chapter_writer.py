@@ -260,26 +260,26 @@ print(f"*  ")
 print(f"*  So breathe, remove eye glasses, stretch, relax, and be like water 🥋 🧘🏽‍♀️")
 print(f"****************************************************************************")
 
-# try:
-#     with client.beta.messages.stream(
-#         model="claude-3-7-sonnet-20250219",
-#         max_tokens=max_tokens,
-#         messages=[{"role": "user", "content": prompt}],
-#         thinking={
-#             "type": "enabled",
-#             "budget_tokens": args.thinking_budget
-#         },
-#         betas=["output-128k-2025-02-19"]
-#     ) as stream:
-#         # track both thinking and text output
-#         for event in stream:
-#             if event.type == "content_block_delta":
-#                 if event.delta.type == "thinking_delta":
-#                     thinking_content += event.delta.thinking
-#                 elif event.delta.type == "text_delta":
-#                     full_response += event.delta.text
-# except Exception as e:
-#     print(f"Error:\n{e}\n")
+try:
+    with client.beta.messages.stream(
+        model="claude-3-7-sonnet-20250219",
+        max_tokens=max_tokens,
+        messages=[{"role": "user", "content": prompt}],
+        thinking={
+            "type": "enabled",
+            "budget_tokens": args.thinking_budget
+        },
+        betas=["output-128k-2025-02-19"]
+    ) as stream:
+        # track both thinking and text output
+        for event in stream:
+            if event.type == "content_block_delta":
+                if event.delta.type == "thinking_delta":
+                    thinking_content += event.delta.thinking
+                elif event.delta.type == "text_delta":
+                    full_response += event.delta.text
+except Exception as e:
+    print(f"Error:\n{e}\n")
 
 elapsed = time.time() - start_time
 minutes = int(elapsed // 60)
