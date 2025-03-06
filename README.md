@@ -29,7 +29,9 @@ Before you start:
 
 1. Clone or download this repository to your computer
 2. Install the required Anthropic library by running:
-   pip install anthropic==0.49.0
+	```
+   	pip install anthropic==0.49.0
+   	```
 
 3. Set up your Anthropic API key in your environment:
    - On Windows: set ANTHROPIC_API_KEY=your_api_key_here
