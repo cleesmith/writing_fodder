@@ -82,10 +82,9 @@ You can customize how the tool works with these options:
 When you run the tool, it creates two files in **--save_dir**:
 
 1. **XXX_chapter_TIMESTAMP.txt** - The generated chapter text
-   (XXX is the chapter number with leading zeros)
+   *(XXX is the chapter number with leading zeros)*
 
 2. **XXX_thinking_TIMESTAMP.txt** - What the AI was thinking
-   (This can help you understand why certain narrative choices were made)
 
 ## Writing Tips When Using This Tool
 
