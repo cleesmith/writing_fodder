@@ -64,7 +64,7 @@ python -B write_next_chapter_claude37sonnet.py --request "9: The Dark Forest"
 
 Ensure you have at least these two files: *outline.txt* and *manuscript.txt*, and 
 that the **--request** matches the chapter title in *outline.txt* so in this case:
-*"9: The Dark Forest"*.
+*"9: The Dark Forest"* must be a line with a number in your outline.
 
 This will create a new Chapter 9 titled "The Dark Forest" based on your outline and previous chapters.
 
