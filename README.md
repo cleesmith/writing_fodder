@@ -69,7 +69,7 @@ This will create a new Chapter 3 titled "The First Contact" based on your outlin
 
 While *manuscript.txt* must exist, it is ok for it to be empty. Personally, I prefer to write chapter 1 myself, so the AI has a focused reference to follow for its writing. But if the *manuscript.txt* is empty, the AI *can* write chapter 1, if requested, based on *outline.txt*.
 
-You can even have all 3 files empty and Claude will *riff off* of the **--request "whatever"**; a kind of *full-tilt-bozo* writing. But without at least a rough **outline.txt** the writing output is not very useful; maybe you'll get a *happy accident*.
+You can even have all 3 files empty and Claude will *riff off* of the **--request "whatever"**; a kind of *full-tilt-bozo* writing. But without at least a rough **outline.txt** the writing output is not very useful; then again, maybe you'll experience a *happy accident*.
 
 ## Common Options
 
