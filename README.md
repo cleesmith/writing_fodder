@@ -71,11 +71,10 @@ This will create a new Chapter 9 titled "The Dark Forest" based on your outline 
 
 You can customize how the tool works with these options:
 
-- **--lang** - Change the writing language (default: English)
+- **--lang** - change the writing language (default: English)
   example: --lang Spanish
 
-- **--save_dir** - Where to save the output files (default: current directory)
-  example: --save_dir yet_another_great_novel
+- **--save_dir** - where to save the output files (default: current directory)<br> example: --save_dir yet_another_great_novel
 
 To see all command options:
 ```
@@ -86,9 +85,9 @@ python -B chapter_writer.py -h
 
 When you run the tool, it creates two files in **--save_dir**, where **XXX** is the chapter number with leading zeros to help your dir/folder show chapters in numerical order:
 
-1. **XXX_chapter_TIMESTAMP.txt** - The generated chapter text
+1. **XXX_chapter_TIMESTAMP.txt** - the generated chapter text
 
-2. **XXX_thinking_TIMESTAMP.txt** - What the AI was thinking
+2. **XXX_thinking_TIMESTAMP.txt** - what the AI was thinking
 
 ## Writing Tips When Using This Tool
 
