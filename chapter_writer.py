@@ -200,7 +200,7 @@ note: The actual prompt included the outline, characters, manuscript which are n
 
 # calculate a safe max_tokens value
 # estimate the input tokens based on a rough character count approximation
-estimated_input_tokens = len(prompt) // 5.5
+estimated_input_tokens = int(len(prompt) // 5.5)
 max_safe_tokens = max(5000, args.context_window - estimated_input_tokens - 1000)  # 1000 token buffer for safety
 # use the minimum of the requested max_tokens and what we calculated as safe:
 max_tokens = int(min(args.max_tokens, max_safe_tokens))
@@ -211,7 +211,6 @@ print(f"Max request timeout: {args.request_timeout} seconds")
 print(f"Max AI model context window: {args.context_window} tokens")
 print(f"AI model thinking budget: {args.thinking_budget} tokens")
 print(f"Max output tokens: {args.max_tokens} tokens")
-print(f"Estimated input tokens: ~{estimated_input_tokens}")
 print(f"Setting max_tokens to: {max_tokens} (requested: {args.max_tokens}, calculated safe maximum: {max_safe_tokens})")
 
 # ensure max_tokens is always greater than thinking budget
@@ -219,8 +218,30 @@ if max_tokens <= args.thinking_budget:
     max_tokens = args.thinking_budget + args.max_tokens
     print(f"Adjusted max_tokens to {max_tokens} to exceed thinking budget of {args.thinking_budget} (room for thinking/writing)")
 
-# initialize client & response collector
-client = anthropic.Anthropic(timeout=1000)
+print(f"Estimated input/prompt tokens: {estimated_input_tokens}")
+
+client = anthropic.Anthropic(
+    timeout=1000, # 1000 seconds (default is 10 minutes = 600 seconds)
+    max_retries=0 # default is 2
+)
+
+prompt_token_count = 0
+try:
+    response = client.beta.messages.count_tokens(
+        model="claude-3-7-sonnet-20250219",
+        messages=[{"role": "user", "content": prompt}],
+        thinking={
+            "type": "enabled",
+            "budget_tokens": args.thinking_budget
+        },
+        betas=["output-128k-2025-02-19"]
+    )
+    # print(f"count_tokens={response.model_dump_json()}")
+    prompt_token_count = response.input_tokens
+    print(f"Actual    input/prompt tokens: {prompt_token_count} (via free client.beta.messages.count_tokens)")
+except Exception as e:
+    print(f"Error:\n{e}\n")
+
 full_response = ""
 thinking_content = ""
 
@@ -239,23 +260,26 @@ print(f"*  ")
 print(f"*  So breathe, remove eye glasses, stretch, relax, and be like water 🥋 🧘🏽‍♀️")
 print(f"****************************************************************************")
 
-with client.beta.messages.stream(
-    model="claude-3-7-sonnet-20250219",
-    max_tokens=max_tokens,
-    messages=[{"role": "user", "content": prompt}],
-    thinking={
-        "type": "enabled",
-        "budget_tokens": args.thinking_budget
-    },
-    betas=["output-128k-2025-02-19"]
-) as stream:
-    # track both thinking and text output
-    for event in stream:
-        if event.type == "content_block_delta":
-            if event.delta.type == "thinking_delta":
-                thinking_content += event.delta.thinking
-            elif event.delta.type == "text_delta":
-                full_response += event.delta.text
+# try:
+#     with client.beta.messages.stream(
+#         model="claude-3-7-sonnet-20250219",
+#         max_tokens=max_tokens,
+#         messages=[{"role": "user", "content": prompt}],
+#         thinking={
+#             "type": "enabled",
+#             "budget_tokens": args.thinking_budget
+#         },
+#         betas=["output-128k-2025-02-19"]
+#     ) as stream:
+#         # track both thinking and text output
+#         for event in stream:
+#             if event.type == "content_block_delta":
+#                 if event.delta.type == "thinking_delta":
+#                     thinking_content += event.delta.thinking
+#                 elif event.delta.type == "text_delta":
+#                     full_response += event.delta.text
+# except Exception as e:
+#     print(f"Error:\n{e}\n")
 
 elapsed = time.time() - start_time
 minutes = int(elapsed // 60)
@@ -279,7 +303,8 @@ Max AI model context window: {args.context_window} tokens
 AI model thinking budget: {args.thinking_budget} tokens
 Max output tokens: {args.max_tokens} tokens
 
-Estimated input tokens: ~{estimated_input_tokens} (includes: outline, entire novel, and prompt)
+Estimated input/prompt tokens: {estimated_input_tokens} (includes: outline, entire novel, and prompt)
+Actual    input/prompt tokens: {prompt_token_count} (via free client.beta.messages.count_tokens)
 Setting max_tokens to: {max_tokens} (requested: {args.max_tokens}, calculated safe maximum: {max_safe_tokens})
 
 elapsed time: {minutes} minutes, {seconds:.2f} seconds
