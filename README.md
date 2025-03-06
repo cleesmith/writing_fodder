@@ -14,7 +14,7 @@ Think of it as a creative partner that helps you overcome writer's block or expl
 ## Features
 
 - Creates chapters of approximately 1,800-2,500 words <br>&nbsp;&nbsp;&nbsp;*(in lots of books the average is ~4,000 words, but AI isn't ready for that ... not yet)*
-- Maintains consistency with your existing storyline and characters &nbsp;&nbsp;&nbsp;*(warning: it does tend to add new characters)*
+- Maintains consistency with your existing storyline and characters <br>&nbsp;&nbsp;&nbsp;*(warning: it does tend to add new characters, either your outline forgot them, or the AI is being overly creative)*
 - Follows natural dialogue patterns and narrative pacing
 - Formats text according to standard writing conventions
 - Saves both the **generated chapter** and the **AI's "thinking process"** &nbsp;&nbsp;&nbsp;*(which can provide insights into the AI's creative decisions often leading to* **prompt** *adjustments)*
