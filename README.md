@@ -13,7 +13,7 @@ Think of it as a creative partner that helps you overcome writer's block or expl
 
 ## Features
 
-- Creates chapters of approximately 1,800-2,500 words
+- Creates chapters of approximately 1,800-2,500 words *(in lots of books the average is 4,000 words, but AI isn't ready for that, yet)*
 - Maintains consistency with your existing storyline and characters
 - Follows natural dialogue patterns and narrative pacing
 - Formats text according to standard writing conventions
