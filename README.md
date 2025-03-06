@@ -1,5 +1,10 @@
 # Next Chapter Writer - AI-powered chapter generation for writers
 
+
+> **No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions. Transform writer's block into writer's building blocks.**
+
+---
+
 ## What is Next Chapter Writer?
 
 Next Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style.
@@ -106,8 +111,6 @@ If you run into problems:
 - Try using shorter chapters if you're hitting token limits
 
 ---
-
-> No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions. Transform writer's block into writer's building blocks.
 
 ---
 
