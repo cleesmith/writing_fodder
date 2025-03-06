@@ -116,9 +116,9 @@ If you run into problems:
 
 ---
 
-## Companion Browser Tools for Writers
+# Companion Browser Tools for Writers
 
-This repository also includes a collection of fast lightweight browser-based HTML/JavaScript tools that work locally in your browser. 
+### This repository also includes a collection of fast lightweight browser-based HTML/JavaScript tools that work locally in your browser. 
 
 > There's no installation:
 > ```
@@ -145,10 +145,10 @@ These tools complement the Chapter Writer by helping you format, analyze, and co
 - DOCX HTML Block Viewer - assists with debugging .docx formatting
 
 ### Formatting Tools
-- Paragraph Wrapper - formats text with line breaks at 70 characters (ideal for reading)
-- Paragraph Unwrapper - removes line breaks (useful for Vellum and TTS)
-- Text to Proper Chunks - formats text in 1000-5000 character segments for TextToSpeech
+- Paragraph Wrapper - formats text with line breaks at 70 characters *(ideal for reading)*
+- Paragraph Unwrapper - removes line breaks *(useful for Vellum and TTS)*
+- Text to Proper Chunks - formats text into 1000-5000 character segments for TextToSpeech (TTS)
 
-All browser tools work directly in your web browser without sending data to a server, ensuring your writing remains private and secure.
+All browser tools work directly in your web browser, if you prefer, without sending data to a server, ensuring your writing remains private and secure.
 
 Best of luck with your writing!
