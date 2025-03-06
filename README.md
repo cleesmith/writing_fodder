@@ -39,8 +39,8 @@ Before you start:
    	```
 
 3. Set up your Anthropic API key in your environment:
-   - On Windows: **set ANTHROPIC_API_KEY=**your_api_key_here
-   - On Mac/Linux: **export ANTHROPIC_API_KEY=**your_api_key_here
+   - On Windows: **set ANTHROPIC_API_KEY=your_api_key_here**
+   - On Mac/Linux: **export ANTHROPIC_API_KEY=your_api_key_here**
 
 ## Required Files
 
