@@ -73,7 +73,7 @@ You can customize how the tool works with these options:
 
 ## Output Files
 
-When you run the tool, it creates two files:
+When you run the tool, it creates two files in **--save_dir**:
 
 1. **XXX_chapter_TIMESTAMP.txt** - The generated chapter text
    (XXX is the chapter number with leading zeros)
@@ -83,10 +83,10 @@ When you run the tool, it creates two files:
 
 ## Writing Tips When Using This Tool
 
-- Make your outline detailed for better results
+- Make your outline detailed for better results and follow they layout in the example
 - Include character descriptions that highlight personalities and motivations
 - Review and edit the generated chapters - they're a starting point, not final drafts
-- Use the AI's "thinking" file to understand its creative choices
+- Use the AI's "thinking" file to understand its creative choices, may be useful to make **prompt** adjustments
 
 ## Example Command
 
