@@ -98,7 +98,7 @@ When you run the tool, it creates two files in **--save_dir**, where **XXX** is 
 - Include character descriptions that highlight personalities and motivations
 - Review and edit the generated chapters - they're a starting point, not final drafts
 - Use the AI's "thinking" file to understand its creative choices, may be useful to make **prompt** adjustments
-- You can expect to wait a few minutes for the writing process to complete<br> &nbsp;&nbsp;&nbsp;*my average wait is about 1 minute 30 seconds; but elapsed time really depends:*<br> &nbsp;&nbsp;&nbsp;*a calm fast computer, your network connection, your API Tier level, and the many moods that are Claude*
+- You can expect to wait a few minutes for the writing process to complete<br> &nbsp;&nbsp;&nbsp;*my average wait is about 1 minute 30 seconds; but elapsed time really depends on:*<br> &nbsp;&nbsp;&nbsp;*a calm fast computer, your network connection, your API Tier level, and the many moods that are Claude*
 
 ## Example Command
 
