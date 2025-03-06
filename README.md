@@ -143,6 +143,6 @@ These tools complement the Next Chapter Writer by helping you format, analyze, a
 
 All browser tools work directly in your web browser without sending data to a server, ensuring your writing remains private and secure.
 
-> Say goodbye to the blank page or that blinking, not the best writing, but now you got fodder that followed instructions.
+> No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions. Transform writer's block into writer's building blocks.
 
 Best of luck with your writing!
