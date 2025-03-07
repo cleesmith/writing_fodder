@@ -1,4 +1,4 @@
-# python -B chapter-writer-loop.py --chapters chapters.txt --chapter_delay 15 --backup
+# python -B chapter-writer-loop.py --chapters chapters.txt --chapter_delay 20 --backup
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
 import anthropic
@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description='Generate the next chapter based on
 parser.add_argument('--request', type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
 parser.add_argument('--chapters', type=str, help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
 parser.add_argument('--chapter_delay', type=int, default=30, help='Delay in seconds between processing multiple chapters (default: 30)')
-parser.add_argument('--request_timeout', type=int, default=1000, help='Maximum timeout for output (default: 1000 seconds or about 16 minutes)')
+parser.add_argument('--request_timeout', type=int, default=300, help='Maximum timeout for output (default: 300 seconds or 5 minutes)')
 parser.add_argument('--manuscript', type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
 parser.add_argument('--outline', type=str, default="outline.txt", help='Path to outline file (default: outline.txt)')
 parser.add_argument('--characters', type=str, default="characters.txt", help='Path to characters file (default: characters.txt)')
@@ -157,11 +157,12 @@ def append_to_manuscript(chapter_text, manuscript_path, backup=False):
 def process_chapter(chapter_request, current_idx=None, total_chapters=None):
     """Process a single chapter with the given request string"""
     chapter_num, formatted_chapter = extract_chapter_num(chapter_request)
-    
+
+    current_time = datetime.now().strftime("%I:%M:%S %p").lower().lstrip("0")
     if current_idx is not None and total_chapters is not None:
-        print(f"Processing chapter {current_idx} of {total_chapters}: Chapter {chapter_num}")
+        print(f"{current_time} - Processing chapter {current_idx} of {total_chapters}: Chapter {chapter_num}")
     else:
-        print(f"Processing: Chapter {chapter_num}")
+        print(f"{current_time} - Processing: Chapter {chapter_num}")
 
     try:
         with open(args.outline, 'r', encoding='utf-8') as file:
@@ -245,7 +246,7 @@ IMPORTANT:
 1. NO Markdown formatting
 2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
 3. Use hyphens only for legitimate {args.lang} words
-4. Begin with "Chapter {formatted_outline_request}" and write in plain text only
+4. Begin with: {formatted_outline_request} and write in plain text only
 5. Write 1,800-2,500 words
 6. Do not repeat content from existing chapters
 7. Do not start working on the next chapter
@@ -271,7 +272,7 @@ IMPORTANT:
 1. NO Markdown formatting
 2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
 3. Use hyphens only for legitimate {args.lang} words
-4. Begin with "Chapter {formatted_outline_request}" and write in plain text only
+4. Begin with: {formatted_outline_request} and write in plain text only
 5. Write 1,800-2,500 words
 6. Do not repeat content from existing chapters
 7. Do not start working on the next chapter
@@ -291,7 +292,6 @@ note: The actual prompt included the outline, characters, manuscript which are n
     if max_tokens <= args.thinking_budget:
         max_tokens = args.thinking_budget + args.max_tokens
 
-    # Initialize API client
     client = anthropic.Anthropic(
         timeout=args.request_timeout,
         max_retries=0

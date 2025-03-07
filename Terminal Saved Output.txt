@@ -1,0 +1,72 @@
+(sophie) cleesmith:~$ python -B chapter-writer-loop.py --chapters chapters.txt --chapter_delay 15 --backup
+Found 10 chapters to process:
+  1. 16. The Acceptance
+  2. 17. New Perceptions
+  3. 18. The Others
+  4. 19. The Cost
+  5. 20. Time Shifts
+  6. 21. The Adaptation
+  7. 22. The Pattern Emerges
+  8. 23. The Revelation
+  9. 24. The Choice Offered
+  10. 25. The New Balance
+Processing chapter 1 of 10: Chapter 16
+Chapter 16 appended to manuscript file: manuscript.txt
+Completed Chapter 16: 2028 words (1m 26.42s) - saved to: 016_chapter_20250307_145004.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 2 of 10: Chapter 17
+Chapter 17 appended to manuscript file: manuscript.txt
+Completed Chapter 17: 2382 words (1m 31.38s) - saved to: 017_chapter_20250307_145152.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 3 of 10: Chapter 18
+Chapter 18 appended to manuscript file: manuscript.txt
+Completed Chapter 18: 2142 words (1m 23.95s) - saved to: 018_chapter_20250307_145331.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 4 of 10: Chapter 19
+Chapter 19 appended to manuscript file: manuscript.txt
+Completed Chapter 19: 2732 words (1m 45.22s) - saved to: 019_chapter_20250307_145532.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 5 of 10: Chapter 20
+Chapter 20 appended to manuscript file: manuscript.txt
+Completed Chapter 20: 2151 words (1m 21.99s) - saved to: 020_chapter_20250307_145710.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 6 of 10: Chapter 21
+Chapter 21 appended to manuscript file: manuscript.txt
+Completed Chapter 21: 2113 words (1m 20.56s) - saved to: 021_chapter_20250307_145846.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 7 of 10: Chapter 22
+Chapter 22 appended to manuscript file: manuscript.txt
+Completed Chapter 22: 2073 words (1m 20.91s) - saved to: 022_chapter_20250307_150023.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 8 of 10: Chapter 23
+Chapter 23 appended to manuscript file: manuscript.txt
+Completed Chapter 23: 2025 words (1m 25.63s) - saved to: 023_chapter_20250307_150204.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 9 of 10: Chapter 24
+Chapter 24 appended to manuscript file: manuscript.txt
+Completed Chapter 24: 2017 words (1m 26.99s) - saved to: 024_chapter_20250307_150347.txt
+Waiting 15 seconds before next chapter...
+Processing chapter 10 of 10: Chapter 25
+Chapter 25 appended to manuscript file: manuscript.txt
+Completed Chapter 25: 2119 words (1m 22.27s) - saved to: 025_chapter_20250307_150526.txt
+
+================================================================================
+SUMMARY OF ALL CHAPTERS PROCESSED
+================================================================================
+Chapter 16: 2028 words, 1m 26.4s, saved to: 016_chapter_20250307_145004.txt
+Chapter 17: 2382 words, 1m 31.4s, saved to: 017_chapter_20250307_145152.txt
+Chapter 18: 2142 words, 1m 24.0s, saved to: 018_chapter_20250307_145331.txt
+Chapter 19: 2732 words, 1m 45.2s, saved to: 019_chapter_20250307_145532.txt
+Chapter 20: 2151 words, 1m 22.0s, saved to: 020_chapter_20250307_145710.txt
+Chapter 21: 2113 words, 1m 20.6s, saved to: 021_chapter_20250307_145846.txt
+Chapter 22: 2073 words, 1m 20.9s, saved to: 022_chapter_20250307_150023.txt
+Chapter 23: 2025 words, 1m 25.6s, saved to: 023_chapter_20250307_150204.txt
+Chapter 24: 2017 words, 1m 27.0s, saved to: 024_chapter_20250307_150347.txt
+Chapter 25: 2119 words, 1m 22.3s, saved to: 025_chapter_20250307_150526.txt
+
+Total chapters: 10
+Total words: 21782
+Average words per chapter: 2178.2
+Total time: 14m 25.3s
+================================================================================
+(sophie) cleesmith:~$ 
