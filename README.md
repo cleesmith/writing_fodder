@@ -29,10 +29,10 @@ Think of it as a ***creative partner*** that helps you overcome writer's block o
 
 Before you start:
 
-1. You need Python 3.10 or higher installed on your computer
-2. You need an Anthropic API key 
-3. Your Anthropic account must have Tier 2 or Tier 3 API access level
-4. You need to install the Anthropic Python library (version 0.49.0 recommended)
+1. You need **Python** 3.10 or higher installed on your computer
+2. You need an **Anthropic API** key 
+3. Your Anthropic account must have **Tier 2** or **Tier 3** API access level
+4. You need to install the **Anthropic Python SDK** library (version 0.49.0 recommended)
 5. This tool uses &nbsp;***Claude 3.7 Sonnet***&nbsp; with &nbsp;***"thinking" enabled***&nbsp; plus &nbsp;***beta***&nbsp; version of &nbsp;***128K output***&nbsp;<br> &nbsp;&nbsp;&nbsp;*these new capabilities have made a big improvement in its writing while staying in the story*
 
 ## Setup Instructions
