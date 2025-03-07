@@ -5,7 +5,6 @@
 ---
 
 Watch demo:
-
 [![Chapter ](https://img.youtube.com/vi/b-uAZVATJ3w/0.jpg)](https://youtube.com/live/b-uAZVATJ3w)
 
 ---
