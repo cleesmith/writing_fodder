@@ -1,4 +1,4 @@
-# Chapter Writer - AI-powered chapter generation
+# Chapter Writer &nbsp;&nbsp;&nbsp;*AI powered chapter generation*
 
 > <h3>No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions.<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transform writer's block into writer's building blocks.</h3>
 
@@ -14,7 +14,7 @@
 
 Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style *(as best it can)*.
 
-Think of it as a ***creative partner*** that helps you overcome writer's block or explore new directions for your story - while maintaining consistency with what you've already written.
+Think of it as a ***creative partner*** that helps you overcome writer's block or explore new directions for your story, while maintaining consistency with what you've already written.
 
 ## Features
 
