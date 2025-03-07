@@ -14,7 +14,7 @@
 
 Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style *(as best it can)*.
 
-Think of it as a creative partner that helps you overcome writer's block or explore new directions for your story - while maintaining consistency with what you've already written.
+Think of it as a ***creative partner*** that helps you overcome writer's block or explore new directions for your story - while maintaining consistency with what you've already written.
 
 ## Features
 
@@ -32,8 +32,8 @@ Before you start:
 1. You need Python 3.10 or higher installed on your computer
 2. You need an Anthropic API key 
 3. Your Anthropic account must have Tier 2 or Tier 3 API access level
-4. This tool uses &nbsp;***Claude 3.7 Sonnet***&nbsp; with &nbsp;***"thinking" enabled***&nbsp; plus &nbsp;***beta***&nbsp; version of &nbsp;***128K output***&nbsp;<br> &nbsp;&nbsp;&nbsp;*these new capabilities have made a big improvement in its writing while staying in the story*
-5. You need to install the Anthropic Python library (version 0.49.0 recommended)
+4. You need to install the Anthropic Python library (version 0.49.0 recommended)
+5. This tool uses &nbsp;***Claude 3.7 Sonnet***&nbsp; with &nbsp;***"thinking" enabled***&nbsp; plus &nbsp;***beta***&nbsp; version of &nbsp;***128K output***&nbsp;<br> &nbsp;&nbsp;&nbsp;*these new capabilities have made a big improvement in its writing while staying in the story*
 
 ## Setup Instructions
 
