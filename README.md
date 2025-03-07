@@ -37,13 +37,13 @@ Before you start:
 
 ## Setup Instructions
 
-1. Clone or download this repository to your computer
-2. Install the required Anthropic library by running:
+1. Clone this repository or download zip file *(green button)* to your computer
+2. Install the required **Anthropic Python SDK** library by running:
 	```
    	pip install anthropic==0.49.0
    	```
 
-3. Set up your Anthropic API key in your environment:
+3. Set up your **Anthropic API** key in your environment:
    - on Windows: **set ANTHROPIC_API_KEY=your_api_key_here**
    - on Mac/Linux: **export ANTHROPIC_API_KEY=your_api_key_here**
 
@@ -55,7 +55,7 @@ You need to prepare these files before running the tool:
 2. **manuscript.txt** - your current manuscript *(all previous chapters)*
 3. **characters.txt** &nbsp;*(optional)* - information about your characters
 
-> Examples of these 3 files are included.
+> Examples of these 3 files are included, even though all 3 **must** exist they may be empty if desired.
 
 ## How to Use
 
