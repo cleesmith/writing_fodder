@@ -16,19 +16,14 @@ def extract_chapters_from_outline(outline_text):
     
     chapters = []
     
-    # Split the text into lines and process each line
     for line in outline_text.strip().split('\n'):
         line = line.strip()
         match = re.match(pattern, line)
         if match:
             chapter_num = match.group(1)
             title = match.group(2)
-            
-            # Remove double quotes around title if present
             title = title.strip('"')
-            
-            # Format in consistent "Chapter X: Title" format
-            formatted_chapter = f"Chapter {chapter_num}: {title}"
+            formatted_chapter = f"{chapter_num}. {title}"
             chapters.append(formatted_chapter)
     
     return chapters
@@ -43,7 +38,7 @@ def extract_chapters_from_file(file_path):
         return []
 
 if __name__ == "__main__":
-    chapters = extract_chapters_from_file("outline_sophie.txt")
+    chapters = extract_chapters_from_file("outline.txt")
     
     print("Extracted chapters:")
     for chapter in chapters:
