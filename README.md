@@ -37,9 +37,7 @@ Before you start:
 
 ## Setup Instructions
 
-```diff
-1. Clone this repository or download zip file *(+ green button)* to your computer
-```
+1. Clone this repository or download the zip file *(see: green 🟢 button)* to your computer
 2. Install the required **Anthropic Python SDK** library by running:
 	```
 	pip install anthropic==0.49.0
