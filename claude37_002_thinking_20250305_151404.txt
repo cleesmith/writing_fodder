@@ -1,6 +1,10 @@
 === PROMPT USED (EXCLUDING NOVEL CONTENT) ===
-You are a skilled novelist writing Chapter 2. Patterns in Nature in fluent, authentic English. 
-Draw upon your knowledge of worldwide literary traditions, narrative techniques, and creative approaches from across cultures, while expressing everything in natural, idiomatic English that honors its unique linguistic character.
+You are a skilled novelist writing Chapter 2. Patterns in Nature in
+fluent, authentic English. 
+Draw upon your knowledge of worldwide literary traditions, narrative
+techniques, and creative approaches from across cultures, while
+expressing everything in natural, idiomatic English that honors its
+unique linguistic character.
 
 Consider the following in your thinking:
 - Refer to the included CHARACTERS, if provided
@@ -26,8 +30,8 @@ note: The actual prompt included the outline, characters, manuscript which are n
 
 
 === AI'S THINKING PROCESS ===
-
-Let me analyze the materials provided to create Chapter 2: Patterns in Nature.
+Let me analyze the materials provided to create Chapter 2: Patterns in
+Nature.
 
 From the OUTLINE, Chapter 2 should cover:
 - The protagonist's research on plant-insect symbiosis and communication systems
@@ -63,13 +67,24 @@ For Chapter 2, I need to:
 5. Include Thomas's first dream where ants form deliberate patterns (although we've already seen a recurring dream with a humanoid figure)
 6. End with Thomas waking up to find real ants in a perfect circle around his bed
 
-I'll aim for a chapter that balances advancing the plot, developing Thomas's character, and building the mystery around the ants. I'll incorporate sensory details and vivid descriptions, and maintain the scientific yet increasingly unsettled tone established in Chapter 1.
+I'll aim for a chapter that balances advancing the plot, developing
+Thomas's character, and building the mystery around the ants. I'll
+incorporate sensory details and vivid descriptions, and maintain the
+scientific yet increasingly unsettled tone established in Chapter 1.
 
-Since we already saw one dream in Chapter 1, I'll need to differentiate the new dream described in the outline from the recurring one we've already seen. Perhaps this is a new type of dream with different patterns rather than the humanoid figure.
+Since we already saw one dream in Chapter 1, I'll need to
+differentiate the new dream described in the outline from the
+recurring one we've already seen. Perhaps this is a new type of dream
+with different patterns rather than the humanoid figure.
 
-I'll maintain natural dialogue, especially in the scenes with Dr. West and the introduction of Dr. Chen, making sure each character has a distinctive voice. I'll keep the uncanny, slightly horrific mood established in the first chapter, while building Thomas's scientific curiosity and growing unease.
+I'll maintain natural dialogue, especially in the scenes with Dr. West
+and the introduction of Dr. Chen, making sure each character has a
+distinctive voice. I'll keep the uncanny, slightly horrific mood
+established in the first chapter, while building Thomas's scientific
+curiosity and growing unease.
 
-I'll use the 12-hour numerical time format with a space before lowercase am/pm as instructed.
+I'll use the 12-hour numerical time format with a space before
+lowercase am/pm as instructed.
 
 Let's begin writing Chapter 2: Patterns in Nature.
 === END AI'S THINKING PROCESS ===

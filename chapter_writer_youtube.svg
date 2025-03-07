@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <!-- Background with warm desert gradient -->
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8d5c0" />
+      <stop offset="100%" stop-color="#d7bc9d" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1280" height="720" fill="url(#bg-gradient)" />
+  
+  <!-- Stack of books -->
+  <!-- Book 5 (bottom) - Red with "Shakespeare" -->
+  <g transform="translate(640, 400) rotate(-8)">
+    <rect x="-220" y="-30" width="440" height="60" fill="#D32F2F" stroke="#B71C1C" stroke-width="4" />
+    <rect x="-220" y="-30" width="440" height="8" fill="#B71C1C" />
+    <line x1="-180" y1="-30" x2="-180" y2="30" stroke="#B71C1C" stroke-width="2" />
+    <line x1="-140" y1="-30" x2="-140" y2="30" stroke="#B71C1C" stroke-width="2" />
+    <line x1="-100" y1="-30" x2="-100" y2="30" stroke="#B71C1C" stroke-width="2" />
+    <text x="0" y="10" font-family="Times New Roman, serif" font-size="26" font-weight="bold" fill="white" text-anchor="middle" transform="rotate(8)">Shakespeare</text>
+  </g>
+  
+  <!-- Book 4 - Brown with "Mundane Speaks" -->
+  <g transform="translate(640, 360) rotate(5)">
+    <rect x="-200" y="-30" width="400" height="60" fill="#795548" stroke="#5D4037" stroke-width="4" />
+    <rect x="-200" y="-30" width="400" height="8" fill="#5D4037" />
+    <line x1="-160" y1="-30" x2="-160" y2="30" stroke="#5D4037" stroke-width="2" />
+    <line x1="-120" y1="-30" x2="-120" y2="30" stroke="#5D4037" stroke-width="2" />
+    <line x1="-80" y1="-30" x2="-80" y2="30" stroke="#5D4037" stroke-width="2" />
+    <text x="0" y="10" font-family="Times New Roman, serif" font-size="26" font-weight="bold" fill="white" text-anchor="middle" transform="rotate(-5)">Mundane Speaks</text>
+  </g>
+  
+  <!-- Book 3 - Green with "Great Gatsby" -->
+  <g transform="translate(640, 320) rotate(-3)">
+    <rect x="-230" y="-30" width="460" height="60" fill="#388E3C" stroke="#2E7D32" stroke-width="4" />
+    <rect x="-230" y="-30" width="460" height="8" fill="#2E7D32" />
+    <line x1="-190" y1="-30" x2="-190" y2="30" stroke="#2E7D32" stroke-width="2" />
+    <line x1="-150" y1="-30" x2="-150" y2="30" stroke="#2E7D32" stroke-width="2" />
+    <line x1="-110" y1="-30" x2="-110" y2="30" stroke="#2E7D32" stroke-width="2" />
+    <text x="0" y="10" font-family="Times New Roman, serif" font-size="26" font-weight="bold" fill="white" text-anchor="middle" transform="rotate(3)">Great Gatsby</text>
+  </g>
+  
+  <!-- Book 2 - Beige with "Wuthering Heights" -->
+  <g transform="translate(640, 280) rotate(7)">
+    <rect x="-210" y="-30" width="420" height="60" fill="#E8E4C9" stroke="#D6CFB2" stroke-width="4" />
+    <rect x="-210" y="-30" width="420" height="8" fill="#D6CFB2" />
+    <line x1="-170" y1="-30" x2="-170" y2="30" stroke="#D6CFB2" stroke-width="2" />
+    <line x1="-130" y1="-30" x2="-130" y2="30" stroke="#D6CFB2" stroke-width="2" />
+    <line x1="-90" y1="-30" x2="-90" y2="30" stroke="#D6CFB2" stroke-width="2" />
+    <text x="0" y="10" font-family="Times New Roman, serif" font-size="26" font-weight="bold" fill="#5D4037" text-anchor="middle" transform="rotate(-7)">Wuthering Heights</text>
+  </g>
+  
+  <!-- Book 1 (top) - Blue with "Moby Dick" -->
+  <g transform="translate(640, 240) rotate(-6)">
+    <rect x="-190" y="-30" width="380" height="60" fill="#3F51B5" stroke="#303F9F" stroke-width="4" />
+    <rect x="-190" y="-30" width="380" height="8" fill="#303F9F" />
+    <line x1="-150" y1="-30" x2="-150" y2="30" stroke="#303F9F" stroke-width="2" />
+    <line x1="-110" y1="-30" x2="-110" y2="30" stroke="#303F9F" stroke-width="2" />
+    <line x1="-70" y1="-30" x2="-70" y2="30" stroke="#303F9F" stroke-width="2" />
+    <text x="0" y="10" font-family="Times New Roman, serif" font-size="26" font-weight="bold" fill="white" text-anchor="middle" transform="rotate(6)">Moby Dick</text>
+  </g>
+  
+  <!-- Main title - larger font size -->
+  <text x="640" y="160" font-family="Arial, sans-serif" font-size="100" font-weight="bold" text-anchor="middle" fill="#4e342e">Chapter Writer</text>
+  
+  <!-- Subtitle - "with thinking" not just "thinking" -->
+  <text x="640" y="570" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="#5d4037">Claude 3.7 Sonnet with thinking</text>
+</svg>

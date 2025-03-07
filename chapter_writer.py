@@ -14,7 +14,7 @@ parser.add_argument('--request_timeout', type=int, default=1000, help='Maximum t
 parser.add_argument('--manuscript', type=str, default="manuscript.txt")
 parser.add_argument('--outline', type=str, default="outline.txt")
 parser.add_argument('--characters', type=str, default="characters.txt")
-parser.add_argument('--thinking_budget', type=int, default=31000, help='Maximum tokens for AI thinking (default: 31000)')
+parser.add_argument('--thinking_budget', type=int, default=32000, help='Maximum tokens for AI thinking (default: 31000)')
 parser.add_argument('--max_tokens', type=int, default=9000, help='Maximum tokens for output (default: 9000)')
 parser.add_argument('--context_window', type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
 parser.add_argument('--save_dir', type=str, default=".")
@@ -159,7 +159,7 @@ Consider the following in your thinking:
 
 IMPORTANT:
 1. NO Markdown formatting
-2. NO ellipsis or em dash's or '.,-'s or ',-' or '-,' or '--' or '*'
+2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
 3. Use hyphens only for legitimate {args.lang} words
 4. Begin with "Chapter {args.request}" and write in plain text only
 5. Write 1,800-2,500 words
@@ -185,7 +185,7 @@ Consider the following in your thinking:
 
 IMPORTANT:
 1. NO Markdown formatting
-2. NO ellipsis or em dash's or '.,-'s or ',-' or '-,' or '--' or '*'
+2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
 3. Use hyphens only for legitimate {args.lang} words
 4. Begin with "Chapter {args.request}" and write in plain text only
 5. Write 1,800-2,500 words
@@ -208,6 +208,7 @@ max_tokens = int(min(args.max_tokens, max_safe_tokens))
 absolute_path = os.path.abspath(args.save_dir)
 
 print(f"Max request timeout: {args.request_timeout} seconds")
+print(f"Max retries: 0 (anthropic's default was 2)")
 print(f"Max AI model context window: {args.context_window} tokens")
 print(f"AI model thinking budget: {args.thinking_budget} tokens")
 print(f"Max output tokens: {args.max_tokens} tokens")
@@ -296,9 +297,26 @@ chapter_word_count = count_words(cleaned_response)
 print(f"\nelapsed time: {minutes} minutes, {seconds:.2f} seconds.")
 print(f"\nChapter: {chapter_num} has {chapter_word_count} words (includes chapter title).")
 
+chapter_token_count = 0
+try:
+    response = client.beta.messages.count_tokens(
+        model="claude-3-7-sonnet-20250219",
+        messages=[{"role": "user", "content": cleaned_response}],
+        thinking={
+            "type": "enabled",
+            "budget_tokens": args.thinking_budget
+        },
+        betas=["output-128k-2025-02-19"]
+    )
+    chapter_token_count = response.input_tokens
+    print(f"Chapter: {chapter_num}'s text is {chapter_token_count} tokens (via free client.beta.messages.count_tokens)")
+except Exception as e:
+    print(f"Error:\n{e}\n")
+
 stats = f"""
 Details:
 Max request timeout: {args.request_timeout}  seconds
+Max retries: 0 (anthropic's default was 2)
 Max AI model context window: {args.context_window} tokens
 AI model thinking budget: {args.thinking_budget} tokens
 Max output tokens: {args.max_tokens} tokens
@@ -309,6 +327,7 @@ Setting max_tokens to: {max_tokens} (requested: {args.max_tokens}, calculated sa
 
 elapsed time: {minutes} minutes, {seconds:.2f} seconds
 Chapter: {chapter_num} has {chapter_word_count} words (includes chapter title)
+Chapter: {chapter_num}'s text is {chapter_token_count} tokens (via free client.beta.messages.count_tokens)
 New chapter saved to: {chapter_filename}
 ###
 """
@@ -324,11 +343,11 @@ if thinking_content:
         file.write(stats)
     print(f"New chapter saved to: {chapter_filename}")
     print(f"AI thinking saved to: {thinking_filename}\n")
-    print(f"Files saved to: {absolute_path}\n")
+    print(f"Files saved to: {absolute_path}")
 else:
     print(f"New chapter saved to: {chapter_filename}")
     print("No AI thinking content was captured.\n")
-    print(f"Files saved to: {absolute_path}\n")
+    print(f"Files saved to: {absolute_path}")
 
 print(f"###\n")
 

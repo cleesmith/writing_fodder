@@ -4,6 +4,10 @@
 
 ---
 
+[![Chapter ](https://img.youtube.com/vi/b-uAZVATJ3w/0.jpg)](https://youtube.com/live/b-uAZVATJ3w)
+
+---
+
 ## What is Chapter Writer?
 
 Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style *(as best it can)*.
