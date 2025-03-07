@@ -37,11 +37,13 @@ Before you start:
 
 ## Setup Instructions
 
+```diff
 1. Clone this repository or download zip file *(+ green button)* to your computer
+```
 2. Install the required **Anthropic Python SDK** library by running:
 	```
-   	pip install anthropic==0.49.0
-   	```
+	pip install anthropic==0.49.0
+	```
 
 3. Set up your **Anthropic API** key in your environment:
    - on Windows: **set ANTHROPIC_API_KEY=your_api_key_here**
