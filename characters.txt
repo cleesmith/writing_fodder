@@ -1,55 +1,95 @@
-CHARACTER LIST - FORMIC
 
-MAIN CHARACTER:
+CHARACTERS:
 
-Thomas Fielding - The protagonist and first-person narrator, a botanist in his mid-30s working at a university. Specializes in plant-insect symbiosis and communication systems. Has a recurring childhood memory of sitting on an anthill as a toddler without being bitten, documented in a black and white family photograph. Experiences unusual encounters with ants throughout his life and recurring dreams where they offer him immortality through symbiosis. Described as scientifically minded but increasingly challenged by unexplainable events. Has a strained relationship with his family and their storytelling traditions.
+WHITEY FOLGER
+- The grumpiest man in the world
+- Tall with broad shoulders and deep voice
+- Dragon tattoo on left arm
+- Always wears a leather jacket regardless of weather
+- Asymmetrical face: one eye up, one eye down, bent nose
+- Crooked smile that's oddly charming
+- Rarely speaks to anyone before meeting Carrie
+- Dislikes music and books except The Great Gatsby
+- Widower with no children
+- Former army member who "saw terrible things"
+- Habit of doing chores without permission then billing people
+- A "drifter" who came to Interwoven from outside world
+- Took oath to never reveal knowledge of outside world
+- Becomes obsessive and vengeful after rejection
+- Shows stalking behavior and threatening tendencies
+- Has romantic notion that "guy always gets the girl"
+- At risk of being expelled from Interwoven
+- Knowledge of outside world that others lack
+- Conflicted between desire for revenge and genuine feelings
 
-HUMAN CHARACTERS:
+CARRIE OKIE
+- The most serious woman on earth
+- Red-haired with thick glasses
+- Slender with hair in tight bun
+- Always wears long skirts
+- Sells hot dogs from handmade bric-a-brac cart
+- Volunteer librarian on weekends
+- Hates music as "waste of time"
+- Prefers quiet life focused on work
+- Loves books as escape from boredom
+- Values privacy but feels lonely
+- Favorite book is The Great Gatsby
+- Strong intuition/gut feelings she learns to trust
+- Torn between loneliness and bad decisions
+- Eventually stands up for herself
+- Yearns for more meaning but fears taking risks
+- Carefully tends to her regular customers
+- Has no family mentioned in Interwoven
+- Growing relationship with new boyfriend
+- Journey from doubt to self-confidence
+- Ultimately takes her "leap of faith"
 
-Vivian - The university greenhouse manager who works with Thomas. First to notice the unusual ant behavior around his orchid specimens. Described as practical and composed, with wire-rimmed glasses that reflect light. Has thirty years of greenhouse management experience and a nervous habit of pushing her glasses up when confronting something outside her understanding.
+JUDGE ABERDEEN CONSTANCE BADDER
+- Wise elder woman who serves as judge
+- Home serves as courthouse
+- Fair, just, but stern in demeanor
+- Acts as confidant and advisor to Carrie
+- Authority to enforce Interwoven's rules
+- Power to expel people from community
+- Knowledge of Whitey's outsider status
+- Serves as both judge and gossip
+- Likes "knowing what people are up to"
+- Dispenses wisdom with tea
+- Encourages trusting instincts
+- Protector of Interwoven's traditions
+- Respected by all community members
+- Final arbiter in all disputes
+- Guardian of the boundary between Interwoven and outside
 
-Dr. Eleanor West - Thomas's department chair at the university. Normally composed and professionally dressed in "perfectly pressed business attire," but appears more humanized when called to the greenhouse break-in wearing hastily donned sweater and jeans. Shows both administrative concern and academic curiosity when faced with the mathematical equations formed in soil.
+CARRIE'S BOYFRIEND (Unnamed)
+- New love interest after Whitey
+- Supportive and understanding
+- Takes walks with Carrie in the woods
+- Target of Whitey's jealousy
+- Offers to help with Whitey situation
+- Respects Carrie's independence
+- Provides emotional support during crisis
+- Helps Carrie through the aftermath
+- Part of her new beginning
 
-Dr. Eliza Chen - An expert in myrmecology (ant studies) whom Thomas meets by chance. Later shares research about unprecedented coordination in ant colonies worldwide. Eventually becomes concerned about Thomas's increasingly erratic behavior as his connection to the ants deepens.
+INTERWOVEN COMMUNITY
+- Self-governed village with only Judge Badder as authority
+- Connected by footpaths, no roads or vehicles
+- Philosophy of "going with the flow" of life
+- River running through as central feature
+- Weekly "fish fire" social gatherings
+- Private yet interconnected community
+- Limited knowledge of outside world
+- Surrounded by "impenetrable mountains"
+- Described as "paradise" by Whitey
+- Mysterious elements: trees and walls that watch and listen
+- Constant surveillance by "everything in Interwoven"
+- Strong ties despite physical separation
+- Trading system instead of currency
+- Origins of name forgotten by residents
+- Ritual of expulsion rarely used
 
-Jules - Initially appears as a new colleague with an interest in Thomas's research. Later revealed to be a "Watcher" for those approached by The Colony, with knowledge about Thomas's dreams without being told. Eventually introduces Thomas to a hidden community of people with ant connections and admits to being centuries old.
-
-Elena - A member of the symbiote network who accepted the Colony's offer 80 years ago but appears 30. Can demonstrate NanoAnt abilities including physical transformation and healing. Has an inability to speak about certain topics, suggesting limitations imposed by the symbiosis. Engages in debate about Thomas's readiness for full symbiosis.
-
-Thomas's Mother - Described as having a "lilting cadence" to her voice when telling family stories. She told the story of Thomas sitting on an anthill as a child with no bites. Part of a family tradition of "masterful storytellers, embellishing the mundane into the miraculous over generations of farm life."
-
-Thomas's Father - Mentioned briefly as pulling Thomas away from the anthill as a child. Used bourbon for "unsettled nerves," a habit Thomas has adopted. Appears to have been more practical than the storytellers in the family.
-
-Professor Ramirez - An anthropologist specializing in insect symbolism. Provides information about historical figures suspected of having unusual longevity, possibly connected to the ant symbiosis.
-
-Dr. Voss - A government scientist hunting those with ant symbiosis. Leads an organization that has caused some symbiotic humans to disappear under suspicious circumstances. Represents the human fear of the ant collective's potential influence.
-
-Thomas's Great-Grandmother - Mentioned in the outline as possibly having had a similar experience with ants, suggesting a potential genetic or familial connection to the Colony's interest in Thomas.
-
-Thomas's Grandmother - Implied to be one of the "masterful storytellers" in the family along with his mother and great-aunt, but not directly featured in the first chapter.
-
-Thomas's Great-Aunt - Mentioned as one of the family storytellers alongside his mother and grandmother, embellishing mundane events into the miraculous.
-
-NON-HUMAN ENTITIES:
-
-The Colony - The collective consciousness of ants that approaches Thomas in his dreams. Forms a humanoid silhouette made of millions of individual ants. Offers immortality through symbiosis with specialized NanoAnts in exchange for perpetual observation. Communicates without words, conveying thoughts directly into Thomas's mind. Has a different perspective on death, time, and connectivity than humans. Claims to have "waited specifically" for Thomas since his childhood encounter.
-
-NanoAnts - Specialized ants that would live within a human host as part of the symbiotic relationship offered by the Colony. Provide immortality, perfect health, freedom from aging, and enhanced capabilities. Connect the human host to the worldwide collective of their species. Later revealed to provide abilities including health maintenance, cellular repair, enhanced strength, faster healing, and communication with the global ant consciousness.
-
-SETTINGS:
-
-University Campus - Thomas's workplace, including his office, the botanical archive (his "sanctuary"), and the greenhouse where unusual ant activity is first noticed around his orchid research.
-
-Thomas's Apartment - Where he experiences dreams of the ant collective and discovers the photograph mysteriously moved from his office.
-
-Park (Dream Setting) - Where Thomas's recurring dream encounter with the ant collective takes place, described with a bench, morning dew, and rising sun.
-
-POTENTIAL THEMES:
-
-1. The nature of consciousness and identity
-2. Humanity's relationship with other species and the natural world
-3. The trade-off between immortality and autonomy
-4. Collective intelligence versus individual consciousness
-5. Evolution and symbiotic relationships
-6. The boundaries between scientific understanding and unexplainable phenomena
-7. Ancient knowledge and modern science
+MINOR CHARACTERS
+- Mrs. Nguyen: Daily customer for her "weiner"
+- Joe: Homeless man who asks for "cup of Joe"
+- Older librarian: Customer who likes chili dogs
