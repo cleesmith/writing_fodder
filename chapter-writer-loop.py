@@ -11,9 +11,9 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Generate the next chapter based on the outline and any previous chapters.')
 parser.add_argument('--request', type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
+parser.add_argument('--request_timeout', type=int, default=240, help='Maximum timeout for output (default: 240 seconds = 4 minutes)')
 parser.add_argument('--chapters', type=str, help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
-parser.add_argument('--chapter_delay', type=int, default=30, help='Delay in seconds between processing multiple chapters (default: 30)')
-parser.add_argument('--request_timeout', type=int, default=300, help='Maximum timeout for output (default: 300 seconds or 5 minutes)')
+parser.add_argument('--chapter_delay', type=int, default=20, help='Delay in seconds between processing multiple chapters (default: 20 seconds)')
 parser.add_argument('--manuscript', type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
 parser.add_argument('--outline', type=str, default="outline.txt", help='Path to outline file (default: outline.txt)')
 parser.add_argument('--characters', type=str, default="characters.txt", help='Path to characters file (default: characters.txt)')
@@ -219,6 +219,7 @@ def process_chapter(chapter_request, current_idx=None, total_chapters=None):
             formatted_outline_request = f"Chapter {num}. {title}"
 
     # create prompt with explicit instructions for AI
+    # note: the weird indentation keeps the text of the prompt properly aligned
     prompt = f"""=== OUTLINE ===
 {outline_content}
 === END OUTLINE ===

@@ -1,0 +1,162 @@
+(sophie) cleesmith:~$ python -B chapter-writer-loop.py --chapters chapters.txt                     
+Found 25 chapters to process:
+  1. 2. The Repair Shop
+  2. 3. An Unexpected Proposal
+  3. 4. Honeymoon Phase
+  4. 5. Red Flags
+  5. 6. The Test Result
+  6. 7. Physical Transformation
+  7. 8. The Baby's Room
+  8. 9. Doctor Visits
+  9. 10. The Departure
+  10. 11. False Alarm
+  11. 12. The Wait
+  12. 13. Labor
+  13. 14. Delivery
+  14. 15. Coming Home
+  15. 16. Sleep Deprivation
+  16. 17. First Smile
+  17. 18. The Mechanic Returns
+  18. 19. Financial Realities
+  19. 20. First Steps
+  20. 21. The Birthday Party
+  21. 22. The Garden
+  22. 23. The Reliable Car
+  23. 24. School Days
+  24. 25. Full Circle
+  25. 26. Epilogue: The Something
+8:52:32 am - Processing chapter 1 of 25: Chapter 2
+Chapter 2 appended to manuscript file: manuscript.txt
+Completed Chapter 2: 2522 words (1m 24.00s) - saved to: 002_chapter_20250308_085357.txt
+Waiting 20 seconds before next chapter...
+8:54:17 am - Processing chapter 2 of 25: Chapter 3
+Chapter 3 appended to manuscript file: manuscript.txt
+Completed Chapter 3: 2429 words (1m 19.34s) - saved to: 003_chapter_20250308_085537.txt
+Waiting 20 seconds before next chapter...
+8:55:57 am - Processing chapter 3 of 25: Chapter 4
+Chapter 4 appended to manuscript file: manuscript.txt
+Completed Chapter 4: 2238 words (1m 14.18s) - saved to: 004_chapter_20250308_085711.txt
+Waiting 20 seconds before next chapter...
+8:57:31 am - Processing chapter 4 of 25: Chapter 5
+Chapter 5 appended to manuscript file: manuscript.txt
+Completed Chapter 5: 2084 words (1m 13.75s) - saved to: 005_chapter_20250308_085845.txt
+Waiting 20 seconds before next chapter...
+8:59:05 am - Processing chapter 5 of 25: Chapter 6
+Chapter 6 appended to manuscript file: manuscript.txt
+Completed Chapter 6: 2537 words (1m 22.20s) - saved to: 006_chapter_20250308_090028.txt
+Waiting 20 seconds before next chapter...
+9:00:48 am - Processing chapter 6 of 25: Chapter 7
+Chapter 7 appended to manuscript file: manuscript.txt
+Completed Chapter 7: 2399 words (1m 21.09s) - saved to: 007_chapter_20250308_090210.txt
+Waiting 20 seconds before next chapter...
+9:02:30 am - Processing chapter 7 of 25: Chapter 8
+Chapter 8 appended to manuscript file: manuscript.txt
+Completed Chapter 8: 2486 words (1m 29.51s) - saved to: 008_chapter_20250308_090400.txt
+Waiting 20 seconds before next chapter...
+9:04:20 am - Processing chapter 8 of 25: Chapter 9
+Chapter 9 appended to manuscript file: manuscript.txt
+Completed Chapter 9: 2730 words (1m 34.70s) - saved to: 009_chapter_20250308_090555.txt
+Waiting 20 seconds before next chapter...
+9:06:15 am - Processing chapter 9 of 25: Chapter 10
+Chapter 10 appended to manuscript file: manuscript.txt
+Completed Chapter 10: 2439 words (1m 26.04s) - saved to: 010_chapter_20250308_090741.txt
+Waiting 20 seconds before next chapter...
+9:08:02 am - Processing chapter 10 of 25: Chapter 11
+Chapter 11 appended to manuscript file: manuscript.txt
+Completed Chapter 11: 2413 words (1m 25.73s) - saved to: 011_chapter_20250308_090928.txt
+Waiting 20 seconds before next chapter...
+9:09:48 am - Processing chapter 11 of 25: Chapter 12
+Chapter 12 appended to manuscript file: manuscript.txt
+Completed Chapter 12: 2370 words (1m 27.93s) - saved to: 012_chapter_20250308_091116.txt
+Waiting 20 seconds before next chapter...
+9:11:36 am - Processing chapter 12 of 25: Chapter 13
+Chapter 13 appended to manuscript file: manuscript.txt
+Completed Chapter 13: 2801 words (1m 34.88s) - saved to: 013_chapter_20250308_091312.txt
+Waiting 20 seconds before next chapter...
+9:13:32 am - Processing chapter 13 of 25: Chapter 14
+Chapter 14 appended to manuscript file: manuscript.txt
+Completed Chapter 14: 1992 words (1m 13.89s) - saved to: 014_chapter_20250308_091446.txt
+Waiting 20 seconds before next chapter...
+9:15:06 am - Processing chapter 14 of 25: Chapter 15
+Chapter 15 appended to manuscript file: manuscript.txt
+Completed Chapter 15: 2346 words (1m 29.04s) - saved to: 015_chapter_20250308_091636.txt
+Waiting 20 seconds before next chapter...
+9:16:56 am - Processing chapter 15 of 25: Chapter 16
+Chapter 16 appended to manuscript file: manuscript.txt
+Completed Chapter 16: 2472 words (1m 28.81s) - saved to: 016_chapter_20250308_091826.txt
+Waiting 20 seconds before next chapter...
+9:18:46 am - Processing chapter 16 of 25: Chapter 17
+Chapter 17 appended to manuscript file: manuscript.txt
+Completed Chapter 17: 2429 words (1m 29.80s) - saved to: 017_chapter_20250308_092017.txt
+Waiting 20 seconds before next chapter...
+9:20:37 am - Processing chapter 17 of 25: Chapter 18
+Chapter 18 appended to manuscript file: manuscript.txt
+Completed Chapter 18: 2725 words (1m 33.53s) - saved to: 018_chapter_20250308_092211.txt
+Waiting 20 seconds before next chapter...
+9:22:32 am - Processing chapter 18 of 25: Chapter 19
+Chapter 19 appended to manuscript file: manuscript.txt
+Completed Chapter 19: 2388 words (1m 33.00s) - saved to: 019_chapter_20250308_092405.txt
+Waiting 20 seconds before next chapter...
+9:24:25 am - Processing chapter 19 of 25: Chapter 20
+Chapter 20 appended to manuscript file: manuscript.txt
+Completed Chapter 20: 2770 words (1m 53.71s) - saved to: 020_chapter_20250308_092620.txt
+Waiting 20 seconds before next chapter...
+9:26:40 am - Processing chapter 20 of 25: Chapter 21
+Chapter 21 appended to manuscript file: manuscript.txt
+Completed Chapter 21: 2339 words (1m 26.83s) - saved to: 021_chapter_20250308_092807.txt
+Waiting 20 seconds before next chapter...
+9:28:27 am - Processing chapter 21 of 25: Chapter 22
+Chapter 22 appended to manuscript file: manuscript.txt
+Completed Chapter 22: 2391 words (1m 26.80s) - saved to: 022_chapter_20250308_092955.txt
+Waiting 20 seconds before next chapter...
+9:30:15 am - Processing chapter 22 of 25: Chapter 23
+Chapter 23 appended to manuscript file: manuscript.txt
+Completed Chapter 23: 2404 words (1m 28.99s) - saved to: 023_chapter_20250308_093144.txt
+Waiting 20 seconds before next chapter...
+9:32:04 am - Processing chapter 23 of 25: Chapter 24
+Chapter 24 appended to manuscript file: manuscript.txt
+Completed Chapter 24: 2718 words (1m 37.64s) - saved to: 024_chapter_20250308_093343.txt
+Waiting 20 seconds before next chapter...
+9:34:03 am - Processing chapter 24 of 25: Chapter 25
+Chapter 25 appended to manuscript file: manuscript.txt
+Completed Chapter 25: 2509 words (1m 32.28s) - saved to: 025_chapter_20250308_093536.txt
+Waiting 20 seconds before next chapter...
+9:35:56 am - Processing chapter 25 of 25: Chapter 26
+Chapter 26 appended to manuscript file: manuscript.txt
+Completed Chapter 26: 2396 words (1m 32.34s) - saved to: 026_chapter_20250308_093729.txt
+
+================================================================================
+SUMMARY OF ALL CHAPTERS PROCESSED
+================================================================================
+Chapter 2: 2522 words, 1m 24.0s, saved to: 002_chapter_20250308_085357.txt
+Chapter 3: 2429 words, 1m 19.3s, saved to: 003_chapter_20250308_085537.txt
+Chapter 4: 2238 words, 1m 14.2s, saved to: 004_chapter_20250308_085711.txt
+Chapter 5: 2084 words, 1m 13.7s, saved to: 005_chapter_20250308_085845.txt
+Chapter 6: 2537 words, 1m 22.2s, saved to: 006_chapter_20250308_090028.txt
+Chapter 7: 2399 words, 1m 21.1s, saved to: 007_chapter_20250308_090210.txt
+Chapter 8: 2486 words, 1m 29.5s, saved to: 008_chapter_20250308_090400.txt
+Chapter 9: 2730 words, 1m 34.7s, saved to: 009_chapter_20250308_090555.txt
+Chapter 10: 2439 words, 1m 26.0s, saved to: 010_chapter_20250308_090741.txt
+Chapter 11: 2413 words, 1m 25.7s, saved to: 011_chapter_20250308_090928.txt
+Chapter 12: 2370 words, 1m 27.9s, saved to: 012_chapter_20250308_091116.txt
+Chapter 13: 2801 words, 1m 34.9s, saved to: 013_chapter_20250308_091312.txt
+Chapter 14: 1992 words, 1m 13.9s, saved to: 014_chapter_20250308_091446.txt
+Chapter 15: 2346 words, 1m 29.0s, saved to: 015_chapter_20250308_091636.txt
+Chapter 16: 2472 words, 1m 28.8s, saved to: 016_chapter_20250308_091826.txt
+Chapter 17: 2429 words, 1m 29.8s, saved to: 017_chapter_20250308_092017.txt
+Chapter 18: 2725 words, 1m 33.5s, saved to: 018_chapter_20250308_092211.txt
+Chapter 19: 2388 words, 1m 33.0s, saved to: 019_chapter_20250308_092405.txt
+Chapter 20: 2770 words, 1m 53.7s, saved to: 020_chapter_20250308_092620.txt
+Chapter 21: 2339 words, 1m 26.8s, saved to: 021_chapter_20250308_092807.txt
+Chapter 22: 2391 words, 1m 26.8s, saved to: 022_chapter_20250308_092955.txt
+Chapter 23: 2404 words, 1m 29.0s, saved to: 023_chapter_20250308_093144.txt
+Chapter 24: 2718 words, 1m 37.6s, saved to: 024_chapter_20250308_093343.txt
+Chapter 25: 2509 words, 1m 32.3s, saved to: 025_chapter_20250308_093536.txt
+Chapter 26: 2396 words, 1m 32.3s, saved to: 026_chapter_20250308_093729.txt
+
+Total chapters: 25
+Total words: 61327
+Average words per chapter: 2453.1
+Total time: 36m 40.0s
+================================================================================
+

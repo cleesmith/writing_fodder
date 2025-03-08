@@ -1,0 +1,13 @@
+usage_date_utc,model_version,api_key,workspace,usage_type,usage_input_tokens_no_cache,usage_input_tokens_cache_write,usage_input_tokens_cache_read,usage_output_tokens
+2025-03-01,claude-3-7-sonnet-20250219,max,Default,standard,1685598,0,0,52908
+2025-03-02,claude-3-5-sonnet-20240620,console,Default,standard,1242,6410,6410,1275
+2025-03-02,claude-3-7-sonnet-20250219,console,Default,standard,364,0,0,8
+2025-03-02,claude-3-7-sonnet-20250219,max,Default,standard,688605,0,0,76269
+2025-03-03,claude-3-5-sonnet-20240620,console,Default,standard,3561,19312,0,2437
+2025-03-03,claude-3-7-sonnet-20250219,console,Default,standard,353,0,0,8
+2025-03-03,claude-3-7-sonnet-20250219,max,Default,standard,1351606,0,0,94682
+2025-03-04,claude-3-7-sonnet-20250219,max,Default,standard,930013,0,0,97284
+2025-03-05,claude-3-7-sonnet-20250219,max,Default,standard,521268,0,0,70794
+2025-03-06,claude-3-7-sonnet-20250219,max,Default,standard,35128,0,0,21332
+2025-03-07,claude-3-7-sonnet-20250219,max,Default,standard,1401840,0,0,112944
+2025-03-08,claude-3-7-sonnet-20250219,max,Default,standard,1163011,0,0,101674
