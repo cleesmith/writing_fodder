@@ -1,3 +1,4 @@
+# python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --concept_file taropian.txt --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir" --example_outline outline_XXX.txt
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
 import anthropic
@@ -10,8 +11,8 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Generate a novel outline based on high-level concept and any additional information.')
 parser.add_argument('--request', type=str, required=True, help="Short description of the novel concept to outline")
-parser.add_argument('--request_timeout', type=int, default=1000, help='Maximum timeout for output (default: 1000 seconds or about 16 minutes)')
-parser.add_argument('--example_outline', type=str, default="outline.txt", help="Example outline for reference (default: outline.txt)")
+parser.add_argument('--request_timeout', type=int, default=300, help='Maximum timeout for output (default: 300 seconds or about 5 minutes)')
+parser.add_argument('--example_outline', type=str, default="outline_example.txt", help="Example outline for reference (default: outline.txt)")
 parser.add_argument('--concept_file', type=str, default=None, help="File containing detailed concept information (optional)")
 parser.add_argument('--characters', type=str, default=None, help="File containing character descriptions (optional)")
 parser.add_argument('--thinking_budget', type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
@@ -151,20 +152,21 @@ IMPORTANT FORMATTING INSTRUCTIONS:
 3. For parts/sections, use plain text like: "PART I: THE BEGINNING"
 4. For chapters, use ONLY simple numbering like: "1. Chapter Title" (no "Chapter" word, just the number and title)
 5. DO NOT include POV markers like "POV: Character"
-6. Include a simple chapter description (2-5 sentences) for each chapter
-7. Use plain text only - no bold, italic, or other formatting
-8. Include an optional brief epilogue if appropriate for the story
-9. Make each chapter description substantive enough to guide actual chapter writing
+6. For each chapter, include 4-6 bullet points describing key events and developments
+7. Format each bullet point starting with "- " (dash followed by space)
+8. Each bullet point should describe a single key event, character moment, or plot development
+9. Make bullet points substantive but concise, focusing on important elements
+10. Include an optional brief epilogue with bullet points if appropriate for the story
 """
 
 if args.detailed:
     prompt += """
-10. For each chapter, include more details such as:
-   - Key plot developments
-   - Important character moments or revelations
-   - Setting details
-   - Thematic elements being developed
-   But still maintain plain text formatting with no POV markers or Markdown
+11. For each chapter, include additional bullet points (up to 7-8 total) covering:
+    - Key plot developments
+    - Important character moments or revelations
+    - Setting details
+    - Thematic elements being developed
+12. Keep all bullet points in the same format with "- " at the start of each point
 """
 
 # create a version of the prompt without the example outline, characters, concept content:
@@ -192,20 +194,22 @@ IMPORTANT FORMATTING INSTRUCTIONS:
 3. For parts/sections, use plain text like: "PART I: THE BEGINNING"
 4. For chapters, use ONLY simple numbering like: "1. Chapter Title" (no "Chapter" word, just the number and title)
 5. DO NOT include POV markers like "POV: Character"
-6. Include a simple chapter description (2-5 sentences) for each chapter
-7. Use plain text only - no bold, italic, or other formatting
-8. Include an optional brief epilogue if appropriate for the story
-9. Make each chapter description substantive enough to guide actual chapter writing
+6. For each chapter, include 4-6 bullet points describing key events and developments
+7. Format each bullet point starting with "- " (dash followed by space)
+8. Each bullet point should describe a single key event, character moment, or plot development
+9. Make bullet points substantive but concise, focusing on important elements
+10. Include an optional brief epilogue with bullet points if appropriate for the story
 """
+
 
 if args.detailed:
     prompt_for_logging += """
-10. For each chapter, include more details such as:
-   - Key plot developments
-   - Important character moments or revelations
-   - Setting details
-   - Thematic elements being developed
-   But still maintain plain text formatting with no POV markers or Markdown
+11. For each chapter, include additional bullet points (up to 7-8 total) covering:
+    - Key plot developments
+    - Important character moments or revelations
+    - Setting details
+    - Thematic elements being developed
+12. Keep all bullet points in the same format with "- " at the start of each point
 """
 
 prompt_for_logging += """
@@ -236,7 +240,7 @@ if max_tokens <= args.thinking_budget:
 print(f"Estimated input/prompt tokens: {estimated_input_tokens}")
 
 client = anthropic.Anthropic(
-    timeout=1000, # 1000 seconds (default is 10 minutes = 600 seconds)
+    timeout=args.request_timeout,
     max_retries=0 # default is 2
 )
 
@@ -347,7 +351,7 @@ Outline saved to: {outline_filename}
 """
 
 if thinking_content:
-    thinking_filename = f"{args.save_dir}/thinking_{timestamp}.txt"
+    thinking_filename = f"{args.save_dir}/outline_thinking_{timestamp}.txt"
     with open(thinking_filename, 'w', encoding='utf-8') as file:
         file.write("=== PROMPT USED (EXCLUDING REFERENCE CONTENT) ===\n")
         file.write(prompt_for_logging)
