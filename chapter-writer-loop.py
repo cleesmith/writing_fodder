@@ -1,4 +1,4 @@
-# python -B chapter-writer-loop.py --chapters chapters.txt --chapter_delay 20 --backup
+# python -B chapter_writer.py --chapters chapters.txt --chapter_delay 20 --backup
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
 import anthropic
@@ -16,7 +16,7 @@ parser.add_argument('--chapters', type=str, help="Path to a file containing a li
 parser.add_argument('--chapter_delay', type=int, default=20, help='Delay in seconds between processing multiple chapters (default: 20 seconds)')
 parser.add_argument('--manuscript', type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
 parser.add_argument('--outline', type=str, default="outline.txt", help='Path to outline file (default: outline.txt)')
-parser.add_argument('--characters', type=str, default="characters.txt", help='Path to characters file (default: characters.txt)')
+parser.add_argument('--world', type=str, default="world.txt", help='Path to world-characters file (default: world.txt)')
 parser.add_argument('--thinking_budget', type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
 parser.add_argument('--max_tokens', type=int, default=9000, help='Maximum tokens for output (default: 9000)')
 parser.add_argument('--context_window', type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
@@ -183,18 +183,18 @@ def process_chapter(chapter_request, current_idx=None, total_chapters=None):
             file.write("")
 
     try:
-        with open(args.characters, 'r', encoding='utf-8') as file:
-            characters_content = file.read()
+        with open(args.world, 'r', encoding='utf-8') as file:
+            world_content = file.read()
     except FileNotFoundError:
         if args.verbose:
-            print(f"Note: Characters file not found: {args.characters}")
-            print("Continuing without characters information.")
-        characters_content = ""
+            print(f"Note: World file not found: {args.world}")
+            print("Continuing without world information.")
+        world_content = ""
     except Exception as e:
         if args.verbose:
-            print(f"Warning: Could not read characters file: {e}")
-            print("Continuing without characters information.")
-        characters_content = ""
+            print(f"Warning: Could not read world file: {e}")
+            print("Continuing without world information.")
+        world_content = ""
 
     # Format the chapter request to ensure it's in "Chapter X: Title" format for Claude
     # This ensures consistency in the prompt regardless of input format
@@ -224,9 +224,9 @@ def process_chapter(chapter_request, current_idx=None, total_chapters=None):
 {outline_content}
 === END OUTLINE ===
 
-=== CHARACTERS ===
-{characters_content}
-=== END CHARACTERS ===
+=== WORLD ===
+{world_content}
+=== END WORLD ===
 
 === EXISTING MANUSCRIPT ===
 {novel_content}
@@ -236,8 +236,8 @@ You are a skilled novelist writing Chapter {formatted_request} in fluent, authen
 Draw upon your knowledge of worldwide literary traditions, narrative techniques, and creative approaches from across cultures, while expressing everything in natural, idiomatic {args.lang} that honors its unique linguistic character.
 
 Consider the following in your thinking:
-- Refer to the included CHARACTERS, if provided
 - IMPORTANT: always review the included OUTLINE
+- Refer to the included WORLD of characters and settings, if provided
 - How this chapter advances the overall narrative and character development
 - Creating compelling opening and closing scenes
 - Incorporating sensory details and vivid descriptions
@@ -254,16 +254,16 @@ IMPORTANT:
 8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
 9. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
 10. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
-11. In your 'thinking' before writing always indicate and explain what you're using from: CHARACTERS, OUTLINE, and MANUSCRIPT (previous chapters)
+11. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters)
 """
 
-    # create a version of the prompt without the outline, characters, manuscript:
+    # create a version of the prompt without the outline, world, manuscript:
     prompt_for_logging = f"""You are a skilled novelist writing Chapter {formatted_outline_request} in fluent, authentic {args.lang}. 
 Draw upon your knowledge of worldwide literary traditions, narrative techniques, and creative approaches from across cultures, while expressing everything in natural, idiomatic {args.lang} that honors its unique linguistic character.
 
 Consider the following in your thinking:
-- Refer to the included CHARACTERS, if provided
 - IMPORTANT: always review the included OUTLINE thoroughly 
+- Refer to the included WORLD of characters and settings, if provided
 - How this chapter advances the overall narrative and character development
 - Creating compelling opening and closing scenes
 - Incorporating sensory details and vivid descriptions
@@ -280,8 +280,8 @@ IMPORTANT:
 8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
 9. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
 10. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
-11. In your 'thinking' before writing always indicate and explain what you're using from: CHARACTERS, OUTLINE, and MANUSCRIPT (previous chapters)
-note: The actual prompt included the outline, characters, manuscript which are not logged to save space.
+11. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters)
+note: The actual prompt included the outline, world, manuscript which are not logged to save space.
 """
 
     # calculate a safe max_tokens value
@@ -408,7 +408,7 @@ Chapter {chapter_num} token count: {chapter_token_count}
     
     # Clean up references
     outline_content = None
-    characters_content = None
+    world_content = None
     novel_content = None
     full_response = None
     thinking_content = None
