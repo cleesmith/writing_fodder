@@ -10,8 +10,8 @@ Writer's Toolkit is a collection of tools that help novelists, fiction writers, 
 
 1. **Outline Writer** - Creates detailed novel outlines with chapter summaries
 2. **World Builder** - Uses the *outline.txt* file to generate rich world-building details for your story
-3. **Chapter Generator** - Creates individual chapters based on your outline and previous writing
-4. **Chapter Writer Loop** - Automates the chapter generation process for multiple chapters
+3. **Chapters From Outline** - Extracts the chapter numbers and names from your *outline.txt* file for use by **Chapter Writer**
+4. **Chapter Writer** - Automates the chapter generation process for single or multiple chapters (uses *chapters.txt*)
 
 These tools read your story guidelines, outlines, previous chapters, and character notes, then create content that fits naturally with your story and writing style *(as best it can)*.
 
