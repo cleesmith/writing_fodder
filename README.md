@@ -9,7 +9,7 @@
 Writer's Toolkit is a collection of tools that help novelists, fiction writers, and storytellers develop their stories using Claude, an AI assistant. The toolkit provides a complete fiction writing workflow:
 
 1. **Outline Writer** - Creates detailed novel outlines with chapter summaries
-2. **World Builder** - Using the *outline.txt* file to generate rich world-building details for your story
+2. **World Builder** - Uses the *outline.txt* file to generate rich world-building details for your story
 3. **Chapter Generator** - Creates individual chapters based on your outline and previous writing
 4. **Chapter Writer Loop** - Automates the chapter generation process for multiple chapters
 
