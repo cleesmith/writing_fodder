@@ -1,20 +1,47 @@
-# Chapter Writer &nbsp;&nbsp;&nbsp;*AI powered chapter generation*
+# AI Writer's Toolkit    *AI powered fiction writing tools*
 
-> <h3>No more staring at blank pages or watching that cursor blink anxiously. This tool generates chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions.<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transform writer's block into writer's building blocks.</h3>
-
----
-
-### Watch a demo run:
-
-[![Chapter ](https://img.youtube.com/vi/b-uAZVATJ3w/0.jpg)](https://youtube.com/live/b-uAZVATJ3w)
+> <h3>No more staring at blank pages or watching that cursor blink anxiously. This collection of tools helps you generate outlines, world-building details, and chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions.<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transform writer's block into writer's building blocks.</h3>
 
 ---
 
-## What is Chapter Writer?
+## What is AI Writer's Toolkit?
 
-Chapter Writer is a tool that helps novelists, fiction writers, and storytellers generate new chapters for their books using Claude, an AI assistant. The tool reads your outline, previous chapters, and character notes, then creates a new chapter that fits naturally with your story and writing style *(as best it can)*.
+AI Writer's Toolkit is a collection of tools that help novelists, fiction writers, and storytellers develop their stories using Claude, an AI assistant. The toolkit provides a complete fiction writing workflow:
 
-Think of it as a ***creative partner*** that helps you overcome writer's block or explore new directions for your story, while maintaining consistency with what you've already written.
+1. **Outline Writer** - Creates detailed novel outlines with chapter summaries
+2. **World Builder** - Generates rich world-building details for your story
+3. **Chapter Generator** - Creates individual chapters based on your outline and previous writing
+4. **Chapter Writer Loop** - Automates the chapter generation process for multiple chapters
+
+These tools read your story guidelines, outlines, previous chapters, and character notes, then create content that fits naturally with your story and writing style *(as best it can)*.
+
+Think of them as ***creative partners*** that help you overcome writer's block or explore new directions for your story, while maintaining consistency with what you've already established.
+
+## Tools Overview
+
+### 1. Outline Writer
+
+The `outline_writer.py` script helps you develop a detailed outline for your novel. It takes your high-level concept and generates a structured outline with chapter titles and key plot points.
+
+```
+python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir"
+```
+
+### 2. World Builder
+
+The `world_writer.py` script helps you create detailed world-building elements for your story, including settings, cultures, technologies, and more.
+
+### 3. Chapters From Outline
+
+The `chapters_from_outline.py` script simply extracts the chapter numbers and names from your outline file. This utility helps prepare chapter information for use with the chapter writer.
+
+### 4. Chapter Writer
+
+The `chapter_writer.py` script is the main tool that generates individual chapters based on your outline, previous chapters, and character notes.
+
+```
+python -B chapter_writer.py --request "3. The First Contact"
+```
 
 ## Features
 
@@ -49,23 +76,58 @@ Before you start:
 
 ## Required Files
 
-You need to prepare these files before running the tool:
+You need to prepare these files before running the chapter writer tool:
 
-1. **outline.txt** - your story outline with chapter summaries
+1. **outline.txt** - your story outline with chapter summaries (can be generated with outline_writer.py)
 2. **manuscript.txt** - your current manuscript *(all previous chapters)*
 3. **characters.txt** &nbsp;*(optional)* - information about your characters
 
 > Examples of these 3 files are included, even though all 3 **must** exist they may be empty if desired.
 
-## How to Use
+## Writing Workflow
 
-This tool is a single python *.py* file with only one dependency: **anthropic's sdk** installed using pip.
+Here's a typical workflow using all tools in the toolkit:
+
+1. **Generate an outline** using outline_writer.py
+   ```
+   python -B outline_writer.py --request "Your story concept" --sections 4 --chapters 20 --detailed
+   ```
+
+2. **Create world-building details** using world_writer.py (optional)
+   ```
+   python -B world_writer.py --outline outline.txt
+   ```
+
+3. **Extract chapter information** using chapters_from_outline.py (optional)
+   ```
+   python -B chapters_from_outline.py --outline outline.txt
+   ```
+
+4. **Write individual chapters** using chapter_writer.py
+   ```
+   python -B chapter_writer.py --request "1. Chapter Title"
+   ```
+
+5. **Generate multiple chapters** using chapter-writer-loop.py
+   ```
+   python -B chapter-writer-loop.py --start 3 --end 8
+   ```
+
+## How to Use Chapter Writer
 
 The basic command to generate a new *(the next)* chapter is:
 
 ```
 python -B chapter_writer.py --request "3. The First Contact"
 ```
+
+---
+
+### Watch a demo run:
+
+[![Chapter ](https://img.youtube.com/vi/b-uAZVATJ3w/0.jpg)](https://youtube.com/live/b-uAZVATJ3w)
+
+---
 
 Ensure you have at least these two files: *outline.txt* and *manuscript.txt*, and 
 that the **--request** matches the chapter title in *outline.txt* so in this case:
@@ -79,28 +141,28 @@ You can even have all 3 files empty and Claude will *riff off* of the **--reques
 
 ## Common Options
 
-You can customize how the tool works with these options:
+You can customize how the tools work with these options:
 
 - **--lang** - change the writing language (default: English)<br> example: --lang Spanish
 
 - **--save_dir** - where to save the output files (default: current directory/folder)<br> example: --save_dir yet_another_great_novel
 
-To see all command options:
+To see all command options for any tool:
 ```
-python -B chapter_writer.py -h  
+python -B tool_name.py -h  
 ```
 
 ## Output Files
 
-When you run the tool, it creates two files in **--save_dir**, where **XXX** is the chapter number with leading zeros to help your dir/folder show chapters in numerical order:
+When you run the chapter writer tool, it creates two files in **--save_dir**, where **XXX** is the chapter number with leading zeros to help your dir/folder show chapters in numerical order:
 
 1. **XXX_chapter_TIMESTAMP.txt** - the generated chapter text
 
 2. **XXX_thinking_TIMESTAMP.txt** - what the AI was thinking
 
-## Writing Tips When Using This Tool
+## Writing Tips When Using These Tools
 
-- Make your outline detailed for better results and follow they layout in the example
+- Make your outline detailed for better results and follow the layout in the example
 - Include character descriptions that highlight personalities and motivations
 - Review and edit the generated chapters - they're a starting point, not final drafts
 - Use the AI's "thinking" file to understand its creative choices, may be useful to make **prompt** adjustments
@@ -138,7 +200,7 @@ If you run into problems:
 > Or just click <b>File</b> then <b>Open File...</b> in your browser, or bookmark it for later.<br>
 > Or use them here in this repo: &nbsp;&nbsp;&nbsp;[More Writing Tools](https://cleesmith.github.io/writing_fodder/more_writing_tools/all_tools.html)
 
-These tools complement the Chapter Writer by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
+These tools complement the AI Writer's Toolkit by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
 
 ### File Conversion Tools
 - DOCX to plain text (.txt)
