@@ -13,7 +13,7 @@ Writer's Toolkit is a collection of tools that help novelists, fiction writers, 
 3. **Chapters From Outline** - Creates *chapters.txt* from *outline.txt* for use by **Chapter Writer**
 4. **Chapter Writer** - Automates the chapter generation process for single or multiple chapters (in *chapters.txt*)
 
-These tools read your story guidelines, outlines, previous chapters, and character notes, then create content that fits naturally with your story and writing style *(as best it can)*.
+These tools read your story guidelines, outlines, previous chapters, and world notes, then creates content that fits naturally with your story and writing style *(as best it can)*.
 
 Think of them as ***creative partners*** that help you overcome writer's block or explore new directions for your story, while maintaining consistency with what you've already established.
 
