@@ -12,7 +12,7 @@ eval "$(conda shell.bash hook)"
 conda activate writing
 python --version
 echo "-----------------------------------------"
-python -B /Users/cleesmith/writing_fodder/chapter-writer-loop.py "$@"
+python -B /Users/cleesmith/writing_fodder/outline_writer.py "$@"
 conda deactivate
 
 
@@ -32,7 +32,7 @@ eval "$(conda shell.bash hook)"
 conda activate writing
 python --version
 echo "-----------------------------------------"
-python -B /Users/cleesmith/writing_fodder/outline_writer.py "$@"
+python -B /Users/cleesmith/writing_fodder/world_writer.py "$@"
 conda deactivate
 
 
@@ -42,5 +42,5 @@ eval "$(conda shell.bash hook)"
 conda activate writing
 python --version
 echo "-----------------------------------------"
-python -B /Users/cleesmith/writing_fodder/world_writer.py "$@"
+python -B /Users/cleesmith/writing_fodder/chapter-writer-loop.py "$@"
 conda deactivate
