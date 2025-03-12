@@ -11,7 +11,7 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Generate a novel outline based on high-level concept and any additional information.')
 parser.add_argument('--request', type=str, required=True, help="Short description of the novel concept to outline")
-parser.add_argument('--request_timeout', type=int, default=300, help='Maximum timeout for output (default: 300 seconds or about 5 minutes)')
+parser.add_argument('--request_timeout', type=int, default=300, help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds or about 5 minutes)')
 parser.add_argument('--example_outline', type=str, default="outline_example.txt", help="Example outline for reference (default: outline.txt)")
 parser.add_argument('--concept_file', type=str, default=None, help="File containing detailed concept information (optional)")
 parser.add_argument('--characters', type=str, default=None, help="File containing character descriptions (optional)")
@@ -140,6 +140,7 @@ Your outline should follow the general format and level of detail shown in the e
 Consider the following in your thinking:
 - Refer to the included CHARACTERS, if provided
 - Follow the structure of the EXAMPLE OUTLINE if provided
+- Do NOT create new characters unless incidental ones like: cashiers, passers-by, if any, and these should remain without names
 - Create a compelling narrative arc with rising tension, climax, and resolution
 - Develop character arcs that show growth and change
 - Include key plot points, conflicts, and important scenes
@@ -182,6 +183,7 @@ Your outline should follow the general format and level of detail shown in the e
 Consider the following in your thinking:
 - Refer to the included CHARACTERS, if provided
 - Follow the structure of the EXAMPLE OUTLINE if provided
+- Do NOT create new characters unless incidental ones like: cashiers, passers-by, if any, and these should remain without names
 - Create a compelling narrative arc with rising tension, climax, and resolution
 - Develop character arcs that show growth and change
 - Include key plot points, conflicts, and important scenes
