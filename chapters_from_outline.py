@@ -1,3 +1,4 @@
+# python -B chapters_from_outline.py
 import re
 import os
 

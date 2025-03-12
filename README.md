@@ -39,6 +39,10 @@ python -B world_writer.py --outline_file outline.txt --detailed
 
 The `chapters_from_outline.py` script simply extracts the chapter numbers and names from your outline file. This utility helps prepare chapter information for use with the chapter writer.
 
+```
+python -B chapters_from_outline.py
+```
+
 ### 4. Chapter Writer
 
 The `chapter_writer.py` script is the main tool that generates individual chapters based on your outline, previous chapters, and character notes.
