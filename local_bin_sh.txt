@@ -1,4 +1,4 @@
-cd /Users/cleesmith/.local/bin
+cd ~/.local/bin
 nano chapter_writer ... paste, ctrl+o, ctrl-x
 chmod +x chapter_writer
 ls -la chapter*
