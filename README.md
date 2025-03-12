@@ -1,15 +1,15 @@
-# AI Writer's Toolkit    *AI powered fiction writing tools*
+# Writer's Toolkit    *AI powered fiction writing tools*
 
 > <h3>No more staring at blank pages or watching that cursor blink anxiously. This collection of tools helps you generate outlines, world-building details, and chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions.<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transform writer's block into writer's building blocks.</h3>
 
 ---
 
-## What is AI Writer's Toolkit?
+## What is Writer's Toolkit?
 
-AI Writer's Toolkit is a collection of tools that help novelists, fiction writers, and storytellers develop their stories using Claude, an AI assistant. The toolkit provides a complete fiction writing workflow:
+Writer's Toolkit is a collection of tools that help novelists, fiction writers, and storytellers develop their stories using Claude, an AI assistant. The toolkit provides a complete fiction writing workflow:
 
 1. **Outline Writer** - Creates detailed novel outlines with chapter summaries
-2. **World Builder** - Generates rich world-building details for your story
+2. **World Builder** - Using the *outline.txt* file to generate rich world-building details for your story
 3. **Chapter Generator** - Creates individual chapters based on your outline and previous writing
 4. **Chapter Writer Loop** - Automates the chapter generation process for multiple chapters
 
@@ -208,7 +208,7 @@ If you run into problems:
 > Or just click <b>File</b> then <b>Open File...</b> in your browser, or bookmark it for later.<br>
 > Or use them here in this repo: &nbsp;&nbsp;&nbsp;[More Writing Tools](https://cleesmith.github.io/writing_fodder/more_writing_tools/all_tools.html)
 
-These tools complement the AI Writer's Toolkit by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
+These tools complement the Writer's Toolkit by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
 
 ### File Conversion Tools
 - DOCX to plain text (.txt)
