@@ -29,7 +29,11 @@ python -B outline_writer.py --request "A sci-fi detective story where agent Havr
 
 ### 2. World Builder
 
-The `world_writer.py` script helps you create detailed world-building elements for your story, including settings, cultures, technologies, and more.
+The `world_writer.py` script uses **outline.txt** to help you create detailed world-building elements for your story, including settings, cultures, technologies, and more.
+
+```
+python -B world_writer.py --outline_file outline.txt --detailed
+```
 
 ### 3. Chapters From Outline
 
