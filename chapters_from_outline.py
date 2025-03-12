@@ -1,4 +1,5 @@
 import re
+import os
 
 def extract_chapters_from_outline(outline_text):
     """
@@ -38,8 +39,26 @@ def extract_chapters_from_file(file_path):
         return []
 
 if __name__ == "__main__":
-    chapters = extract_chapters_from_file("outline.txt")
+    input_file = "outline.txt"
+    # Get the absolute path of the input file
+    full_path = os.path.abspath(input_file)
     
-    print("Extracted chapters:")
-    for chapter in chapters:
-        print(chapter)
+    chapters = extract_chapters_from_file(input_file)
+    
+    # Count of chapters found
+    chapter_count = len(chapters)
+    
+    # Print message with full path and chapter count
+    print(f"Processing outline file: {full_path}")
+    print(f"Found {chapter_count} chapters")
+    
+    # Write chapters to chapters.txt
+    output_file = "chapters.txt"
+    with open(output_file, "w", encoding="utf-8") as outfile:
+        for chapter in chapters:
+            outfile.write(chapter + "\n")
+    
+    # Print confirmation message
+    output_path = os.path.abspath(output_file)
+    print(f"Wrote {chapter_count} chapters to: {output_path}")
+

@@ -1,0 +1,46 @@
+cd /Users/cleesmith/.local/bin
+nano chapter_writer ... paste, ctrl+o, ctrl-x
+chmod +x chapter_writer
+ls -la chapter*
+-rwxr-xr-x  1 cleesmith  staff  359 Mar 11 15:37 chapter_writer
+source ~/.zshrc
+
+
+#!/bin/bash
+echo "Running with conda environment: writing"
+eval "$(conda shell.bash hook)"
+conda activate writing
+python --version
+echo "-----------------------------------------"
+python -B /Users/cleesmith/writing_fodder/chapter-writer-loop.py "$@"
+conda deactivate
+
+
+#!/bin/bash
+echo "Running with conda environment: writing"
+eval "$(conda shell.bash hook)"
+conda activate writing
+python --version
+echo "-----------------------------------------"
+python -B /Users/cleesmith/writing_fodder/chapters_from_outline.py "$@"
+conda deactivate
+
+
+#!/bin/bash
+echo "Running with conda environment: writing"
+eval "$(conda shell.bash hook)"
+conda activate writing
+python --version
+echo "-----------------------------------------"
+python -B /Users/cleesmith/writing_fodder/outline_writer.py "$@"
+conda deactivate
+
+
+#!/bin/bash
+echo "Running with conda environment: writing"
+eval "$(conda shell.bash hook)"
+conda activate writing
+python --version
+echo "-----------------------------------------"
+python -B /Users/cleesmith/writing_fodder/world_writer.py "$@"
+conda deactivate

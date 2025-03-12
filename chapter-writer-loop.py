@@ -11,7 +11,7 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Generate the next chapter based on the outline and any previous chapters.')
 parser.add_argument('--request', type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
-parser.add_argument('--request_timeout', type=int, default=240, help='Maximum timeout for output (default: 240 seconds = 4 minutes)')
+parser.add_argument('--request_timeout', type=int, default=240, help='Maximum timeout for each *streamed chunk* of output (default: 240 seconds = 4 minutes)')
 parser.add_argument('--chapters', type=str, help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
 parser.add_argument('--chapter_delay', type=int, default=20, help='Delay in seconds between processing multiple chapters (default: 20 seconds)')
 parser.add_argument('--manuscript', type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
