@@ -55,6 +55,11 @@ The `outline_writer.py` script helps you develop a detailed outline for your nov
 ```
 python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir"
 ```
+... or:
+
+```
+python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --concept_file characters.txt --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir" --example_outline outline_XXX.txt
+```
 
 ### 3. World Builder
 
