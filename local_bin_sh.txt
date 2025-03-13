@@ -12,6 +12,16 @@ eval "$(conda shell.bash hook)"
 conda activate writing
 python --version
 echo "-----------------------------------------"
+python -B /Users/cleesmith/writing_fodder/brainstorm.py "$@"
+conda deactivate
+
+
+#!/bin/bash
+echo "Running with conda environment: writing"
+eval "$(conda shell.bash hook)"
+conda activate writing
+python --version
+echo "-----------------------------------------"
 python -B /Users/cleesmith/writing_fodder/outline_writer.py "$@"
 conda deactivate
 
