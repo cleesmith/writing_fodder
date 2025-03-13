@@ -20,7 +20,7 @@ This toolkit provides a complete end-to-end pipeline for creative writing projec
 
 - Uses Claude 3.7 Sonnet's API
 - Takes advantage of Claude's 32K thinking budget for reasoning through the writing process
-- Uses 128K output capacity for chapter generation
+- Uses 128K output capacity for generation
 - Maintains consistency across chapters through reference to previous content
 - Provides token management, timeout handling, and organized file storage
 - Supports continuing and expanding upon existing work
