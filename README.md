@@ -1,19 +1,42 @@
-# Writer's Toolkit    *AI powered fiction writing tools*
+# Writing Toolkit    *AI powered fiction writing tools*
 
 > <h3>No more staring at blank pages or watching that cursor blink anxiously. This collection of tools helps you generate outlines, world-building details, and chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions.<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transform writer's block into writer's building blocks.</h3>
 
 ---
 
-## What is Writer's Toolkit?
+# Writing Toolkit
 
-Writer's Toolkit is a collection of tools that help novelists, fiction writers, and storytellers develop their stories using Claude, an AI assistant. The toolkit provides a complete fiction writing workflow:
+An AI-assisted writing system that leverages Anthropic's Claude 3.7 Sonnet API to take writers from initial concept through to a completed manuscript draft. This toolkit uses Claude's 32K thinking budget and 128K output capabilities to produce quality prose.
 
-1. **Outline Writer** - Creates detailed novel outlines with chapter summaries
-2. **World Builder** - Uses the *outline.txt* file to generate rich world-building details for your story
-3. **Chapters From Outline** - Creates *chapters.txt* from *outline.txt* for use by **Chapter Writer**
-4. **Chapter Writer** - Automates the chapter generation process for single or multiple chapters (in *chapters.txt*)
+## Overview
 
-These tools read your story guidelines, outlines, previous chapters, and world notes, then creates content that fits naturally with your story and writing style *(as best it can)*.
+This toolkit provides a complete end-to-end pipeline for creative writing projects, with each component building upon the outputs of previous steps:
+
+1. **brainstorm.py** - Expands an initial premise into a foundational concept document and compendium
+2. **outline_writer.py** - Creates a detailed chapter-by-chapter outline based on your concept
+3. **chapters_from_outline.py** - Extracts and standardizes a list of chapters from the outline for easier processing
+4. **world_writer.py** - Uses the outline to generate a detailed world compendium with settings, history, and character profiles
+5. **chapter_writer.py** - Uses the outline, chapters list, world document, and existing manuscript to write rough draft chapters
+
+## Key Features
+
+- Uses Claude 3.7 Sonnet's API
+- Takes advantage of Claude's 32K thinking budget for reasoning through the writing process
+- Uses 128K output capacity for chapter generation
+- Maintains consistency across chapters through reference to previous content
+- Provides token management, timeout handling, and organized file storage
+- Supports continuing and expanding upon existing work
+
+## Ideal For
+
+- Fiction writers looking for AI assistance with longer works
+- Non-fiction authors creating structured, research-based content
+- Screenwriters and playwrights developing scripts with consistent characters
+- Authors who want to maintain creative control while accelerating the drafting process
+- Writing projects that benefit from consistent worldbuilding and character development
+- Anyone interested in exploring the capabilities of AI in creative writing
+
+Each script in this toolkit is designed to be used sequentially, though experienced users can also leverage individual components as needed for their specific writing workflow.
 
 Think of them as ***creative partners*** that help you overcome writer's block or explore new directions for your story, while maintaining consistency with what you've already established.
 
@@ -208,7 +231,7 @@ If you run into problems:
 > Or just click <b>File</b> then <b>Open File...</b> in your browser, or bookmark it for later.<br>
 > Or use them here in this repo: &nbsp;&nbsp;&nbsp;[More Writing Tools](https://cleesmith.github.io/writing_fodder/more_writing_tools/all_tools.html)
 
-These tools complement the Writer's Toolkit by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
+These tools complement the Writering Toolkit by helping you format, analyze, and convert text to other formats or prepare your text for publishing:
 
 ### File Conversion Tools
 - DOCX to plain text (.txt)
