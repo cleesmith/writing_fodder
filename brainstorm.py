@@ -1,3 +1,4 @@
+# brainstorm --ideas_file ideas.txt --genre "Science Fiction Noir" --title "Havre Dulac Grace"
 # python -B brainstorm.py --ideas_file ideas.txt --genre "Science Fiction Noir" --title "Havre Dulac Grace"
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
@@ -25,6 +26,7 @@ parser.add_argument('--worldbuilding_depth', type=int, default=3, help='Depth of
 parser.add_argument('--character_relationships', action='store_true', help='Include detailed character relationships')
 parser.add_argument('--concept_only', action='store_true', help='Generate only the concept file')
 parser.add_argument('--characters_only', action='store_true', help='Generate only the characters file')
+parser.add_argument('--allow_new_characters', action='store_true', help='Allow creation of new characters not in the ideas file')
 args = parser.parse_args()
 
 def count_words(text):
@@ -72,6 +74,39 @@ def read_ideas_file(filepath):
     
     return content.strip()
 
+def extract_character_names_from_marked_section(text):
+    """
+    Extracts character names from a section marked with tags:
+    === CHARACTERS ===
+    === END CHARACTERS ===
+    Looks for lines with pattern: "number. name"
+    Returns a list of character names in their original title case.
+    """
+    character_names = []
+    
+    # Look for the tagged CHARACTERS section
+    start_marker = "=== CHARACTERS ==="
+    end_marker = "=== END CHARACTERS ==="
+    
+    start_index = text.find(start_marker)
+    end_index = text.find(end_marker)
+    
+    # If both markers are found and in the correct order
+    if start_index >= 0 and end_index > start_index:
+        # Extract the section between markers
+        characters_section = text[start_index + len(start_marker):end_index].strip()
+        
+        # Process each line
+        for line in characters_section.split('\n'):
+            line = line.strip()
+            # Look for patterns like "1. Character Name"
+            if re.match(r'^\d+\.\s+', line):
+                # Extract the name part (everything after "number. ")
+                name_part = line[line.find('.')+1:].strip()
+                character_names.append(name_part)
+    
+    return character_names
+
 def append_to_ideas_file(filepath, new_content, content_type):
     """
     Append newly generated content to the ideas.txt file
@@ -96,10 +131,10 @@ def calculate_max_tokens(prompt):
     
     return max_tokens, estimated_input_tokens, max_safe_tokens
 
-# Read the ideas file
 ideas_content = read_ideas_file(args.ideas_file)
 
-# Title and genre placeholders
+character_names = extract_character_names_from_marked_section(ideas_content)
+
 title_suggestion = f"TITLE: {args.title}" if args.title else ""
 genre_suggestion = f"GENRE: {args.genre}" if args.genre else ""
 
@@ -151,6 +186,63 @@ def create_character_prompt():
     if getattr(args, 'continue', False) and ideas_content:
         continue_flag = "Review the existing characters in the ideas file. Build on these characters by expanding their details and deepening their characterization. If appropriate, create additional characters to reach the requested total number."
     
+    # Create a formatted list of exact character names from the ideas file
+    character_names_str = ""
+    if character_names:
+        character_names_str = "EXTRACTED CHARACTER NAMES (use these exact names with exact capitalization, do not modify or expand them):\n"
+        for i, name in enumerate(character_names, 1):
+            character_names_str += f"{i}. \"{name}\"\n"
+    
+    # Determine character name handling based on arguments
+    character_name_instructions = ""
+    if not args.allow_new_characters and character_names:
+        character_name_instructions = """
+STRICT CHARACTER NAME INSTRUCTIONS:
+- You MUST use ONLY the exact character names provided in the EXTRACTED CHARACTER NAMES list above
+- DO NOT create any new character names not in the list
+- DO NOT modify, expand, or add to the character names in any way (no adding first/last names, titles, etc.)
+- Keep the exact capitalization/title case of each name as provided
+- If a character has only a first name or nickname in the list, use ONLY that exact name
+- If a character is referred to differently in different parts of the ideas file, use ONLY the specific format provided in the list
+
+BACKGROUND CHARACTER INSTRUCTIONS:
+- For incidental characters who briefly appear in scenes (cashiers, waiters, doormen, passersby, etc.), refer to them ONLY by their role or function (e.g., "the cashier," "the doorman").
+- DO NOT assign names to these background characters unless they become recurring or important to the plot.
+- DO NOT develop backstories for these functional characters.
+- Background characters should only perform actions directly related to their function or brief interaction with named characters.
+- Keep interactions with background characters brief and purposeful - they should serve the story without becoming story elements themselves.
+- If a background character needs to speak, use phrases like "the clerk asked" rather than creating a name.
+- Remember that background characters exist to create a realistic world but should remain in the background to keep focus on the main characters and plot.
+"""
+    elif not args.allow_new_characters and not character_names:
+        character_name_instructions = """
+No character names were found in the ideas file. Since creation of new characters is not allowed, please respond with:
+"No character names were found in the ideas file. Please add character names using === CHARACTERS === and === END CHARACTERS === markers in the ideas file, or use the --allow_new_characters flag."
+"""
+    elif args.allow_new_characters and not character_names:
+        character_name_instructions = """
+No character names were found in the ideas file. You are permitted to create new characters that fit the concept.
+Create characters that align with and enhance the world, themes, and plot described in the ideas file.
+Use Title Case for all character names.
+"""
+    else:  # args.allow_new_characters and character_names
+        character_name_instructions = f"""
+CHARACTER NAME INSTRUCTIONS:
+- Prioritize using the {len(character_names)} character names provided in the EXTRACTED CHARACTER NAMES list above
+- You may create additional characters if needed to reach a total of {args.num_characters} characters
+- For existing characters, do not modify their names in any way and maintain exact capitalization
+- For any new characters, use Title Case for their names (capitalize first letter of each word)
+
+BACKGROUND CHARACTER INSTRUCTIONS:
+- For incidental characters who briefly appear in scenes (cashiers, waiters, doormen, passersby, etc.), refer to them ONLY by their role or function (e.g., "the cashier," "the doorman").
+- DO NOT assign names to these background characters unless they become recurring or important to the plot.
+- DO NOT develop backstories for these functional characters.
+- Background characters should only perform actions directly related to their function or brief interaction with named characters.
+- Keep interactions with background characters brief and purposeful - they should serve the story without becoming story elements themselves.
+- If a background character needs to speak, use phrases like "the clerk asked" rather than creating a name.
+- Remember that background characters exist to create a realistic world but should remain in the background to keep focus on the main characters and plot.
+"""
+    
     character_prompt = f"""You are a skilled novelist and character developer helping to create detailed character descriptions in fluent, authentic {args.lang}.
 Draw upon your knowledge of worldwide literary traditions, character development, and psychological complexity from across cultures,
 while expressing everything in natural, idiomatic {args.lang}.
@@ -161,13 +253,11 @@ while expressing everything in natural, idiomatic {args.lang}.
 {genre_suggestion}
 === END IDEAS FILE CONTENT ===
 
-{continue_flag}
+{character_names_str}
 
-IMPORTANT CHARACTER INSTRUCTIONS:
-- ONLY use characters that are already present in the ideas file. DO NOT create any new characters.
-- Use ALL of the characters mentioned in the ideas file, even if it exceeds the requested number of {args.num_characters}.
-- Maintain each character's core identity and role while expanding on their details with richer descriptions and background.
-{"- Include their relationships and interpersonal dynamics." if args.character_relationships else ""}
+{character_name_instructions}
+
+{continue_flag}
 
 Structure your response as a CHARACTER DOCUMENT with these elements for EACH character:
 
@@ -206,6 +296,17 @@ if ideas_content:
 else:
     print("Ideas file is empty or not found - will create a new one")
 
+if character_names:
+    print(f"Found {len(character_names)} character names in the ideas file:")
+    for name in character_names:
+        print(f"  - {name}")
+else:
+    print("No character names found in the ideas file")
+    if not args.allow_new_characters and not args.concept_only:
+        print("WARNING: No character names found and creation of new characters is not allowed.")
+        print("Please add character names using === CHARACTERS === and === END CHARACTERS === markers in your ideas file,")
+        print("or use the --allow_new_characters flag.")
+
 client = anthropic.Anthropic(
     timeout=args.request_timeout,
     max_retries=0  # default is 2
@@ -217,6 +318,12 @@ def generate_and_append(prompt_type):
         prompt = create_concept_prompt()
     else:  # characters
         prompt = create_character_prompt()
+        # If no character names found and not allowed to create new ones, skip API call
+        if not args.allow_new_characters and not character_names and prompt_type == "characters":
+            message = "No character names were found in the ideas file. Please add character names using === CHARACTERS === and === END CHARACTERS === markers in the ideas file, or use the --allow_new_characters flag."
+            print(f"\n{message}")
+            append_to_ideas_file(args.ideas_file, message, "Characters (Error)")
+            return args.ideas_file
     
     max_tokens, estimated_input_tokens, max_safe_tokens = calculate_max_tokens(prompt)
     
@@ -280,6 +387,47 @@ def generate_and_append(prompt_type):
     # remove markdown from the response
     cleaned_response = remove_markdown_format(full_response)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # For character content, verify that only the extracted names are used (if strict name handling is enabled)
+    if prompt_type == "characters" and not args.allow_new_characters and character_names:
+        # Case-sensitive verification for each character name
+        name_issues = []
+        for name in character_names:
+            # Check if the exact name appears in the response
+            if name not in cleaned_response:
+                name_variations = []
+                # Look for variations with different capitalization
+                for line in cleaned_response.split('\n'):
+                    if re.match(r'^\d+\.\s+', line):
+                        response_name = line[line.find('.')+1:].strip()
+                        if name.lower() == response_name.lower() and name != response_name:
+                            name_variations.append(response_name)
+                
+                if name_variations:
+                    name_issues.append(f"Character '{name}' appears with incorrect capitalization as '{name_variations[0]}'")
+                else:
+                    name_issues.append(f"Character '{name}' might be missing or renamed in the generated content")
+        
+        # Analyze the response to check for potential new character names
+        new_names = []
+        for line in cleaned_response.split('\n'):
+            if re.match(r'^\d+\.\s+', line):
+                response_name = line[line.find('.')+1:].strip()
+                if not any(name.lower() == response_name.lower() for name in character_names):
+                    new_names.append(response_name)
+        
+        if new_names:
+            name_issues.append(f"New character names found: {', '.join(new_names)}")
+        
+        # If any issues were found, add warnings to the response
+        if name_issues:
+            warning = "WARNING: The following character name issues were detected:\n"
+            for issue in name_issues:
+                warning += f"- {issue}\n"
+            warning += "\nPlease review the generated content and edit as needed.\n"
+            
+            cleaned_response = warning + "\n" + cleaned_response
+            print("\n" + warning)
     
     # append the generated content to ideas file
     append_to_ideas_file(args.ideas_file, cleaned_response, prompt_type.capitalize())
@@ -370,7 +518,7 @@ try:
     
     print("\nGeneration complete!")
     print(f"All content has been appended to: {args.ideas_file}")
-    print(f"To continue developing this story, use: python spitball_writer.py --ideas_file {args.ideas_file} --continue")
+    print(f"To continue developing this story, use: python brainstorm.py --ideas_file {args.ideas_file} --continue")
     
 except Exception as e:
     print(f"\nAn error occurred: {e}")
