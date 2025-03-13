@@ -40,7 +40,15 @@ Think of them as ***creative partners*** that help you overcome writer's block o
 
 ## Tools Overview
 
-### 1. Outline Writer
+### 1. Brainstorm
+
+The `brainstorm.py` script plus an *ideas.txt* file to generate concept and compendium files for story ideas.
+
+```
+python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir"
+```
+
+### 2. Outline Writer
 
 The `outline_writer.py` script helps you develop a detailed outline for your novel. It takes your high-level concept and generates a structured outline with chapter titles and key plot points.
 
@@ -48,7 +56,7 @@ The `outline_writer.py` script helps you develop a detailed outline for your nov
 python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir"
 ```
 
-### 2. World Builder
+### 3. World Builder
 
 The `world_writer.py` script uses **outline.txt** to help you create detailed world-building elements for your story, including settings, cultures, technologies, and more.
 
@@ -56,7 +64,7 @@ The `world_writer.py` script uses **outline.txt** to help you create detailed wo
 python -B world_writer.py --outline_file outline.txt --detailed
 ```
 
-### 3. Chapters From Outline
+### 4. Chapters From Outline
 
 The `chapters_from_outline.py` script simply extracts the chapter numbers and names from your outline file. This utility helps prepare chapter information for use with the chapter writer.
 
@@ -64,7 +72,7 @@ The `chapters_from_outline.py` script simply extracts the chapter numbers and na
 python -B chapters_from_outline.py
 ```
 
-### 4. Chapter Writer
+### 5. Chapter Writer
 
 The `chapter_writer.py` script is the main tool that generates individual chapters based on your outline, previous chapters, and character notes.
 
@@ -117,27 +125,33 @@ You need to prepare these files before running the chapter writer tool:
 
 Here's a typical workflow using all tools in the toolkit:
 
-1. **Generate an outline** using outline_writer.py
+1. **Generate concept and compendium files for story ideas** using brainstorm.py
+   ```
+   python -B brainstorm.py --ideas_file ideas.txt --genre "Cat Noir" --title "Smuffin"
+   ```
+   ***this is an optional step***
+
+2. **Generate an outline** using outline_writer.py
    ```
    python -B outline_writer.py --request "Your story concept" --sections 4 --chapters 20 --detailed
    ```
 
-2. **Create world-building details** using world_writer.py (optional)
+3. **Create world-building details** using world_writer.py (optional)
    ```
    python -B world_writer.py --outline outline.txt
    ```
 
-3. **Extract chapter information** using chapters_from_outline.py (optional)
+4. **Extract chapter information** using chapters_from_outline.py (optional)
    ```
    python -B chapters_from_outline.py --outline outline.txt
    ```
 
-4. **Write individual chapters** using chapter_writer.py
+5. **Write individual chapters** using chapter_writer.py
    ```
    python -B chapter_writer.py --request "1. Chapter Title"
    ```
 
-5. **Generate multiple chapters** using chapter_writer.py
+6. **Generate multiple chapters** using chapter_writer.py
    ```
    python -B chapter_writer.py --chapters chapters.txt --chapter_delay 20 --backup
    ```
