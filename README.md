@@ -1,4 +1,4 @@
-# Writing Toolkit &nbsp;&nbsp;&nbsp;&nbsp;*AI powered fiction writing tools*
+# Writing Toolkit &nbsp;&nbsp;&nbsp;&nbsp;*AI powered writing tools*
 
 > <h3>No more staring at blank pages or watching that cursor blink anxiously. This collection of tools helps you generate outlines, world-building details, and chapter drafts that may not be literary masterpieces, but they give you valuable starting material that follows your specific instructions.<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Transform writer's block into writer's building blocks.</h3>
 
