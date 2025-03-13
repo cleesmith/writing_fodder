@@ -137,9 +137,9 @@ Here's a typical workflow using all tools in the toolkit:
    python -B chapter_writer.py --request "1. Chapter Title"
    ```
 
-5. **Generate multiple chapters** using chapter-writer-loop.py
+5. **Generate multiple chapters** using chapter_writer.py
    ```
-   python -B chapter-writer-loop.py --start 3 --end 8
+   python -B chapter_writer.py --chapters chapters.txt --chapter_delay 20 --backup
    ```
 
 ## How to Use Chapter Writer
