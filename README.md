@@ -42,7 +42,7 @@ Think of them as ***creative partners*** that help you overcome writer's block o
 
 ### 1. Brainstorm
 
-The `brainstorm.py` script plus an *ideas.txt* file to generate concept and compendium files for story ideas.
+The `brainstorm.py` script plus an *ideas.txt* file is used to generate concept and compendium files for story ideas.
 
 ```
 python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir"
