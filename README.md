@@ -132,7 +132,7 @@ You need to prepare these files before running the chapter writer tool:
 
 Here's a typical workflow using all tools in the toolkit:
 
-1. **Generate concept and compendium files for story ideas** using brainstorm.py
+1. **Generate concept and compendium files for story ideas** using brainstorm.py (optional)
    ```
    python -B brainstorm.py --ideas_file ideas.txt --genre "Cat Noir" --title "Smuffin"
    ```
