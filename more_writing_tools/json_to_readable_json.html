@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JSON to text</title>
+  <style>
+  :root {
+    --button-bg-color: #007bff;
+    --button-text-color: #ffffff;
+    --container-bg-dark: #1e1e1e;
+    --container-bg-light: #fff7e6;
+    --error-color: #ff3333;
+    --spinner-color-light: #007bff;
+    --spinner-color-dark: #48a3ff;
+  }
+
+  /* Base styles for light mode */
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #ffffff;
+    color: #000000;
+    transition: background-color 0.3s, color 0.3s;
+    position: relative;
+  }
+
+  /* Dark mode styles */
+  body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+  }
+
+  /* Button row container */
+  .buttonRow {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* Standard button styling */
+  .custom-button {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .custom-button:hover {
+    background-color: #0056b3;
+  }
+
+  /* Dark mode toggle button */
+  #darkModeToggle {
+    font-size: 20px;
+    background-color: transparent;
+    color: inherit;
+    border: 1px solid currentColor;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  #darkModeToggle:hover {
+    filter: brightness(1.2);
+  }
+
+  /* Light mode toggle button adjustments */
+  body:not(.dark-mode) #darkModeToggle {
+    background-color: #444;
+    color: #fff;
+    border-color: #444;
+  }
+
+  /* Textarea base styles */
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 14px;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+  }
+
+  /* Input textarea specific styles */
+  #jsonInput {
+    height: 300px;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  /* Dark mode input textarea */
+  body.dark-mode #jsonInput {
+    background: var(--container-bg-dark);
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  /* Output textarea specific styles */
+  #outputText {
+    height: 300px;
+    background: var(--container-bg-light);
+    color: #000000;
+  }
+
+  /* Dark mode output textarea */
+  body.dark-mode #outputText {
+    background: var(--container-bg-dark);
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  /* Settings panel */
+  .settings-panel {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  body.dark-mode .settings-panel {
+    border-color: #444;
+  }
+
+  /* Form controls */
+  .form-control {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 20px;
+    margin-bottom: 10px;
+  }
+
+  label {
+    margin-right: 10px;
+  }
+
+  input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+  }
+
+  body.dark-mode input[type="number"] {
+    background: var(--container-bg-dark);
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  /* Error message */
+  #errorMsg {
+    color: var(--error-color);
+    margin-bottom: 10px;
+    font-weight: bold;
+    display: none;
+  }
+
+  /* File input styling */
+  #fileInput {
+    display: none;
+  }
+
+  .file-input-label {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .file-input-label:hover {
+    background-color: #218838;
+  }
+
+  /* Copy button */
+  #copyButton {
+    background-color: #6c757d;
+  }
+
+  #copyButton:hover {
+    background-color: #5a6268;
+  }
+
+  /* Success message */
+  .success-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    display: none;
+    animation: fadeIn 0.3s, fadeOut 0.3s 1.7s;
+    z-index: 1000;
+  }
+
+  /* Area labels */
+  .area-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  /* Loading overlay */
+  #loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    display: none;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--spinner-color-dark);
+    animation: spin 1s infinite ease-in-out;
+    margin-bottom: 15px;
+  }
+
+  /* Loading text */
+  .loading-text {
+    color: white;
+    font-size: 18px;
+    text-align: center;
+  }
+
+  /* Animation for spinner */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  </style>
+</head>
+<body class="dark-mode">
+  
+  <div class="buttonRow">
+    <!-- Dark mode toggle -->
+    <button id="darkModeToggle" title="Switch dark and light mode">☀️</button>
+    
+    <!-- File upload -->
+    <label for="fileInput" class="file-input-label">Upload JSON File &nbsp;&nbsp;<small><i>made for Claude's conversations.json</i></small></label>
+    <input type="file" id="fileInput" accept=".json,application/json">
+    
+    <!-- Copy button -->
+    <button id="copyButton" class="custom-button">Copy to Clipboard</button>
+    
+    <!-- Download button -->
+    <button id="downloadButton" class="custom-button">Download as .json</button>
+  </div>
+  
+  <div class="settings-panel">
+    <div class="form-control">
+      <label for="indentSize">Indent Size:</label>
+      <input type="number" id="indentSize" min="1" max="8" value="2">
+    </div>
+    
+    <div class="form-control">
+      <label for="sortKeys">
+        <input type="checkbox" id="sortKeys"> Sort Object Keys
+      </label>
+    </div>
+    
+    <div class="form-control">
+      <label for="sortByDate">
+        <input type="checkbox" id="sortByDate" checked> Sort by Date (Newest First)
+      </label>
+    </div>
+    
+    <div class="form-control">
+      <label for="addNewlines">
+        <input type="checkbox" id="addNewlines" checked> Add Newlines Before Conversations
+      </label>
+    </div>
+  </div>
+  
+  <!-- Error message area -->
+  <div id="errorMsg"></div>
+  
+  <!-- JSON input area -->
+  <div class="area-label">Raw JSON (read-only):</div>
+  <textarea id="jsonInput" readonly placeholder="Upload a JSON file to see raw content here..."></textarea>
+  
+  <!-- Formatted output area -->
+  <div class="area-label">Formatted JSON:</div>
+  <textarea id="outputText" readonly placeholder="Upload a JSON file to see formatted content here..."></textarea>
+  
+  <!-- Success message container -->
+  <div id="successMsg" class="success-message">Copied to clipboard!</div>
+  
+  <!-- Loading overlay with spinner -->
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Processing JSON...</div>
+    <div class="loading-text" id="loadingDetails">This may take a moment for large files</div>
+  </div>
+  
+  <script>
+    // Get references to DOM elements
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const fileInput = document.getElementById('fileInput');
+    const jsonInput = document.getElementById('jsonInput');
+    const outputText = document.getElementById('outputText');
+    const copyButton = document.getElementById('copyButton');
+    const downloadButton = document.getElementById('downloadButton');
+    const errorMsg = document.getElementById('errorMsg');
+    const successMsg = document.getElementById('successMsg');
+    const indentSizeInput = document.getElementById('indentSize');
+    const sortKeysCheckbox = document.getElementById('sortKeys');
+    const sortByDateCheckbox = document.getElementById('sortByDate');
+    const addNewlinesCheckbox = document.getElementById('addNewlines');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingDetails = document.getElementById('loadingDetails');
+
+    // Toggle dark/light mode
+    darkModeToggle.addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+      this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+    
+    // Handle file upload
+    fileInput.addEventListener('change', handleFileUpload);
+    
+    // Copy formatted JSON to clipboard
+    copyButton.addEventListener('click', copyToClipboard);
+    
+    // Download the formatted JSON
+    downloadButton.addEventListener('click', downloadJSON);
+    
+    // Reformat when settings change
+    indentSizeInput.addEventListener('change', reformatJSON);
+    sortKeysCheckbox.addEventListener('change', reformatJSON);
+    sortByDateCheckbox.addEventListener('change', reformatJSON);
+    addNewlinesCheckbox.addEventListener('change', reformatJSON);
+    
+    // Show loading overlay with file size info
+    function showLoadingOverlay(fileSize) {
+      // Convert bytes to MB for display
+      const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
+      loadingDetails.textContent = `Processing ${fileSizeMB} MB file...`;
+      loadingOverlay.style.display = 'flex';
+    }
+    
+    // Hide loading overlay
+    function hideLoadingOverlay() {
+      loadingOverlay.style.display = 'none';
+    }
+    
+    // Function to format JSON with proper indentation
+    function formatJSON(jsonString) {
+      // Clear previous error
+      errorMsg.style.display = 'none';
+      errorMsg.textContent = '';
+      
+      if (!jsonString.trim()) {
+        errorMsg.textContent = 'No JSON content to format.';
+        errorMsg.style.display = 'block';
+        return null;
+      }
+      
+      try {
+        // Parse JSON to validate it
+        let parsedJSON = JSON.parse(jsonString);
+        const indentSize = parseInt(indentSizeInput.value, 10);
+        const sortKeys = sortKeysCheckbox.checked;
+        const sortByDate = sortByDateCheckbox.checked;
+        const addNewlines = addNewlinesCheckbox.checked;
+        
+        // Handle sorting by date for conversations (if it's a conversations.json file)
+        if (sortByDate && Array.isArray(parsedJSON)) {
+          // Check if this looks like a Claude conversations array
+          if (parsedJSON.length > 0 && parsedJSON[0].created_at) {
+            // Sort by created_at date (newest first)
+            parsedJSON.sort((a, b) => {
+              const dateA = new Date(a.created_at);
+              const dateB = new Date(b.created_at);
+              return dateB - dateA; // Descending order (newest first)
+            });
+          }
+        }
+        
+        // If sort keys is checked, create a new object with sorted keys
+        if (sortKeys && typeof parsedJSON === 'object' && parsedJSON !== null) {
+          parsedJSON = sortObjectKeys(parsedJSON);
+        }
+        
+        // Stringify with proper indentation
+        let formattedJSON = JSON.stringify(parsedJSON, null, ' '.repeat(indentSize));
+        
+        // Add newlines before conversation starts if enabled
+        if (addNewlines) {
+          formattedJSON = addNewlinesBeforeConversations(formattedJSON, indentSize);
+        }
+        
+        return formattedJSON;
+        
+      } catch (e) {
+        // Display error message
+        errorMsg.textContent = `Invalid JSON: ${e.message}`;
+        errorMsg.style.display = 'block';
+        return null;
+      }
+    }
+    
+    // Function to reformat when settings change
+    function reformatJSON() {
+      if (!jsonInput.value.trim()) {
+        return; // No content to reformat
+      }
+      
+      showLoadingOverlay(jsonInput.value.length); // Show loading with content length as size
+      
+      // Use setTimeout to allow UI to update before processing begins
+      setTimeout(() => {
+        try {
+          const formattedJSON = formatJSON(jsonInput.value);
+          if (formattedJSON) {
+            outputText.value = formattedJSON;
+          }
+        } finally {
+          hideLoadingOverlay();
+        }
+      }, 50);
+    }
+    
+    // Function to add newlines before each conversation start pattern
+    function addNewlinesBeforeConversations(jsonString, indentSize) {
+      // Create the pattern to match the start of each conversation
+      const indentSpaces = ' '.repeat(indentSize);
+      const pattern = new RegExp(`(\\n${indentSpaces}\\{\\n${indentSpaces}${indentSpaces}"account":\\s*\\{\\n${indentSpaces}${indentSpaces}${indentSpaces}"uuid":\\s*")`, 'g');
+      
+      // Replace each match with a newline followed by the match
+      return jsonString.replace(pattern, '\n$1');
+    }
+    
+    // Function to recursively sort object keys
+    function sortObjectKeys(obj) {
+      // If not an object or is null, return as is
+      if (typeof obj !== 'object' || obj === null) {
+        return obj;
+      }
+      
+      // If it's an array, sort each element that's an object
+      if (Array.isArray(obj)) {
+        return obj.map(item => sortObjectKeys(item));
+      }
+      
+      // For objects, sort the keys
+      const sortedObj = {};
+      Object.keys(obj)
+        .sort()
+        .forEach(key => {
+          sortedObj[key] = sortObjectKeys(obj[key]);
+        });
+      
+      return sortedObj;
+    }
+    
+    // Function to handle file upload
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Show loading overlay with file size info
+      showLoadingOverlay(file.size);
+      
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        // Use setTimeout to allow UI to update 
+        setTimeout(() => {
+          try {
+            // Display raw JSON
+            jsonInput.value = e.target.result;
+            
+            // Format and display formatted JSON
+            const formattedJSON = formatJSON(e.target.result);
+            if (formattedJSON) {
+              outputText.value = formattedJSON;
+            }
+          } finally {
+            // Hide loading overlay when done (even if there was an error)
+            hideLoadingOverlay();
+          }
+        }, 50);
+      };
+      
+      reader.onerror = function() {
+        hideLoadingOverlay();
+        errorMsg.textContent = 'Error reading file.';
+        errorMsg.style.display = 'block';
+      };
+      
+      // Read the file (this will trigger reader.onload when complete)
+      reader.readAsText(file);
+    }
+    
+    // Function to copy formatted JSON to clipboard
+    function copyToClipboard() {
+      if (!outputText.value) {
+        errorMsg.textContent = 'No formatted JSON to copy.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+      
+      // Select and copy text
+      outputText.select();
+      document.execCommand('copy');
+      
+      // Show success message
+      successMsg.style.display = 'block';
+      
+      // Hide after 2 seconds
+      setTimeout(() => {
+        successMsg.style.display = 'none';
+      }, 2000);
+    }
+    
+    // Function to download formatted JSON
+    function downloadJSON() {
+      const text = outputText.value;
+      if (!text) {
+        errorMsg.textContent = 'No formatted JSON to download.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+      
+      // Create a blob and download link
+      const blob = new Blob([text], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      
+      a.href = url;
+      a.download = "formatted_json.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
