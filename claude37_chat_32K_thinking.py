@@ -1,6 +1,3 @@
-# python -B claude37_chat_32K_thinking.py --no_markdown
-# pip install anthropic
-# tested with: anthropic 0.49.0 circa March 2025
 import anthropic
 import os
 import argparse
@@ -210,13 +207,40 @@ def save_history_and_exit(current_history):
     print(f"Chat history saved to: {chat_output_filename}")
     sys.exit(0)
 
+def controlled_input():
+    """Get input using a controlled method that prevents multi-line inputs from triggering multiple API calls"""
+    print("\nME: (Enter your message, submit with an empty line)")
+    lines = []
+    while True:
+        line = input()
+        # Empty line signals end of input
+        if not line:
+            break
+        lines.append(line)
+    
+    # Validate the input
+    if len(lines) > 1:
+        print("\n⚠️  ERROR: Multiple lines detected.")
+        print("⚠️  To prevent excessive API costs, only single-line input is accepted.")
+        print("⚠️  If you need to send multiple lines, use the --request parameter instead.")
+        return None
+    
+    if not lines:
+        print("\n⚠️  No input detected. Please try again.")
+        return None
+        
+    # Return the single line we got
+    return lines[0]
+
 def run_interactive_chat():
     """Run an interactive chat loop with Claude"""
     global exit_requested
     
     print(f"Chat with Claude 3.7 Sonnet and 32K tokens of thinking")
     print(f"=======================================================")
-    print(f"Type your messages and press Enter to send.")
+    print(f"Type your message and press Enter. Then submit by entering an empty line.")
+    print(f"IMPORTANT: Only single-line messages are accepted to control API costs.")
+    print(f"For multi-line messages, use --request=\"your message\" instead.")
     print(f"Type 'exit', 'quit', or 'bye' to end the conversation.")
     print(f"Press CTRL+C at any time to interrupt and exit.")
     print(f"=======================================================")
@@ -234,10 +258,15 @@ def run_interactive_chat():
     # Enter the chat loop
     while True:
         try:
-            user_input = input("\nME: ")
+            # Use the controlled input method
+            user_input = controlled_input()
             
+            # If input validation failed, try again
+            if user_input is None:
+                continue
+                
             # Check for exit commands
-            if user_input.lower() in ['exit', 'quit', 'bye']:
+            if user_input.strip().lower() in ['exit', 'quit', 'bye']:
                 print("Exiting chat. Goodbye!")
                 break
             
@@ -324,4 +353,3 @@ if __name__ == "__main__":
         print("\nProgram interrupted. Exiting.")
     except Exception as e:
         print(f"\nUnexpected error: {e}")
-
