@@ -1,3 +1,4 @@
+# world_writer --outline_file outline.txt --detailed
 # python -B world_writer.py --outline_file outline.txt --detailed
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025

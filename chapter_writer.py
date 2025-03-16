@@ -1,3 +1,4 @@
+# chapter_writer --chapters chapters.txt --chapter_delay 20
 # python -B chapter_writer.py --chapters chapters.txt --chapter_delay 20 --backup
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025

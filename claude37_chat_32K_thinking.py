@@ -85,7 +85,7 @@ def process_chat_request(user_input, current_chat_history=""):
     # Prepare the prompt with chat history and current request
     prompt = ""
     
-    # FIX: Prefix the no-markdown instruction directly to the user prompt if needed
+    # prefix the no-markdown instruction directly to the user prompt if needed
     if args.no_markdown:
         prompt = "Never respond with Markdown formatting, plain text only.\n\n"
         
@@ -134,7 +134,6 @@ def process_chat_request(user_input, current_chat_history=""):
             model="claude-3-7-sonnet-20250219",
             max_tokens=max_tokens,
             messages=messages,
-            # No system parameter used - instruction is already in the prompt
             thinking={
                 "type": "enabled",
                 "budget_tokens": args.thinking_budget

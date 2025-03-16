@@ -1,3 +1,4 @@
+# outline_writer --request "A ..." --characters characters.txt --concept_file concept.txt --sections 5 --chapters 26 --detailed --title "???" --genre "???" --example_outline ../outline_XXX.txt
 # python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --concept_file taropian.txt --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir" --example_outline outline_XXX.txt
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
@@ -139,7 +140,7 @@ Your outline should follow the general format and level of detail shown in the e
 
 Consider the following in your thinking:
 - Refer to the included CHARACTERS, if provided
-- Follow the structure of the EXAMPLE OUTLINE if provided
+- Follow the structure of the EXAMPLE OUTLINE, if provided, but make proper adjustments for this novel
 - Do NOT create new characters unless incidental ones like: cashiers, passers-by, if any, and these should remain without names
 - Create a compelling narrative arc with rising tension, climax, and resolution
 - Develop character arcs that show growth and change
