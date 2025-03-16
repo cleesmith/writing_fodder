@@ -233,7 +233,7 @@ def process_chapter(chapter_request, current_idx=None, total_chapters=None):
 {novel_content}
 === END EXISTING MANUSCRIPT ===
 
-You are a skilled novelist writing Chapter {formatted_request} in fluent, authentic {args.lang}. 
+You are a skilled novelist writing {formatted_request} in fluent, authentic {args.lang}. 
 Draw upon your knowledge of worldwide literary traditions, narrative techniques, and creative approaches from across cultures, while expressing everything in natural, idiomatic {args.lang} that honors its unique linguistic character.
 
 Consider the following in your thinking:
@@ -259,7 +259,7 @@ IMPORTANT:
 """
 
     # create a version of the prompt without the outline, world, manuscript:
-    prompt_for_logging = f"""You are a skilled novelist writing Chapter {formatted_outline_request} in fluent, authentic {args.lang}. 
+    prompt_for_logging = f"""You are a skilled novelist writing {formatted_outline_request} in fluent, authentic {args.lang}. 
 Draw upon your knowledge of worldwide literary traditions, narrative techniques, and creative approaches from across cultures, while expressing everything in natural, idiomatic {args.lang} that honors its unique linguistic character.
 
 Consider the following in your thinking:
