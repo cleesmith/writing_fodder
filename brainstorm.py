@@ -1,4 +1,4 @@
-# brainstorm --ideas_file ideas.txt --genre "Science Fiction Noir" --title "Havre Dulac Grace"
+# brainstorm --ideas_file ideas.txt --genre "Private eye Fiction Noir" --title "Tracking the Dead Wax"
 # python -B brainstorm.py --ideas_file ideas.txt --genre "Science Fiction Noir" --title "Havre Dulac Grace"
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
