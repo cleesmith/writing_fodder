@@ -1,4 +1,4 @@
-# outline_writer --premise_file premise.txt --concept_file taropian.txt --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir" --example_outline outline_XXX.txt
+# outline_writer --premise_file premise.txt --concept_file concept.txt --sections 4 --chapters 25 --detailed --title "Tracking the Dead Wax" --genre "Private eye fiction noir" --example_outline outline_XXX.txt
 # Usage: python -B outline_writer.py --premise_file premise.txt --concept_file taropian.txt --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir" --example_outline outline_XXX.txt
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
