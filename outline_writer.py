@@ -1,5 +1,5 @@
-# outline_writer --request "A ..." --characters characters.txt --concept_file concept.txt --sections 5 --chapters 26 --detailed --title "???" --genre "???" --example_outline ../outline_XXX.txt
-# python -B outline_writer.py --request "A sci-fi detective story where agent Havre disconnects from the collective consciousness to hunt thought manipulators" --concept_file taropian.txt --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir" --example_outline outline_XXX.txt
+# outline_writer --premise_file premise.txt --concept_file taropian.txt --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir" --example_outline outline_XXX.txt
+# Usage: python -B outline_writer.py --premise_file premise.txt --concept_file taropian.txt --sections 4 --chapters 24 --detailed --title "Dire Consequences" --genre "Science Fiction Noir" --example_outline outline_XXX.txt
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
 import anthropic
@@ -10,23 +10,64 @@ import sys
 import time
 from datetime import datetime
 
+
+# create the parser with a description
 parser = argparse.ArgumentParser(description='Generate a novel outline based on high-level concept and any additional information.')
-parser.add_argument('--request', type=str, required=True, help="Short description of the novel concept to outline")
-parser.add_argument('--request_timeout', type=int, default=300, help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds or about 5 minutes)')
-parser.add_argument('--example_outline', type=str, default="outline_example.txt", help="Example outline for reference (default: outline.txt)")
-parser.add_argument('--concept_file', type=str, default=None, help="File containing detailed concept information (optional)")
-parser.add_argument('--characters', type=str, default=None, help="File containing character descriptions (optional)")
-parser.add_argument('--thinking_budget', type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
-parser.add_argument('--max_tokens', type=int, default=12000, help='Maximum tokens for output (default: 12000)')
-parser.add_argument('--context_window', type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
-parser.add_argument('--save_dir', type=str, default=".")
-parser.add_argument('--sections', type=int, default=5, help='Number of main parts/sections in the outline (default: 5)')
-parser.add_argument('--chapters', type=int, default=25, help='Number of chapters in the outline (default: 25)')
-parser.add_argument('--lang', type=str, default="English", help='Language for writing (default: English)')
-parser.add_argument('--detailed', action='store_true', help='Generate a more detailed outline with chapter summaries')
-parser.add_argument('--title', type=str, default=None, help='Suggested title for the novel (optional)')
-parser.add_argument('--genre', type=str, default=None, help='Suggested genre for the novel (optional)')
+
+# create argument groups with section headers
+input_group = parser.add_argument_group('Input Files')
+api_group = parser.add_argument_group('Claude API Configuration')
+output_group = parser.add_argument_group('Output Configuration')
+
+# Add arguments to the Input Files group
+input_group.add_argument('--premise_file', type=str, required=True, 
+                       help="File containing the story premise (required)")
+input_group.add_argument('--example_outline', type=str, default=None,
+                       help="Example outline for reference")
+input_group.add_argument('--concept_file', type=str, default=None,
+                       help="File containing detailed concept information (optional)")
+input_group.add_argument('--characters_file', type=str, default=None,
+                       help="File containing character descriptions (optional)")
+
+# Add arguments to the Claude API Configuration group
+api_group.add_argument('--request_timeout', type=int, default=300,
+                     help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds or about 5 minutes)')
+api_group.add_argument('--thinking_budget', type=int, default=32000,
+                     help='Maximum tokens for AI thinking (default: 32000)')
+api_group.add_argument('--max_tokens', type=int, default=12000,
+                     help='Maximum tokens for output (default: 12000)')
+api_group.add_argument('--context_window', type=int, default=204648,
+                     help='Context window for Claude 3.7 Sonnet (default: 204648)')
+
+# Add arguments to the Output Configuration group
+output_group.add_argument('--sections', type=int, default=5,
+                        help='Number of main parts/sections in the outline (default: 5)')
+output_group.add_argument('--chapters', type=int, default=25,
+                        help='Number of chapters in the outline (default: 25)')
+output_group.add_argument('--lang', type=str, default="English",
+                        help='Language for writing (default: English)')
+output_group.add_argument('--title', type=str, default=None,
+                        help='Suggested title for the novel (optional)')
+output_group.add_argument('--genre', type=str, default=None,
+                        help='Suggested genre for the novel (optional)')
+output_group.add_argument('--detailed', action='store_true',
+                        help='Generate a more detailed outline with chapter summaries')
+output_group.add_argument('--save_dir', type=str, default=".",
+                        help='Put outline_timestamp.txt here')
 args = parser.parse_args()
+
+# verify that premise_file exists and read its content
+try:
+    with open(args.premise_file, 'r', encoding='utf-8') as file:
+        premise_content = file.read()
+    print(f"Loaded premise from: {args.premise_file}")
+except FileNotFoundError:
+    print(f"Error: Premise file not found: {args.premise_file}")
+    print("Please provide a valid premise file.")
+    sys.exit(1)
+except Exception as e:
+    print(f"Error: Could not read premise file: {e}")
+    sys.exit(1)
 
 def count_words(text):
     return len(re.sub(r'(\r\n|\r|\n)', ' ', text).split())
@@ -92,20 +133,20 @@ if args.concept_file:
         print(f"Loaded concept from: {args.concept_file}")
     except FileNotFoundError:
         print(f"Note: Concept file not found: {args.concept_file}")
-        print("Continuing with just the request description.")
+        print("Continuing with just the premise description.")
     except Exception as e:
         print(f"Warning: Could not read concept file: {e}")
-        print("Continuing with just the request description.")
+        print("Continuing with just the premise description.")
 
-# Load characters file if provided
+# load characters file if provided
 characters_content = ""
-if args.characters:
+if args.characters_file:
     try:
-        with open(args.characters, 'r', encoding='utf-8') as file:
+        with open(args.characters_file, 'r', encoding='utf-8') as file:
             characters_content = file.read()
-        print(f"Loaded characters from: {args.characters}")
+        print(f"Loaded characters from: {args.characters_file}")
     except FileNotFoundError:
-        print(f"Note: Characters file not found: {args.characters}")
+        print(f"Note: Characters file not found: {args.characters_file}")
         print("Continuing without characters information.")
     except Exception as e:
         print(f"Warning: Could not read characters file: {e}")
@@ -120,8 +161,11 @@ prompt = f"""You are a skilled novelist and story architect helping to create a 
 Draw upon your knowledge of worldwide literary traditions, narrative structure, and plot development approaches from across cultures,
 while expressing everything in natural, idiomatic {args.lang} that honors its unique linguistic character.
 
+=== PREMISE ===
+{premise_content}
+=== END PREMISE ===
+
 === CONCEPT ===
-{args.request}
 {concept_content}
 === END CONCEPT ===
 
