@@ -11,21 +11,21 @@ import time
 from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Generate the next chapter based on the outline and any previous chapters.')
-parser.add_argument('--request', type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
-parser.add_argument('--request_timeout', type=int, default=240, help='Maximum timeout for each *streamed chunk* of output (default: 240 seconds = 4 minutes)')
-parser.add_argument('--chapter_delay', type=int, default=20, help='Delay in seconds between processing multiple chapters (default: 20 seconds)')
-parser.add_argument('--chapters', type=str, default="chapters.txt", help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
-parser.add_argument('--manuscript', type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
-parser.add_argument('--outline', type=str, default="outline.txt", help='Path to outline file (default: outline.txt)')
-parser.add_argument('--world', type=str, default="world.txt", help='Path to world-characters file (default: world.txt)')
-parser.add_argument('--thinking_budget', type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
-parser.add_argument('--max_tokens', type=int, default=9000, help='Maximum tokens for output (default: 9000)')
-parser.add_argument('--context_window', type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
-parser.add_argument('--save_dir', type=str, default=".", help='Directory to save chapter files (default: current directory)')
-parser.add_argument('--lang', type=str, default="English", help='Language for writing (default: English)')
-parser.add_argument('--verbose', action='store_true', help='Enable verbose output during chapter generation')
-parser.add_argument('--no_append', action='store_true', help='Disable auto-appending new chapters to manuscript file')
-parser.add_argument('--backup', action='store_true', help='Create backup of manuscript file before appending (default: False)')
+parser.add_argument('--request',            type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
+parser.add_argument('--request_timeout',    type=int, default=300, help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds = 5 minutes)')
+parser.add_argument('--chapter_delay',      type=int, default=20, help='Delay in seconds between processing multiple chapters (default: 20 seconds)')
+parser.add_argument('--chapters',           type=str, default="chapters.txt", help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
+parser.add_argument('--manuscript',         type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
+parser.add_argument('--outline',            type=str, default="outline.txt", help='Path to outline file (default: outline.txt)')
+parser.add_argument('--world',              type=str, default="world.txt", help='Path to world-characters file (default: world.txt)')
+parser.add_argument('--thinking_budget',    type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
+parser.add_argument('--max_tokens',         type=int, default=9000, help='Maximum tokens for output (default: 9000)')
+parser.add_argument('--context_window',     type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
+parser.add_argument('--lang',               type=str, default="English", help='Language for writing (default: English)')
+parser.add_argument('--verbose',            action='store_true', help='Enable verbose output during chapter generation')
+parser.add_argument('--no_append',          action='store_true', help='Disable auto-appending new chapters to manuscript file')
+parser.add_argument('--backup',             action='store_true', help='Create backup of manuscript file before appending (default: False)')
+parser.add_argument('--save_dir',           type=str, default=".", help='Directory to save chapter files (default: current directory)')
 args = parser.parse_args()
 
 # Validate that either --request or --chapters is provided
@@ -190,12 +190,12 @@ def process_chapter(chapter_request, current_idx=None, total_chapters=None):
         if args.verbose:
             print(f"Note: World file not found: {args.world}")
             print("Continuing without world information.")
-        world_content = ""
+        sys.exit(1)
     except Exception as e:
         if args.verbose:
             print(f"Warning: Could not read world file: {e}")
             print("Continuing without world information.")
-        world_content = ""
+        sys.exit(1)
 
     # Format the chapter request to ensure it's in "Chapter X: Title" format for Claude
     # This ensures consistency in the prompt regardless of input format
@@ -237,19 +237,20 @@ You are a skilled novelist writing {formatted_request} in fluent, authentic {arg
 Draw upon your knowledge of worldwide literary traditions, narrative techniques, and creative approaches from across cultures, while expressing everything in natural, idiomatic {args.lang} that honors its unique linguistic character.
 
 Consider the following in your thinking:
-- IMPORTANT: always review the included OUTLINE
-- Refer to the included WORLD of characters and settings, if provided
-- How this chapter advances the overall narrative and character development
+- IMPORTANT: always review the included WORLD, OUTLINE, and MANUSCRIPT
+- Refer to the included WORLD of characters and settings provided
+- Analyze how each chapter advances the overall narrative and character development
 - Creating compelling opening and closing scenes
 - Incorporating sensory details and vivid descriptions
 - Maintaining consistent tone and style with previous chapters
+- Do NOT add new characters that are not already in: WORLD, OUTLINE, and MANUSCRIPT
 
 IMPORTANT:
 1. NO Markdown formatting
 2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
 3. Use hyphens only for legitimate {args.lang} words
 4. Begin with: {formatted_outline_request} and write in plain text only
-5. Write 1,800-2,500 words
+5. Write 2,000-3,000 words
 6. Do not repeat content from existing chapters
 7. Do not start working on the next chapter
 8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
@@ -275,7 +276,7 @@ IMPORTANT:
 2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
 3. Use hyphens only for legitimate {args.lang} words
 4. Begin with: {formatted_outline_request} and write in plain text only
-5. Write 1,800-2,500 words
+5. Write 2,000-3,000 words
 6. Do not repeat content from existing chapters
 7. Do not start working on the next chapter
 8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
