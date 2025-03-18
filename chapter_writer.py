@@ -62,6 +62,39 @@ if args.request is None and args.chapters is None:
 def count_words(text):
     return len(re.sub(r'(\r\n|\r|\n)', ' ', text).split())
 
+def clean_forbidden_punctuation(text):
+    # dictionary of patterns and their replacements
+    replacements = {
+        r'-,': ',',              # Replace -, with just a comma
+        # r'\.\.\. ': ' ',         # Replace ellipsis with a space
+        # r'\.\.\.': ' ',          # Replace ellipsis with a space
+        # r'… ': ' ',              # Unicode ellipsis character
+        # r'…': '',                # Unicode ellipsis character
+        r'—': ', ',              # Replace em dash with a space
+        r'–': ' ',               # En dash as well (often confused with em dash)
+        r'\.,-': '.',            # Replace .,- with just a period
+        r'\.-': '.',             # Replace ., with just a period
+        r'\.,': '.',             # Replace ., with just a period
+        r',-': ',',              # Replace ,- with just a comma
+        # r'-,': '-',              # Replace -, with just a hyphen
+        r'--': ' ',              # Replace double hyphen with a space
+        r'\*': '',               # Remove asterisks completely
+    }
+    
+    # process each pattern in turn
+    cleaned_text = text
+    for pattern, replacement in replacements.items():
+        cleaned_text = re.sub(pattern, replacement, cleaned_text)
+    
+    # additional safety checks for multi-character sequences
+    # this catches any remaining multi-asterisk patterns
+    cleaned_text = re.sub(r'\*+', '', cleaned_text)
+    
+    # this catches any attempt to create ellipsis with 4+ periods
+    cleaned_text = re.sub(r'\.{4,}', '.', cleaned_text)
+    
+    return cleaned_text
+
 def clean_text_formatting(text):
     """
     clean text formatting by:
@@ -372,7 +405,8 @@ note: The actual prompt included the outline, world, manuscript which are not lo
     minutes = int(elapsed // 60)
     seconds = elapsed % 60
 
-    cleaned_response = clean_text_formatting(full_response)
+    cleaned_text = clean_text_formatting(full_response)
+    cleaned_response = clean_forbidden_punctuation(cleaned_response)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     chapter_filename = f"{args.save_dir}/{formatted_chapter}_chapter_{timestamp}.txt"
     
