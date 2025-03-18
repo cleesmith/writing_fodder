@@ -11,24 +11,50 @@ import time
 from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Generate the next chapter based on the outline and any previous chapters.')
-parser.add_argument('--request',            type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
-parser.add_argument('--request_timeout',    type=int, default=300, help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds = 5 minutes)')
-parser.add_argument('--chapter_delay',      type=int, default=20, help='Delay in seconds between processing multiple chapters (default: 20 seconds)')
-parser.add_argument('--chapters',           type=str, default="chapters.txt", help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
-parser.add_argument('--manuscript',         type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
-parser.add_argument('--outline',            type=str, default="outline.txt", help='Path to outline file (default: outline.txt)')
-parser.add_argument('--world',              type=str, default="world.txt", help='Path to world-characters file (default: world.txt)')
-parser.add_argument('--thinking_budget',    type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
-parser.add_argument('--max_tokens',         type=int, default=9000, help='Maximum tokens for output (default: 9000)')
-parser.add_argument('--context_window',     type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
-parser.add_argument('--lang',               type=str, default="English", help='Language for writing (default: English)')
-parser.add_argument('--verbose',            action='store_true', help='Enable verbose output during chapter generation')
-parser.add_argument('--no_append',          action='store_true', help='Disable auto-appending new chapters to manuscript file')
-parser.add_argument('--backup',             action='store_true', help='Create backup of manuscript file before appending (default: False)')
-parser.add_argument('--save_dir',           type=str, default=".", help='Directory to save chapter files (default: current directory)')
+parser.add_argument('--request',                type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
+parser.add_argument('--request_timeout',        type=int, default=300, help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds = 5 minutes)')
+parser.add_argument('--max_retries',            type=int, default=1, help='Maximum times to retry request')
+    
+parser.add_argument('--thinking_budget',        type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
+parser.add_argument('--max_tokens',             type=int, default=12000, help='Maximum tokens for output (default: 12000)')
+parser.add_argument('--context_window',         type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
+    
+parser.add_argument('--lang',                   type=str, default="English", help='Language for writing (default: English)')
+parser.add_argument('--no_ai_isms',             type=str, default="echo, whisper, enigmatic", help='List of AI-ism words to avoid')
+parser.add_argument('--chapter_delay',          type=int, default=15, help='Delay in seconds between processing multiple chapters (default: 15 seconds)')
+parser.add_argument('--chapters',               type=str, default="chapters.txt", help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
+parser.add_argument('--manuscript',             type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
+parser.add_argument('--outline',                type=str, default="outline.txt", help='Path to outline file (default: outline.txt)')
+parser.add_argument('--world',                  type=str, default="world.txt", help='Path to world-characters file (default: world.txt)')
+parser.add_argument('--no_dialogue_emphasis',   action='store_true', help='Turn off the additional dialogue emphasis (dialogue emphasis is ON by default)')
+parser.add_argument('--no_append',              action='store_true', help='Disable auto-appending new chapters to manuscript file')
+
+parser.add_argument('--backup',                 action='store_true', help='Create backup of manuscript file before appending (default: False)')
+parser.add_argument('--save_dir',               type=str, default=".", help='Directory to save chapter files (default: current directory)')
 args = parser.parse_args()
 
-# Validate that either --request or --chapters is provided
+# by default, dialogue emphasis will be included unless --no_dialogue_emphasis is specified
+dialogue_option = ""
+if not args.no_dialogue_emphasis:
+    dialogue_option = """
+13. DIALOGUE EMPHASIS: Significantly increase the amount of dialogue, both external conversations between characters and internal thoughts/monologues. At least 40-50% of the content should be dialogue. Use dialogue to reveal character, advance plot, create tension, and show (rather than tell) emotional states. Ensure each character's dialogue reflects their unique personality, background, and relationship dynamics as established in the WORLD and MANUSCRIPT.
+"""
+    print(dialogue_option)
+
+# when adding the character restriction, adjust the numbering based on whether dialogue emphasis is included
+character_restriction_num = 14
+world_focus_num = 15
+
+if args.no_dialogue_emphasis:
+    character_restriction_num = 13
+    world_focus_num = 14
+
+character_restriction = f"""{character_restriction_num}. CHARACTER RESTRICTION: Do NOT create any new named characters. Only use characters explicitly mentioned in the WORLD, OUTLINE, or MANUSCRIPT. You may only add minimal unnamed incidental characters when absolutely necessary (e.g., a waiter, cashier, landlord) but keep these to an absolute minimum.
+{world_focus_num}. WORLD FOCUS: Make extensive use of the world details provided in the WORLD section. Incorporate the settings, locations, history, culture, and atmosphere described there to create an immersive, consistent environment.
+"""
+print(character_restriction)
+
+# validate that either --request or --chapters is provided
 if args.request is None and args.chapters is None:
     print("ERROR: You must provide either --request for a single chapter or --chapters for multiple chapters")
     sys.exit(1)
@@ -187,17 +213,15 @@ def process_chapter(chapter_request, current_idx=None, total_chapters=None):
         with open(args.world, 'r', encoding='utf-8') as file:
             world_content = file.read()
     except FileNotFoundError:
-        if args.verbose:
-            print(f"Note: World file not found: {args.world}")
-            print("Continuing without world information.")
+        print(f"Note: World file not found: {args.world}")
+        print("Continuing without world information.")
         sys.exit(1)
     except Exception as e:
-        if args.verbose:
-            print(f"Warning: Could not read world file: {e}")
-            print("Continuing without world information.")
+        print(f"Warning: Could not read world file: {e}")
+        print("Continuing without world information.")
         sys.exit(1)
 
-    # Format the chapter request to ensure it's in "Chapter X: Title" format for Claude
+    # format the chapter request to ensure it's in "Chapter X: Title" format for Claude
     # This ensures consistency in the prompt regardless of input format
     if re.match(r'^Chapter\s+\d+', chapter_request, re.IGNORECASE):
         formatted_request = chapter_request  # Already in "Chapter X: Title" format
@@ -243,20 +267,21 @@ Consider the following in your thinking:
 - Creating compelling opening and closing scenes
 - Incorporating sensory details and vivid descriptions
 - Maintaining consistent tone and style with previous chapters
-- Do NOT add new characters that are not already in: WORLD, OUTLINE, and MANUSCRIPT
+- Do NOT add new characters, only used characters from: WORLD, OUTLINE, and MANUSCRIPT
 
 IMPORTANT:
 1. NO Markdown formatting
 2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
-3. Use hyphens only for legitimate {args.lang} words
-4. Begin with: {formatted_outline_request} and write in plain text only
-5. Write 2,000-3,000 words
-6. Do not repeat content from existing chapters
-7. Do not start working on the next chapter
-8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
-9. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
-10. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
-11. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters)
+3. NO AI-ism words, such as: {args.no_ai_isms}
+4. Use hyphens only for legitimate {args.lang} words
+5. Begin with: {formatted_outline_request} and write in plain text only
+6. Write 2,000-3,000 words
+7. Do not repeat content from existing chapters
+8. Do not start working on the next chapter
+9. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
+10. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
+11. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
+12. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
 """
 
     # create a version of the prompt without the outline, world, manuscript:
@@ -274,15 +299,16 @@ Consider the following in your thinking:
 IMPORTANT:
 1. NO Markdown formatting
 2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
-3. Use hyphens only for legitimate {args.lang} words
-4. Begin with: {formatted_outline_request} and write in plain text only
-5. Write 2,000-3,000 words
-6. Do not repeat content from existing chapters
-7. Do not start working on the next chapter
-8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
-9. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
-10. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
-11. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters)
+3. NO AI-ism words, such as: {args.no_ai_isms}
+4. Use hyphens only for legitimate {args.lang} words
+5. Begin with: {formatted_outline_request} and write in plain text only
+6. Write 2,000-3,000 words
+7. Do not repeat content from existing chapters
+8. Do not start working on the next chapter
+9. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
+10. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
+11. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
+12. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
 note: The actual prompt included the outline, world, manuscript which are not logged to save space.
 """
 
@@ -313,8 +339,7 @@ note: The actual prompt included the outline, world, manuscript which are not lo
         )
         prompt_token_count = response.input_tokens
     except Exception as e:
-        if args.verbose:
-            print(f"Error counting tokens: {e}")
+        print(f"Error counting tokens: {e}")
 
     full_response = ""
     thinking_content = ""
@@ -340,7 +365,7 @@ note: The actual prompt included the outline, world, manuscript which are not lo
                     elif event.delta.type == "text_delta":
                         full_response += event.delta.text
     except Exception as e:
-        print(f"Error during generation: {e}")
+        print(f"\n*** Error during generation:\n{e}\n")
         return None
 
     elapsed = time.time() - start_time
@@ -351,7 +376,7 @@ note: The actual prompt included the outline, world, manuscript which are not lo
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     chapter_filename = f"{args.save_dir}/{formatted_chapter}_chapter_{timestamp}.txt"
     
-    # Create directory if it doesn't exist
+    # create directory if it doesn't exist
     os.makedirs(args.save_dir, exist_ok=True)
     
     with open(chapter_filename, 'w', encoding='utf-8') as file:
@@ -359,7 +384,6 @@ note: The actual prompt included the outline, world, manuscript which are not lo
 
     chapter_word_count = count_words(cleaned_response)
 
-    # Optional count of tokens in the chapter
     chapter_token_count = 0
     try:
         response = client.beta.messages.count_tokens(
@@ -368,9 +392,9 @@ note: The actual prompt included the outline, world, manuscript which are not lo
         )
         chapter_token_count = response.input_tokens
     except Exception:
-        pass  # Silently ignore token counting errors
+        pass  # silently ignore token counting errors
 
-    # Append the new chapter to the manuscript file
+    # append the new chapter to the manuscript file
     if not args.no_append:
         append_success = append_to_manuscript(cleaned_response, args.manuscript, args.backup)
         if append_success:
@@ -403,12 +427,11 @@ Chapter {chapter_num} token count: {chapter_token_count}
             file.write("\n=== END AI'S THINKING PROCESS ===\n")
             file.write(stats)
         
-        if args.verbose:
-            print(f"AI thinking saved to: {thinking_filename}")
+        print(f"AI thinking saved to: {thinking_filename}")
     
     print(f"Completed Chapter {chapter_num}: {chapter_word_count} words ({minutes}m {seconds:.2f}s) - saved to: {os.path.basename(chapter_filename)}")
     
-    # Clean up references
+    # clean up references
     outline_content = None
     world_content = None
     novel_content = None
@@ -425,7 +448,6 @@ Chapter {chapter_num} token count: {chapter_token_count}
     }
 
 
-# Main execution logic
 if args.chapters:
     # Load chapter list from file
     try:
@@ -455,7 +477,6 @@ if args.chapters:
             print(f"Waiting {args.chapter_delay} seconds before next chapter...")
             time.sleep(args.chapter_delay)
     
-    # Print summary of all chapters
     print("\n" + "="*80)
     print("SUMMARY OF ALL CHAPTERS PROCESSED")
     print("="*80)
@@ -469,7 +490,7 @@ if args.chapters:
         seconds = result["elapsed_time"] % 60
         print(f"Chapter {result['chapter_num']}: {result['word_count']} words, {minutes}m {seconds:.1f}s, saved to: {os.path.basename(result['chapter_file'])}")
     
-    # Calculate averages and totals
+    # calculate averages and totals
     avg_words = total_words / len(summary) if summary else 0
     total_minutes = int(total_time // 60)
     total_seconds = total_time % 60
@@ -484,5 +505,5 @@ else:
     # Process single chapter using the --request parameter
     process_chapter(args.request)
 
-# Clean up
+# clean up
 client = None
