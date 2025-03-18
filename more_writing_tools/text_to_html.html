@@ -64,6 +64,23 @@
     #darkModeToggle:hover {
       filter: brightness(1.2);
     }
+    /* Title Input */
+    #titleInput {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background-color: #333;
+      color: #e0e0e0;
+    }
+    body:not(.dark-mode) #titleInput {
+      background-color: #fff;
+      color: #000;
+    }
+    /* Document Title */
+    .document-title {
+      margin-bottom: 20px;
+      text-align: center;
+    }
     /* Chapter Container */
     .chapter-container {
       border: 2px solid var(--chapter-border-color);
@@ -109,8 +126,13 @@
     <!-- Download and clear buttons -->
     <button id="downloadButton">or <i>download</i> as .html file</button>
     <button id="clearButton">clear</button>
+    <!-- Title input -->
+    <input type="text" id="titleInput" placeholder="Enter document title">
   </div>
 
+  <!-- Document title display -->
+  <h2 id="documentTitle" class="document-title"></h2>
+  
   <div id="chapters"></div>
 
   <script>
@@ -122,6 +144,12 @@
     document.getElementById('darkModeToggle').addEventListener('click', function() {
       document.body.classList.toggle('dark-mode');
       this.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+
+    // Update title when input changes
+    document.getElementById('titleInput').addEventListener('input', function() {
+      const titleElement = document.getElementById('documentTitle');
+      titleElement.textContent = this.value;
     });
 
     // Listen for TXT file selection
@@ -246,27 +274,34 @@
         return;
       }
       
+      // Get the document title from input
+      const documentTitle = document.getElementById('titleInput').value || txtBaseName;
+      
       let finalHtml = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>${txtBaseName} - Converted TXT</title>
+  <title>${documentTitle} - Converted TXT</title>
   <style>
     body { 
       font-family: Arial, sans-serif; 
       padding: 20px; 
-      background: #ffffff; 
-      color: #000000; 
+      background: #121212; 
+      color: #e0e0e0; 
       transition: background 0.3s, color 0.3s; 
       line-height: 1.5;
+    }
+    h2.document-title {
+      text-align: center;
+      margin-bottom: 20px;
     }
     .chapter-container { 
       border: 2px solid #ff9800; 
       border-radius: 4px; 
       padding: 10px; 
       margin-bottom: 15px; 
-      background: #fff7e6; 
+      background: #1e1e1e; 
     }
     .chapter-title { 
       font-weight: bold; 
@@ -276,13 +311,13 @@
     .chapter-text p {
       margin-bottom: 1em;
     }
-    /* Dark mode styles */
-    body.dark-mode { 
-      background: #121212; 
-      color: #e0e0e0; 
+    /* Light mode styles */
+    body:not(.dark-mode) { 
+      background: #ffffff; 
+      color: #000000; 
     }
-    body.dark-mode .chapter-container { 
-      background: #1e1e1e; 
+    body:not(.dark-mode) .chapter-container { 
+      background: #fff7e6; 
       border-color: #ff9800; 
     }
     /* Dark mode toggle button (small circular button) */
@@ -305,8 +340,9 @@
     }
   </style>
 </head>
-<body>
+<body class="dark-mode">
   <button id="darkModeToggle" title="Switch dark and light mode">☀️</button>
+  <h2 class="document-title">${documentTitle}</h2>
 `;
       
       chapters.forEach(chapter => {
@@ -339,7 +375,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = txtBaseName + ".html";
+      a.download = documentTitle + ".html";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
