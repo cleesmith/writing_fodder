@@ -304,17 +304,16 @@ Consider the following in your thinking:
 
 IMPORTANT:
 1. NO Markdown formatting
-2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
-3. NO AI-ism words, such as: {args.no_ai_isms}
-4. Use hyphens only for legitimate {args.lang} words
-5. Begin with: {formatted_outline_request} and write in plain text only
-6. Write 2,000-3,000 words
-7. Do not repeat content from existing chapters
-8. Do not start working on the next chapter
-9. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
-10. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
-11. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
-12. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
+2. NO AI-ism words, such as: {args.no_ai_isms}
+3. Use hyphens only for legitimate {args.lang} words
+4. Begin with: {formatted_outline_request} and write in plain text only
+5. Write 2,000-3,000 words
+6. Do not repeat content from existing chapters
+7. Do not start working on the next chapter
+8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
+9. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
+10. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
+11. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
 """
 
     # create a version of the prompt without the outline, world, manuscript:
@@ -331,17 +330,16 @@ Consider the following in your thinking:
 
 IMPORTANT:
 1. NO Markdown formatting
-2. NO ellipsis  NO em dash  NO '.,-'  NO ',-'  NO '-,'  NO '--'  NO '*'
-3. NO AI-ism words, such as: {args.no_ai_isms}
-4. Use hyphens only for legitimate {args.lang} words
-5. Begin with: {formatted_outline_request} and write in plain text only
-6. Write 2,000-3,000 words
-7. Do not repeat content from existing chapters
-8. Do not start working on the next chapter
-9. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
-10. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
-11. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
-12. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
+2. NO AI-ism words, such as: {args.no_ai_isms}
+3. Use hyphens only for legitimate {args.lang} words
+4. Begin with: {formatted_outline_request} and write in plain text only
+5. Write 2,000-3,000 words
+6. Do not repeat content from existing chapters
+7. Do not start working on the next chapter
+8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
+9. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
+10. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
+11. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
 note: The actual prompt included the outline, world, manuscript which are not logged to save space.
 """
 
@@ -405,8 +403,12 @@ note: The actual prompt included the outline, world, manuscript which are not lo
     minutes = int(elapsed // 60)
     seconds = elapsed % 60
 
-    cleaned_text = clean_text_formatting(full_response)
-    cleaned_response = clean_forbidden_punctuation(cleaned_response)
+    # cls: text is getting messed up
+    # cleaned_text = clean_text_formatting(full_response)
+    # cleaned_response = clean_forbidden_punctuation(cleaned_text)
+    # cls: just clean up text during editing:
+    cleaned_response = full_response
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     chapter_filename = f"{args.save_dir}/{formatted_chapter}_chapter_{timestamp}.txt"
     
@@ -470,8 +472,9 @@ Chapter {chapter_num} token count: {chapter_token_count}
     world_content = None
     novel_content = None
     full_response = None
-    thinking_content = None
+    cleaned_text = None
     cleaned_response = None
+    thinking_content = None
     
     return {
         "chapter_num": chapter_num,
@@ -536,7 +539,7 @@ if args.chapters:
     print("="*80)
     
 else:
-    # Process single chapter using the --request parameter
+    # process single chapter using the --request parameter
     process_chapter(args.request)
 
 # clean up
