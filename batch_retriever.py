@@ -38,7 +38,8 @@ def retrieve_batch_result(client, message_id, debug=False):
         error_count = 0
         expired_count = 0
         
-        # Stream results using the beta endpoint
+        # stream results using the beta endpoint:
+        # https://docs.anthropic.com/en/docs/build-with-claude/batch-processing
         for result in client.beta.messages.batches.results(message_id):
             if debug:
                 print(f"\n--- Debug: Result Object ---")

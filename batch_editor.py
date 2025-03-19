@@ -1,4 +1,4 @@
-# python -B batch_editor.py
+# python -B batch_editor.py --thinking_budget 96000 --max_tokens 80000
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
 import anthropic
@@ -19,13 +19,12 @@ parser.add_argument('--context_window',     type=int, default=204648, help='Cont
 parser.add_argument('--save_dir',           type=str, default=".")
 args = parser.parse_args()
 
-
 def create_batch_request(client, prompt, max_tokens, thinking_budget):
     try:
         message_batch = client.beta.messages.batches.create(
             requests=[
                 Request(
-                    custom_id="my-first-request",
+                    custom_id="cls-editor",
                     params=MessageCreateParamsNonStreaming(
                         model="claude-3-7-sonnet-20250219",
                         max_tokens=max_tokens,
@@ -36,6 +35,7 @@ def create_batch_request(client, prompt, max_tokens, thinking_budget):
         )
         print(message_batch)
         return message_batch.id
+
         # response = client.beta.messages.batches.create(
         #     model="claude-3-7-sonnet-20250219",
         #     max_tokens=max_tokens,
