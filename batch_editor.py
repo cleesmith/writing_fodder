@@ -13,7 +13,7 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Very thorough thinking about something.')
 parser.add_argument('--prompt',             type=str, default="prompt.txt", help="Path to prompt file (default: prompt.txt)")
-parser.add_argument('--thinking_budget',    type=int, default=64000, help='Maximum tokens for AI thinking (default: 64000)')
+parser.add_argument('--thinking_budget',    type=int, default=96000, help='Maximum tokens for AI thinking (default: 96000)')
 parser.add_argument('--max_tokens',         type=int, default=20000, help='Maximum tokens for output (default: 20000)')
 parser.add_argument('--context_window',     type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
 parser.add_argument('--save_dir',           type=str, default=".")
@@ -21,7 +21,24 @@ args = parser.parse_args()
 
 def create_batch_request(client, prompt, max_tokens, thinking_budget):
     try:
-        message_batch = client.beta.messages.batches.create(
+        # response = client.beta.messages.batches.create(
+        #     requests=[
+        #         Request(
+        #             custom_id="cls-editor",
+        #             params=MessageCreateParamsNonStreaming(
+        #                 model="claude-3-7-sonnet-20250219",
+        #                 max_tokens=max_tokens,
+        #                 messages=[{"role": "user", "content": prompt}],
+        #             )
+        #         )
+        #     ]
+        # )
+        # print(response)
+        # return response.id
+
+        response = client.beta.messages.batches.create(
+            # betas=["output-128k-2025-02-19", "batch-messages-2025-02-19"],
+            betas=["output-128k-2025-02-19"],
             requests=[
                 Request(
                     custom_id="cls-editor",
@@ -29,24 +46,16 @@ def create_batch_request(client, prompt, max_tokens, thinking_budget):
                         model="claude-3-7-sonnet-20250219",
                         max_tokens=max_tokens,
                         messages=[{"role": "user", "content": prompt}],
+                        thinking={
+                            "type": "enabled",
+                            "budget_tokens": thinking_budget
+                        }
                     )
                 )
             ]
         )
-        print(message_batch)
-        return message_batch.id
-
-        # response = client.beta.messages.batches.create(
-        #     model="claude-3-7-sonnet-20250219",
-        #     max_tokens=max_tokens,
-        #     messages=[{"role": "user", "content": prompt}],
-        #     thinking={
-        #         "type": "enabled",
-        #         "budget_tokens": thinking_budget
-        #     },
-        #     betas=["output-128k-2025-02-19", "batch-messages-2025-02-19"]
-        # )
-        # return response.id
+        print(response)
+        return response.id
     except Exception as e:
         print(f"*** Error creating batch request:\n{e}\n")
         sys.exit(1)
@@ -91,7 +100,7 @@ print(f"Read prompt from '{args.prompt}' ({len(prompt)} characters)")
 print(f"Max AI model context window: {args.context_window} tokens")
 print(f"AI model thinking budget: {args.thinking_budget} tokens")
 print(f"Max output tokens: {args.max_tokens} tokens")
-print(f"Setting max_tokens to: {max_tokens} (requested: {args.max_tokens}, calculated safe maximum: {max_safe_tokens})")
+print(f"*** Setting max_tokens to: {max_tokens} (requested: {args.max_tokens}, calculated safe maximum: {max_safe_tokens})")
 
 # ensure max_tokens is always greater than thinking budget
 if max_tokens <= args.thinking_budget:
