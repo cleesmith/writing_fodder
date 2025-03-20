@@ -17,10 +17,9 @@ parser.add_argument('--max_retries',            type=int, default=1, help='Maxim
     
 parser.add_argument('--thinking_budget',        type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
 parser.add_argument('--max_tokens',             type=int, default=12000, help='Maximum tokens for output (default: 12000)')
-parser.add_argument('--context_window',         type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
+parser.add_argument('--context_window',         type=int, default=200000, help='Context window for Claude 3.7 Sonnet (default: 200000)')
     
 parser.add_argument('--lang',                   type=str, default="English", help='Language for writing (default: English)')
-parser.add_argument('--no_ai_isms',             type=str, default="echo, whisper, enigmatic", help='List of AI-ism words to avoid')
 parser.add_argument('--chapter_delay',          type=int, default=15, help='Delay in seconds between processing multiple chapters (default: 15 seconds)')
 parser.add_argument('--chapters',               type=str, default="chapters.txt", help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
 parser.add_argument('--manuscript',             type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
@@ -37,20 +36,12 @@ args = parser.parse_args()
 dialogue_option = ""
 if not args.no_dialogue_emphasis:
     dialogue_option = """
-13. DIALOGUE EMPHASIS: Significantly increase the amount of dialogue, both external conversations between characters and internal thoughts/monologues. At least 40-50% of the content should be dialogue. Use dialogue to reveal character, advance plot, create tension, and show (rather than tell) emotional states. Ensure each character's dialogue reflects their unique personality, background, and relationship dynamics as established in the WORLD and MANUSCRIPT.
+- DIALOGUE EMPHASIS: Significantly increase the amount of dialogue, both external conversations between characters and internal thoughts/monologues. At least 40-50% of the content should be dialogue. Use dialogue to reveal character, advance plot, create tension, and show (rather than tell) emotional states. Ensure each character's dialogue reflects their unique personality, background, and relationship dynamics as established in the WORLD and MANUSCRIPT.
 """
     print(dialogue_option)
 
-# when adding the character restriction, adjust the numbering based on whether dialogue emphasis is included
-character_restriction_num = 14
-world_focus_num = 15
-
-if args.no_dialogue_emphasis:
-    character_restriction_num = 13
-    world_focus_num = 14
-
-character_restriction = f"""{character_restriction_num}. CHARACTER RESTRICTION: Do NOT create any new named characters. Only use characters explicitly mentioned in the WORLD, OUTLINE, or MANUSCRIPT. You may only add minimal unnamed incidental characters when absolutely necessary (e.g., a waiter, cashier, landlord) but keep these to an absolute minimum.
-{world_focus_num}. WORLD FOCUS: Make extensive use of the world details provided in the WORLD section. Incorporate the settings, locations, history, culture, and atmosphere described there to create an immersive, consistent environment.
+character_restriction = f"""- CHARACTER RESTRICTION: Do NOT create any new named characters. Only use characters explicitly mentioned in the WORLD, OUTLINE, or MANUSCRIPT. You may only add minimal unnamed incidental characters when absolutely necessary (e.g., a waiter, cashier, landlord) but keep these to an absolute minimum.
+- WORLD FOCUS: Make extensive use of the world details provided in the WORLD section. Incorporate the settings, locations, history, culture, and atmosphere described there to create an immersive, consistent environment.
 """
 print(character_restriction)
 
@@ -303,17 +294,17 @@ Consider the following in your thinking:
 - Do NOT add new characters, only used characters from: WORLD, OUTLINE, and MANUSCRIPT
 
 IMPORTANT:
-1. NO Markdown formatting
-2. NO AI-ism words, such as: {args.no_ai_isms}
-3. Use hyphens only for legitimate {args.lang} words
-4. Begin with: {formatted_outline_request} and write in plain text only
-5. Write 2,000-3,000 words
-6. Do not repeat content from existing chapters
-7. Do not start working on the next chapter
-8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
-9. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
-10. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
-11. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
+- NO Markdown formatting
+- Use hyphens only for legitimate {args.lang} words
+- Begin with: {formatted_outline_request} and write in plain text only
+- Write 2,000-3,000 words
+- Do not repeat content from existing chapters
+- Do not start working on the next chapter
+- Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
+- Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
+- Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
+- Prioritize lexical diversity by considering multiple alternative word choices before finalizing each sentence. For descriptive passages especially, select precise, context-specific terminology rather than relying on common metaphorical language. When using figurative language, vary the sensory domains from which metaphors are drawn (visual, auditory, tactile, etc.). Actively monitor your own patterns of word selection across paragraphs and deliberately introduce variation.
+- In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
 """
 
     # create a version of the prompt without the outline, world, manuscript:
@@ -329,35 +320,35 @@ Consider the following in your thinking:
 - Maintaining consistent tone and style with previous chapters
 
 IMPORTANT:
-1. NO Markdown formatting
-2. NO AI-ism words, such as: {args.no_ai_isms}
-3. Use hyphens only for legitimate {args.lang} words
-4. Begin with: {formatted_outline_request} and write in plain text only
-5. Write 2,000-3,000 words
-6. Do not repeat content from existing chapters
-7. Do not start working on the next chapter
-8. Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
-9. Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
-10. Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
-11. In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
+- NO Markdown formatting
+- Use hyphens only for legitimate {args.lang} words
+- Begin with: {formatted_outline_request} and write in plain text only
+- Write 2,000-3,000 words
+- Do not repeat content from existing chapters
+- Do not start working on the next chapter
+- Maintain engaging narrative pacing through varied sentence structure, strategic scene transitions, and appropriate balance between action, description, and reflection
+- Prioritize natural, character-revealing dialogue as the primary narrative vehicle, ensuring each conversation serves multiple purposes (character development, plot advancement, conflict building). Include distinctive speech patterns for different characters, meaningful subtext, and strategic dialogue beats, while minimizing lengthy exposition and internal reflection.
+- Write all times in 12-hour numerical format with a space before lowercase am/pm (e.g., "10:30 am," "2:15 pm," "7:00 am") rather than spelling them out as words or using other formats
+- Prioritize lexical diversity by considering multiple alternative word choices before finalizing each sentence. For descriptive passages especially, select precise, context-specific terminology rather than relying on common metaphorical language. When using figurative language, vary the sensory domains from which metaphors are drawn (visual, auditory, tactile, etc.). Actively monitor your own patterns of word selection across paragraphs and deliberately introduce variation.
+- In your 'thinking' before writing always indicate and explain what you're using from: WORLD, OUTLINE, and MANUSCRIPT (previous chapters){dialogue_option}{character_restriction}
 note: The actual prompt included the outline, world, manuscript which are not logged to save space.
 """
 
-    # calculate a safe max_tokens value
-    estimated_input_tokens = int(len(prompt) // 5.5)
-    max_safe_tokens = max(5000, args.context_window - estimated_input_tokens - 1000)  # 1000 token buffer for safety
-    max_tokens = int(min(args.max_tokens, max_safe_tokens))
+    # # calculate a safe max_tokens value
+    # estimated_input_tokens = int(len(prompt) // 5.5)
+    # max_safe_tokens = max(5000, args.context_window - estimated_input_tokens - 1000)  # 1000 token buffer for safety
+    # max_tokens = int(min(args.max_tokens, max_safe_tokens))
 
-    # ensure max_tokens is always greater than thinking budget
-    if max_tokens <= args.thinking_budget:
-        max_tokens = args.thinking_budget + args.max_tokens
+    # # ensure max_tokens is always greater than thinking budget
+    # if max_tokens <= args.thinking_budget:
+    #     max_tokens = args.thinking_budget + args.max_tokens
 
     client = anthropic.Anthropic(
         timeout=args.request_timeout,
         max_retries=0
     )
 
-    prompt_token_count = 0
+    prompt_tokens = 0
     try:
         response = client.beta.messages.count_tokens(
             model="claude-3-7-sonnet-20250219",
@@ -368,9 +359,47 @@ note: The actual prompt included the outline, world, manuscript which are not lo
             },
             betas=["output-128k-2025-02-19"]
         )
-        prompt_token_count = response.input_tokens
+        prompt_tokens = response.input_tokens
     except Exception as e:
         print(f"Error counting tokens: {e}")
+
+    # context_window = 200000   # total context window size
+    # output_capacity = 128000  # via the beta feature
+    # reserved_for_output = 12000
+    # print(f"prompt_tokens: {prompt_tokens}")
+    # available_tokens = context_window - prompt_tokens
+    # print(f"available_tokens: {available_tokens}")
+    # thinking_tokens = available_tokens - reserved_for_output
+    # print(f"thinking_tokens: {thinking_tokens}")
+    # if thinking_tokens < 32000:
+    #     print(f"Error: prompt is too large to have a proper thinking budget!")
+    #     sys.exit(1)
+    # max_tokens = available_tokens
+    # print(f"max_tokens: {max_tokens}")
+
+    context_window = 200000            # Total context window size
+    api_max_output_limit = 128000      # Hard limit from API
+
+    # Calculate available tokens after prompt
+    prompt_tokens = response.input_tokens  # 31,923 in your case
+    available_tokens = context_window - prompt_tokens  # 168,077
+
+    # For API call, max_tokens must respect the API limit
+    max_tokens = min(available_tokens, api_max_output_limit)  # 128,000
+
+    # Thinking budget must be LESS than max_tokens to leave room for visible output
+    # Let's reserve at least 20,000 tokens for actual output
+    reserved_for_output = 20000
+    thinking_budget = max_tokens - reserved_for_output  # 108,000
+
+    print(f"prompt_tokens: {prompt_tokens}")
+    print(f"available_tokens: {available_tokens}")
+    print(f"max_tokens: {max_tokens}")
+    print(f"thinking_budget: {thinking_budget}")
+
+    if thinking_budget < 32000:
+        print(f"Error: prompt is too large to have a proper thinking budget!")
+        sys.exit(1)
 
     full_response = ""
     thinking_content = ""
@@ -384,7 +413,7 @@ note: The actual prompt included the outline, world, manuscript which are not lo
             messages=[{"role": "user", "content": prompt}],
             thinking={
                 "type": "enabled",
-                "budget_tokens": args.thinking_budget
+                "budget_tokens": thinking_budget # args.thinking_budget
             },
             betas=["output-128k-2025-02-19"]
         ) as stream:
@@ -443,11 +472,9 @@ Details:
 Max request timeout: {args.request_timeout} seconds
 Max retries: 0
 Max AI model context window: {args.context_window} tokens
-AI model thinking budget: {args.thinking_budget} tokens
-Max output tokens: {args.max_tokens} tokens
-Estimated input/prompt tokens: {estimated_input_tokens}
-Actual input/prompt tokens: {prompt_token_count}
-Max tokens set to: {max_tokens}
+Input prompt tokens: {prompt_tokens}
+AI model thinking budget: {thinking_budget} tokens
+Max output tokens: {max_tokens} tokens
 Elapsed time: {minutes}m {seconds:.2f}s
 Chapter {chapter_num}: {chapter_word_count} words
 Chapter {chapter_num} token count: {chapter_token_count}
