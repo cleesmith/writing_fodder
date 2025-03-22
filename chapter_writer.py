@@ -1,5 +1,5 @@
 # chapter_writer
-# python -B chapter_writer.py --chapters chapters.txt --chapter_delay 20 --backup
+# python -B chapter_writer.py --chapters_to_write chapters.txt --chapter_delay 20 --backup
 # pip install anthropic
 # tested with: anthropic 0.49.0 circa March 2025
 import anthropic
@@ -9,19 +9,40 @@ import re
 import sys
 import time
 from datetime import datetime
+import textwrap
 
-parser = argparse.ArgumentParser(description='Generate the next chapter based on the outline and any previous chapters.')
+claude_api_note = textwrap.dedent('''
+Note: with Claude 3.7 Sonnet, 'max_tokens' is enforced as a strict limit, 
+      which includes your thinking budget when thinking is enabled.
+
+      So Claude API will now return a validation error if: 
+      'prompt tokens' + 'max_tokens' exceeds the 'context window' size.
+
+      Where 'prompt tokens' includes: request, chapters.txt, manuscript.txt, outline.txt, world.txt, 
+      and the prompt instructions to the AI -- see: 'Input prompt tokens:' for each run.
+----------------------------------------- ### -------------------------------------------
+''')
+
+parser = argparse.ArgumentParser(
+    prog='chapter_writer',
+    description='Generate the next chapter based on the outline, world, and existing manuscipt chapters.',
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    epilog=claude_api_note
+)
+
 parser.add_argument('--request',                type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
 parser.add_argument('--request_timeout',        type=int, default=300, help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds = 5 minutes)')
-parser.add_argument('--max_retries',            type=int, default=1, help='Maximum times to retry request')
+parser.add_argument('--max_retries',            type=int, default=1, help='Maximum times to retry request, may get expensive if too many')
     
-parser.add_argument('--thinking_budget',        type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
-parser.add_argument('--max_tokens',             type=int, default=12000, help='Maximum tokens for output (default: 12000)')
 parser.add_argument('--context_window',         type=int, default=200000, help='Context window for Claude 3.7 Sonnet (default: 200000)')
-    
+parser.add_argument('--betas_max_tokens',       type=int, default=128000, help='Maximum tokens for AI output (default: 128000)')
+parser.add_argument('--thinking_budget_tokens', type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')
+parser.add_argument('--desired_output_tokens',  type=int, default=8000, help='User desired number of tokens to generate before stopping output')
+parser.add_argument('--show_token_stats',       action='store_true', help='Show tokens stats but do not call API (default: False)')
+
 parser.add_argument('--lang',                   type=str, default="English", help='Language for writing (default: English)')
 parser.add_argument('--chapter_delay',          type=int, default=15, help='Delay in seconds between processing multiple chapters (default: 15 seconds)')
-parser.add_argument('--chapters',               type=str, default="chapters.txt", help="Path to a file containing a list of chapters to process sequentially (format: \"9. Title\" per line)")
+parser.add_argument('--chapters_to_write',      type=str, default="chapters.txt", help="Path to a file containing a list of chapters to write sequentially (format: \"9. Title\" per line)")
 parser.add_argument('--manuscript',             type=str, default="manuscript.txt", help='Path to manuscript file (default: manuscript.txt)')
 parser.add_argument('--outline',                type=str, default="outline.txt", help='Path to outline file (default: outline.txt)')
 parser.add_argument('--world',                  type=str, default="world.txt", help='Path to world-characters file (default: world.txt)')
@@ -38,16 +59,16 @@ if not args.no_dialogue_emphasis:
     dialogue_option = """
 - DIALOGUE EMPHASIS: Significantly increase the amount of dialogue, both external conversations between characters and internal thoughts/monologues. At least 40-50% of the content should be dialogue. Use dialogue to reveal character, advance plot, create tension, and show (rather than tell) emotional states. Ensure each character's dialogue reflects their unique personality, background, and relationship dynamics as established in the WORLD and MANUSCRIPT.
 """
-    print(dialogue_option)
+    # print(dialogue_option)
 
 character_restriction = f"""- CHARACTER RESTRICTION: Do NOT create any new named characters. Only use characters explicitly mentioned in the WORLD, OUTLINE, or MANUSCRIPT. You may only add minimal unnamed incidental characters when absolutely necessary (e.g., a waiter, cashier, landlord) but keep these to an absolute minimum.
 - WORLD FOCUS: Make extensive use of the world details provided in the WORLD section. Incorporate the settings, locations, history, culture, and atmosphere described there to create an immersive, consistent environment.
 """
-print(character_restriction)
+# print(character_restriction)
 
-# validate that either --request or --chapters is provided
-if args.request is None and args.chapters is None:
-    print("ERROR: You must provide either --request for a single chapter or --chapters for multiple chapters")
+# validate that either --request or --chapters_to_write is provided
+if args.request is None and args.chapters_to_write is None:
+    print("ERROR: You must provide either --request for a single chapter or --chapters_to_write for multiple chapters")
     sys.exit(1)
 
 def count_words(text):
@@ -334,15 +355,6 @@ IMPORTANT:
 note: The actual prompt included the outline, world, manuscript which are not logged to save space.
 """
 
-    # # calculate a safe max_tokens value
-    # estimated_input_tokens = int(len(prompt) // 5.5)
-    # max_safe_tokens = max(5000, args.context_window - estimated_input_tokens - 1000)  # 1000 token buffer for safety
-    # max_tokens = int(min(args.max_tokens, max_safe_tokens))
-
-    # # ensure max_tokens is always greater than thinking budget
-    # if max_tokens <= args.thinking_budget:
-    #     max_tokens = args.thinking_budget + args.max_tokens
-
     client = anthropic.Anthropic(
         timeout=args.request_timeout,
         max_retries=0
@@ -350,12 +362,13 @@ note: The actual prompt included the outline, world, manuscript which are not lo
 
     prompt_tokens = 0
     try:
+        # testing this with/without, thinking and/or betas, does change the token count:
         response = client.beta.messages.count_tokens(
             model="claude-3-7-sonnet-20250219",
             messages=[{"role": "user", "content": prompt}],
             thinking={
                 "type": "enabled",
-                "budget_tokens": args.thinking_budget
+                "budget_tokens": args.thinking_budget_tokens
             },
             betas=["output-128k-2025-02-19"]
         )
@@ -363,42 +376,48 @@ note: The actual prompt included the outline, world, manuscript which are not lo
     except Exception as e:
         print(f"Error counting tokens: {e}")
 
-    # context_window = 200000   # total context window size
-    # output_capacity = 128000  # via the beta feature
-    # reserved_for_output = 12000
-    # print(f"prompt_tokens: {prompt_tokens}")
-    # available_tokens = context_window - prompt_tokens
-    # print(f"available_tokens: {available_tokens}")
-    # thinking_tokens = available_tokens - reserved_for_output
-    # print(f"thinking_tokens: {thinking_tokens}")
-    # if thinking_tokens < 32000:
-    #     print(f"Error: prompt is too large to have a proper thinking budget!")
-    #     sys.exit(1)
-    # max_tokens = available_tokens
-    # print(f"max_tokens: {max_tokens}")
+    # # calculate a safe max_tokens value
+    # estimated_input_tokens = int(len(prompt) // 5.5)
+    # max_safe_tokens = max(5000, args.context_window - estimated_input_tokens - 1000)  # 1000 token buffer for safety
+    # max_tokens = int(min(args.max_tokens, max_safe_tokens))
+    # # ensure max_tokens is always greater than thinking budget
+    # if max_tokens <= args.thinking_budget_tokens:
+    #     max_tokens = args.thinking_budget_tokens + args.max_tokens
 
-    context_window = 200000            # Total context window size
-    api_max_output_limit = 128000      # Hard limit from API
+    # see: https://docs.anthropic.com/en/docs/about-claude/models/extended-thinking-models?q=output-128k-2025-02-19#building-on-claude-3-7-sonnet
+    # Note: with Claude 3.7 Sonnet, 'max_tokens' is enforced as a strict limit, 
+    #       which includes your thinking budget when thinking is enabled.
+    #       So Claude API will now return a validation error if: 
+    #       'prompt tokens' + 'max_tokens' exceeds the 'context window' size.
+    #       Where 'prompt tokens' includes: request, chapters_to_write, manuscript, outline, world, and 
+    #       the prompt instructions to the AI -- see: 'Input prompt tokens:' for each run.
 
-    # Calculate available tokens after prompt
-    prompt_tokens = response.input_tokens  # 31,923 in your case
-    available_tokens = context_window - prompt_tokens  # 168,077
+    # calculate available tokens after prompt
+    prompt_tokens = response.input_tokens
+    available_tokens = args.context_window - prompt_tokens
+    # for API call, max_tokens must respect the API limit
+    max_tokens = min(available_tokens, args.betas_max_tokens)
+    # thinking budget must be LESS than max_tokens to leave room for visible output
+    thinking_budget = max_tokens - args.desired_output_tokens
 
-    # For API call, max_tokens must respect the API limit
-    max_tokens = min(available_tokens, api_max_output_limit)  # 128,000
+    print(f"\nToken stats:")
+    print(f"Max AI model context window: [{args.context_window}] tokens")
+    print(f"Input prompt tokens: [{prompt_tokens}] ...")
+    print(f"                     = request + chapters.txt + manuscript.txt")
+    print(f"                       + outline.txt + world.txt + prompt instructions")
+    print(f"Available tokens: [{available_tokens}]  = {args.context_window} - {prompt_tokens} = context_window - prompt")
+    print(f"Desired output tokens: [{args.desired_output_tokens}]")
+    print(f"AI model thinking budget: [{thinking_budget}] tokens  = {max_tokens} - {args.desired_output_tokens}")
+    print(f"Max output tokens (max_tokens): [{max_tokens}] tokens  = min({available_tokens}, {args.betas_max_tokens})")
+    print(f"                                = can not exceed: 'betas=[\"output-128k-2025-02-19\"]'")
+    print(f"Max retries: {args.max_retries}")
+    if thinking_budget < args.thinking_budget_tokens:
+        print(f"Error: prompt is too large to have a {args.thinking_budget_tokens} thinking budget!")
+        sys.exit(1)
 
-    # Thinking budget must be LESS than max_tokens to leave room for visible output
-    # Let's reserve at least 20,000 tokens for actual output
-    reserved_for_output = 20000
-    thinking_budget = max_tokens - reserved_for_output  # 108,000
-
-    print(f"prompt_tokens: {prompt_tokens}")
-    print(f"available_tokens: {available_tokens}")
-    print(f"max_tokens: {max_tokens}")
-    print(f"thinking_budget: {thinking_budget}")
-
-    if thinking_budget < 32000:
-        print(f"Error: prompt is too large to have a proper thinking budget!")
+    if args.show_token_stats:
+        print(f"FYI: token stats shown without creating chapters, to aid in making adjustments.")
+        print(f"{claude_api_note}")
         sys.exit(1)
 
     full_response = ""
@@ -413,7 +432,7 @@ note: The actual prompt included the outline, world, manuscript which are not lo
             messages=[{"role": "user", "content": prompt}],
             thinking={
                 "type": "enabled",
-                "budget_tokens": thinking_budget # args.thinking_budget
+                "budget_tokens": thinking_budget
             },
             betas=["output-128k-2025-02-19"]
         ) as stream:
@@ -432,10 +451,10 @@ note: The actual prompt included the outline, world, manuscript which are not lo
     minutes = int(elapsed // 60)
     seconds = elapsed % 60
 
-    # cls: text is getting messed up
-    # cleaned_text = clean_text_formatting(full_response)
-    # cleaned_response = clean_forbidden_punctuation(cleaned_text)
-    # cls: just clean up text during editing:
+    # cls: text is getting messed up using these:
+    #       cleaned_text = clean_text_formatting(full_response)
+    #       cleaned_response = clean_forbidden_punctuation(cleaned_text)
+    # ... so just clean up text during editing, or use AI to do it:
     cleaned_response = full_response
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -448,16 +467,20 @@ note: The actual prompt included the outline, world, manuscript which are not lo
         file.write(cleaned_response)
 
     chapter_word_count = count_words(cleaned_response)
-
     chapter_token_count = 0
     try:
         response = client.beta.messages.count_tokens(
             model="claude-3-7-sonnet-20250219",
-            messages=[{"role": "user", "content": cleaned_response}]
+            messages=[{"role": "user", "content": cleaned_response}],
+            thinking={
+                "type": "enabled",
+                "budget_tokens": thinking_budget
+            },
+            betas=["output-128k-2025-02-19"]
         )
         chapter_token_count = response.input_tokens
-    except Exception:
-        pass  # silently ignore token counting errors
+    except Exception as e:
+        print(f"Error counting chapter tokens: {e}")
 
     # append the new chapter to the manuscript file
     if not args.no_append:
@@ -470,7 +493,7 @@ note: The actual prompt included the outline, world, manuscript which are not lo
     stats = f"""
 Details:
 Max request timeout: {args.request_timeout} seconds
-Max retries: 0
+Max retries: {args.max_retries}
 Max AI model context window: {args.context_window} tokens
 Input prompt tokens: {prompt_tokens}
 AI model thinking budget: {thinking_budget} tokens
@@ -481,6 +504,50 @@ Chapter {chapter_num} token count: {chapter_token_count}
 """
 
     if thinking_content:
+        thinking_token_count = 0
+        try:
+            response = client.beta.messages.count_tokens(
+                model="claude-3-7-sonnet-20250219",
+                messages=[{"role": "user", "content": thinking_content}],
+                thinking={
+                    "type": "enabled",
+                    "budget_tokens": thinking_budget
+                },
+                betas=["output-128k-2025-02-19"]
+            )
+            thinking_token_count = response.input_tokens
+        except Exception as e:
+            print(f"Error counting thinking tokens: {e}")
+
+        thinking_efficiency = (thinking_token_count / thinking_budget) * 100 if thinking_budget > 0 else 0
+        thinking_to_output_ratio = thinking_token_count / chapter_token_count if chapter_token_count > 0 else 0
+
+        analytics = f"""
+--------------------------
+CHAPTER GENERATION METRICS
+--------------------------
+Token Counts:
+- Thinking tokens used: {thinking_token_count:,} of {thinking_budget:,} ({thinking_efficiency:.1f}%)
+- Chapter output tokens: {chapter_token_count:,}
+- Thinking-to-output ratio: {thinking_to_output_ratio:.2f}:1
+
+Notes:
+1. Token counts were calculated using full API parameters to match 
+   the actual token accounting used for API billing.
+
+2. The thinking token count represents the raw content returned 
+   by the API. This gives insight into how much reasoning Claude 
+   performed before producing the chapter.
+   
+3. A higher thinking-to-output ratio typically indicates more 
+   extensive reasoning before generating content, which may 
+   correlate with more complex narrative development.
+
+4. The API does not provide details about exact internal 
+   tokens or time usage, so this is just an estimate based
+   on token counts alone.
+"""
+
         thinking_filename = f"{args.save_dir}/{formatted_chapter}_thinking_{timestamp}.txt"
         with open(thinking_filename, 'w', encoding='utf-8') as file:
             file.write("=== PROMPT USED (EXCLUDING NOVEL CONTENT) ===\n")
@@ -489,7 +556,9 @@ Chapter {chapter_num} token count: {chapter_token_count}
             file.write(thinking_content)
             file.write("\n=== END AI'S THINKING PROCESS ===\n")
             file.write(stats)
-        
+            file.write(analytics)
+            file.write("###\n")
+
         print(f"AI thinking saved to: {thinking_filename}")
     
     print(f"Completed Chapter {chapter_num}: {chapter_word_count} words ({minutes}m {seconds:.2f}s) - saved to: {os.path.basename(chapter_filename)}")
@@ -512,17 +581,17 @@ Chapter {chapter_num} token count: {chapter_token_count}
     }
 
 
-if args.chapters:
+if args.chapters_to_write:
     # Load chapter list from file
     try:
-        with open(args.chapters, 'r', encoding='utf-8') as file:
+        with open(args.chapters_to_write, 'r', encoding='utf-8') as file:
             chapter_list = [line.strip() for line in file if line.strip()]
     except FileNotFoundError:
-        print(f"Error: Chapters file not found: {args.chapters}")
+        print(f"Error: Chapters file not found: {args.chapters_to_write}")
         sys.exit(1)
     
     if not chapter_list:
-        print(f"Error: Chapters file is empty: {args.chapters}")
+        print(f"Error: Chapters file is empty: {args.chapters_to_write}")
         sys.exit(1)
     
     print(f"Found {len(chapter_list)} chapters to process:")
@@ -571,3 +640,4 @@ else:
 
 # clean up
 client = None
+
