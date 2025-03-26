@@ -1,6 +1,8 @@
 import subprocess
 import shlex  # For safely splitting command-line arguments
 import os     # For path expansion
+import threading
+import time
 from nicegui import ui, run, app
 from functools import partial  # For proper closure handling
 
@@ -144,13 +146,14 @@ editing_tools = [
 # FUNCTION: Actual script runner (subprocess or AI calls)
 ###############################################################################
 
-def run_tool(script_name: str, args_str: str = ""):
+def run_tool(script_name: str, args_str: str = "", log_output=None):
     """
     Run a tool script with the provided arguments.
     
     Args:
         script_name: The script filename to run
         args_str: Command-line arguments as a string
+        log_output: A ui.log component to output to in real-time
     
     Returns:
         Tuple of (stdout, stderr) from the subprocess
@@ -168,15 +171,64 @@ def run_tool(script_name: str, args_str: str = ""):
     # Construct the full command: python script_name [args]
     cmd = ["python", script_name] + args
     
-    # Run the command and capture output
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    return result.stdout, result.stderr
+    if log_output:
+        # Log the command
+        log_output.push(f"Running command: {' '.join(cmd)}")
+        log_output.push("Working...")
+        
+        # Start the process
+        process = subprocess.Popen(
+            cmd, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1  # Line buffered
+        )
+        
+        # Collect outputs
+        stdout_lines = []
+        stderr_lines = []
+        
+        # Function to read from stdout and stderr in real-time
+        def read_output():
+            # Read and process stdout
+            for line in process.stdout:
+                stdout_lines.append(line)
+                log_output.push(line.rstrip())
+                
+            # Read and process stderr
+            for line in process.stderr:
+                stderr_lines.append(line)
+                log_output.push(f"ERROR: {line.rstrip()}")
+        
+        # Start a thread to read output
+        output_thread = threading.Thread(target=read_output)
+        output_thread.daemon = True
+        output_thread.start()
+        
+        # Wait for process to complete
+        process.wait()
+        output_thread.join(timeout=1.0)  # Wait for thread to finish with timeout
+        
+        # Get return code
+        return_code = process.returncode
+        log_output.push(f"Process finished with return code {return_code}")
+        
+        # Combine collected output
+        stdout = "".join(stdout_lines)
+        stderr = "".join(stderr_lines)
+        
+        return stdout, stderr
+    else:
+        # Run the command and capture output (not real-time)
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.stdout, result.stderr
 
 ###############################################################################
 # HANDLER: Initiates the run in a background thread so the UI won't block
 ###############################################################################
 
-async def handle_run_button_click(script_name, args_textbox, output_area):
+async def handle_run_button_click(script_name, args_textbox, log_output):
     global tool_in_progress
 
     # If something else is running, bail out
@@ -194,43 +246,23 @@ async def handle_run_button_click(script_name, args_textbox, output_area):
     # Get the arguments from the textbox
     args_str = args_textbox.value
 
-    print(run_tool, script_name, args_str)
-
-    # Clear previous output
-    output_area.set_content(f"<pre>Running {script_name} with args: {args_str}\n\n</pre>")
+    # Clear previous output and show running message
+    log_output.clear()
+    log_output.push(f"{script_name} output:")
+    log_output.push(f"Running {script_name} with args: {args_str}")
     
     # Notify user that the tool is running
     ui.notify(f"Running {script_name}...")
 
     try:
         # Run the script in a background thread so the UI remains responsive
-        stdout, stderr = await run.io_bound(run_tool, script_name, args_str)
-
-        # Format the output for display with HTML pre tags to preserve formatting
-        output_text = f"<pre>Finished running {script_name}.\n\n"
+        stdout, stderr = await run.io_bound(run_tool, script_name, args_str, log_output)
         
-        # Add stdout with proper newlines preserved
-        if stdout:
-            output_text += "=== STDOUT ===\n"
-            output_text += stdout
-            output_text += "\n\n"
-            
-        # Add stderr with proper newlines preserved
-        if stderr:
-            output_text += "=== STDERR ===\n"
-            output_text += stderr
-            
-        output_text += "</pre>"
-        
-        # Update the output area with formatted text
-        output_area.set_content(output_text)
-        
-        # Also show a quick notification
+        # Show a completion notification
         ui.notify(f"Finished {script_name}")
 
     except Exception as ex:
-        error_message = f"<pre>Error while running {script_name}: {ex}</pre>"
-        output_area.set_content(error_message)
+        log_output.push(f"Error while running {script_name}: {ex}")
         ui.notify(f"Error: {ex}")
 
     finally:
@@ -243,9 +275,9 @@ async def handle_run_button_click(script_name, args_textbox, output_area):
 # CLEAR OUTPUT HANDLER
 ###############################################################################
 
-def clear_output(output_area):
-    """Clear the content of an output area."""
-    output_area.set_content("<pre></pre>")
+def clear_output(log_output):
+    """Clear the content of a log area."""
+    log_output.clear()
 
 ###############################################################################
 # Dark Mode Handling
@@ -256,11 +288,80 @@ def update_tooltip(button, text):
     button.tooltip(text)
 
 ###############################################################################
+# Custom CSS for styling
+###############################################################################
+
+CUSTOM_STYLES = """
+<style>
+/* Terminal styling for log component */
+.terminal-log {
+    background-color: #0f1222 !important;
+    color: #b2f2bb !important;
+    font-family: 'Courier New', monospace !important;
+    border-radius: 4px !important;
+    padding: 0 !important;
+}
+
+.terminal-log .q-virtual-scroll__content,
+.terminal-log .q-virtual-scroll__content > div {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+}
+
+.terminal-log .q-virtual-scroll__content > div {
+    padding: 2px 12px !important;
+    line-height: 1.4 !important;
+}
+
+/* Terminal container styling */
+.terminal-container {
+    border: 1px solid #2d3748;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.terminal-header {
+    background-color: #1a1f36;
+    color: #78edbb;
+    padding: 8px 12px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Button styling */
+.run-button {
+    background-color: #38a169 !important;
+    color: white !important;
+}
+
+.clear-button {
+    color: #cbd5e0 !important;
+}
+
+/* Tool card styling */
+.tool-description {
+    font-style: italic;
+    margin-bottom: 0.5rem;
+    color: #a0aec0;
+}
+</style>
+"""
+
+###############################################################################
 # BUILD THE UI
 ###############################################################################
 
 # Create dark mode control - default to dark mode
 darkness = ui.dark_mode(True)
+
+# Add custom styles to the page
+ui.add_head_html(CUSTOM_STYLES)
 
 with ui.column().classes('w-full items-center'):
     # Add a header row with dark mode toggle to the left of the title
@@ -277,7 +378,7 @@ with ui.column().classes('w-full items-center'):
         
         # Add shutdown button on the right side
         ui.button("Shutdown", on_click=lambda: app.shutdown()).props(
-            "no-caps flat fab"
+            "flat fab"
         ).tooltip("shutdown the server for this app").classes(
             "prevent-uppercase"
         ).style("margin-left: auto;")  # Push to right side
@@ -288,31 +389,40 @@ with ui.column().classes('w-full items-center'):
             ui.label("ROUGH DRAFT WRITING").classes('text-bold text-h6 text-green-7')
         with ui.expansion("Tools for initial drafting", icon="edit", value=False).classes('w-full'):
             for tool in rough_draft_tools:
-                with ui.expansion(tool["name"], icon="description", value=False):
-                    ui.label(tool["description"]).style("font-style: italic; margin-bottom: 0.5rem;")
+                with ui.expansion(tool["name"], icon="description", value=False) as tool_expansion:
+                    ui.label(tool["description"]).classes('tool-description')
                     
                     # Add a textbox for command-line arguments
-                    with ui.row().classes('w-full justify-center'):
+                    with ui.row().classes('w-full justify-center mt-2'):
                         ui.label("Command-line arguments:").style("margin-right: 0.5rem;")
                         args_textbox = ui.input(
                             placeholder="e.g. --manuscript manuscript.txt --save_dir ~/writing"
                         ).classes('w-3/4')
                     
-                    # Add output area for terminal display with proper formatting
-                    with ui.card().classes('w-full bg-gray-900 text-white'):
-                        with ui.row().classes('w-full justify-between items-center'):
-                            ui.label(f"{tool['name']} output here:").classes('text-bold text-green-300')
-                            # Create a clear button for this output area
-                            output_area = ui.html("<pre></pre>").classes('w-full overflow-auto max-h-60')
-                            clear_btn = ui.button("Clear", on_click=partial(clear_output, output_area)).props('no-caps flat fab-mini').classes('text-xs')
-                        
-                    # Create a 'Run' button for this script - using proper closure technique
-                    with ui.row().classes('w-full justify-center'):
-                        # We need to create a closure to capture the current values
+                    # Add output area using ui.log for terminal display
+                    with ui.element('div').classes('terminal-container w-full'):
+                        # Terminal header with title and clear button
+                        with ui.element('div').classes('terminal-header'):
+                            ui.label(f"{tool['name']} output")
+                            # Create the log component for terminal output
+                            log_output = ui.log().classes('terminal-log w-full h-64')
+                            log_output.push(f"{tool['name']} output here:")
+                            
+                            # Create a clear button with proper event handler
+                            # Using lambda with default arguments to capture the current log_output
+                            clear_btn = ui.button(
+                                "Clear", 
+                                on_click=lambda _, log=log_output: clear_output(log)
+                            ).props('flat dense').classes('clear-button text-xs')
+                    
+                    # Create a 'Run' button for this script
+                    with ui.row().classes('w-full justify-center mt-2 mb-4'):
+                        # Use lambda with default arguments to capture the current tool, args_textbox, and log_output
                         run_btn = ui.button(
                             f"Run {tool['name'].lower()}",
-                            on_click=partial(handle_run_button_click, tool['name'], args_textbox, output_area)
-                        ).props('no-caps flat fab-mini')
+                            on_click=lambda _, name=tool['name'], args=args_textbox, log=log_output: 
+                                handle_run_button_click(name, args, log)
+                        ).classes('run-button')
                         run_buttons.append(run_btn)
     
     # --- Editing and Rewriting Tools ---
@@ -321,31 +431,38 @@ with ui.column().classes('w-full items-center'):
             ui.label("EDITING & REWRITING").classes('text-bold text-h6 text-red-7')
         with ui.expansion("Tools for refinement", icon="construction", value=False).classes('w-full'):
             for tool in editing_tools:
-                with ui.expansion(tool["name"], icon="description", value=False):
-                    ui.label(tool["description"]).style("font-style: italic; margin-bottom: 0.5rem;")
+                with ui.expansion(tool["name"], icon="description", value=False) as tool_expansion:
+                    ui.label(tool["description"]).classes('tool-description')
                     
                     # Add a textbox for command-line arguments
-                    with ui.row().classes('w-full justify-center'):
+                    with ui.row().classes('w-full justify-center mt-2'):
                         ui.label("Command-line arguments:").style("margin-right: 0.5rem;")
                         args_textbox = ui.input(
                             placeholder="e.g. --manuscript manuscript.txt --save_dir ~/writing"
                         ).classes('w-3/4')
                     
-                    # Add output area for terminal display with proper formatting
-                    with ui.card().classes('w-full bg-gray-900 text-white'):
-                        with ui.row().classes('w-full justify-between items-center'):
-                            ui.label(f"{tool['name']} output here:").classes('text-bold text-green-300')
-                            # Create a clear button for this output area
-                            output_area = ui.html("<pre></pre>").classes('w-full overflow-auto max-h-60')
-                            clear_btn = ui.button("Clear", on_click=partial(clear_output, output_area)).props('flat fab-mini').classes('text-xs')
-                        
-                    # Create a 'Run' button for this script - using proper closure technique
-                    with ui.row().classes('w-full justify-center'):
-                        # We need to create a closure to capture the current values
+                    # Add output area using ui.log for terminal display
+                    with ui.element('div').classes('terminal-container w-full'):
+                        # Terminal header with title and clear button
+                        with ui.element('div').classes('terminal-header'):
+                            ui.label(f"{tool['name']} output")
+                            # Create the log component for terminal output
+                            log_output = ui.log().classes('terminal-log w-full h-64')
+                            log_output.push(f"{tool['name']} output here:")
+                            
+                            # Create a clear button with proper event handler
+                            clear_btn = ui.button(
+                                "Clear", 
+                                on_click=lambda _, log=log_output: clear_output(log)
+                            ).props('flat dense').classes('clear-button text-xs')
+                    
+                    # Create a 'Run' button for this script with proper event handler
+                    with ui.row().classes('w-full justify-center mt-2 mb-4'):
                         run_btn = ui.button(
                             f"Run {tool['name'].lower()}",
-                            on_click=partial(handle_run_button_click, tool['name'], args_textbox, output_area)
-                        ).props('no-caps flat fab-mini')
+                            on_click=lambda _, name=tool['name'], args=args_textbox, log=log_output: 
+                                handle_run_button_click(name, args, log)
+                        ).classes('run-button')
                         run_buttons.append(run_btn)
 
 try:
@@ -355,13 +472,7 @@ try:
         title="Writer's Toolkit",
         reload=False,
         show_welcome_message=False,
-        # native=True,
-        # window_size=(810, 830),
-        # dark=None,
-        # show=False,
-        # this causes issues: 
-        # frameless=True,
     )
 except Exception as e:
     print(f"Error running the application: {e}")
-    app.shutdown()  # is not required but feels logical and says it all
+    app.shutdown()
