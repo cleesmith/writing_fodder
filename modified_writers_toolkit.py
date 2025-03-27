@@ -228,7 +228,7 @@ def run_tool(script_name: str, args_str: str = "", log_output=None):
 # HANDLER: Initiates the run in a background thread so the UI won't block
 ###############################################################################
 
-async def handle_run_button_click(script_name, args_textbox, log_output):
+async def handle_run_button_click(script_name, args_textbox, log_output, runner_popup=None):
     global tool_in_progress
 
     # If something else is running, bail out
@@ -354,6 +354,147 @@ CUSTOM_STYLES = """
 """
 
 ###############################################################################
+# TOOL RUNNER DIALOG
+###############################################################################
+
+async def run_tool_ui(script_name=None):
+    with ui.dialog() as runner_popup:
+        runner_popup.props("persistent")
+        runner_popup.props("maximized")
+        # with runner_popup, ui.card().classes("w-full items-center"):
+        #     with ui.column().classes("w-full"):
+        #         # Header with title and close button
+        #         with ui.row().classes("w-full items-center mb-0.1 space-x-2"):
+        #             ui.space()
+        #             ui.label(f'Running Tool: {script_name if script_name else ""}').style("font-size: 20px; font-weight: bold").classes("m-0")
+                    
+        #             async def close_clear_dialog():
+        #                 runner_popup.close()
+        #                 runner_popup.clear()  # removes the hidden runner_popup ui.dialog
+                    
+        #             ui.button(
+        #                 icon='close', 
+        #                 on_click=close_clear_dialog
+        #             ) \
+        #             .tooltip("Close") \
+        #             .props('no-caps flat fab-mini')
+                
+        #         # Add a textbox for command-line arguments
+        #         with ui.row().classes('w-full items-center mt-0').style('margin-top: -1.75rem;'):
+        #             ui.label("Options:").style("margin-right: 0.5rem;")
+        #             args_textbox = ui.input(
+        #                 placeholder="--manuscript my_story.txt --save_dir ~/writing"
+        #             ).classes('w-3/4 flex-grow')
+
+        #         with ui.row().classes('w-full items-center justify-between mt-2 mb-0 flex-nowrap'):
+        #             # Left side - Run button (primary action)
+        #             run_btn = ui.button(
+        #                 f"Run {script_name if script_name else 'Tool'}:",
+        #                 on_click=lambda: handle_run_button_click(script_name, args_textbox, log_output, runner_popup)
+        #             ).classes('run-button').props('no-caps flat dense')
+                    
+        #             # Push utility buttons to the right
+        #             ui.space()
+                    
+        #             # Right side - utility buttons
+        #             with ui.row().classes('items-center gap-2 flex-nowrap'):
+        #                 # Clear button with blue styling and tooltip
+        #                 clear_btn = ui.button(
+        #                     "Clear", icon="cleaning_services"
+        #                 ).props('no-caps flat dense size="sm"').classes('bg-blue-600 text-white').tooltip("Clears the Tool output box")
+                        
+        #                 # Emergency exit button with warning styling
+        #                 ui.button("Force Quit", icon="power_settings_new", on_click=lambda: app.shutdown()).props(
+        #                     'no-caps flat dense size="sm"'
+        #                 ).classes('bg-red-600 text-white').tooltip("Emergency exit if program gets stuck")
+                
+        #         # Add output area using ui.log for terminal display
+        #         with ui.element('div').classes('terminal-container w-full').style('margin-top: -0.75rem'):
+        #             # Create the log component for terminal output with increased height
+        #             log_output = ui.log().classes('terminal-log w-full h-96').style('min-height: 32rem')
+        #             log_output.push("Tool output will appear here...")
+                
+        #         # Set the clear button on_click after log_output is defined
+        #         clear_btn.on_click(lambda: clear_output(log_output))
+
+        with runner_popup, ui.card().classes("w-full items-center"):
+            with ui.column().classes("w-full"):
+                # Header with title and close button
+                with ui.row().classes("w-full items-center mb-0.1 space-x-2"):
+                    ui.space()
+                    ui.label(f'Running Tool: {script_name if script_name else ""}').style("font-size: 20px; font-weight: bold").classes("m-0")
+                    
+                    async def close_clear_dialog():
+                        runner_popup.close()
+                        runner_popup.clear()  # removes the hidden runner_popup ui.dialog
+                    
+                    ui.button(
+                        icon='close', 
+                        on_click=close_clear_dialog
+                    ) \
+                    .tooltip("Close") \
+                    .props('no-caps flat fab-mini')
+                
+                # Add a textbox for command-line arguments
+                with ui.row().classes('w-full items-center mt-0').style('margin-top: -1.75rem;'):
+                    ui.label("Options:").style("margin-right: 0.5rem;")
+                    args_textbox = ui.input(
+                        placeholder="--manuscript my_story.txt --save_dir ~/writing"
+                    ).classes('w-3/4 flex-grow')
+                with ui.row().classes('w-full items-center justify-between mt-2 mb-0 flex-nowrap'):
+                    # Left side - Run button (primary action)
+                    run_btn = ui.button(
+                        f"Run {script_name if script_name else 'Tool'}:",
+                        on_click=lambda: handle_run_button_click(script_name, args_textbox, log_output, runner_popup)
+                    ).classes('run-button').props('no-caps flat dense')
+                    
+                    # Push utility buttons to the right
+                    ui.space()
+                    
+                    # Right side - utility buttons
+                    with ui.row().classes('items-center gap-2 flex-nowrap'):
+                        # Clear button with blue styling and tooltip
+                        clear_btn = ui.button(
+                            "Clear", icon="cleaning_services"
+                        ).props('no-caps flat dense size="sm"').classes('bg-blue-600 text-white').tooltip("Clears the Tool output box")
+                        
+                        # Emergency exit button with warning styling
+                        ui.button("Force Quit", icon="power_settings_new", on_click=lambda: app.shutdown()).props(
+                            'no-caps flat dense size="sm"'
+                        ).classes('bg-red-600 text-white').tooltip("Emergency exit if program gets stuck")
+                
+                # Add output area using ui.log for terminal display - MODIFIED JUST THIS PART
+                with ui.element('div').classes('terminal-container w-full').style('margin-top: -0.75rem'):
+                    # Create the log component for terminal output with responsive height using JavaScript
+                    log_output = ui.log().classes('terminal-log w-full').style('height: calc(90vh - 150px); overflow: auto;')
+                    ui.add_body_html("""
+                    <script>
+                        // Adjust terminal height based on window size
+                        function adjustTerminalHeight() {
+                            const terminals = document.querySelectorAll('.terminal-log');
+                            terminals.forEach(terminal => {
+                                // Calculate available height (90% of viewport minus estimated header height)
+                                const availableHeight = window.innerHeight * 0.9 - 150;
+                                terminal.style.height = `${availableHeight}px`;
+                            });
+                        }
+                        
+                        // Run on page load and when window is resized
+                        window.addEventListener('load', adjustTerminalHeight);
+                        window.addEventListener('resize', adjustTerminalHeight);
+                    </script>
+                    """)
+                    log_output.push("Tool output will appear here...")
+                
+                # Set the clear button on_click after log_output is defined
+                clear_btn.on_click(lambda: clear_output(log_output))
+
+                # ui.separator().props("size=4px color=primary")  # insinuate bottom of settings
+
+    runner_popup.open()
+    return runner_popup, args_textbox, log_output
+
+###############################################################################
 # BUILD THE UI
 ###############################################################################
 
@@ -379,7 +520,7 @@ with ui.column().classes('w-full items-center'):
         # add shutdown button on the right side
         ui.button("Quit", on_click=lambda: app.shutdown()).props(
             "no-caps flat fab"
-        ).tooltip("quit Writer's Toolkit").style("margin-left: auto;") # push to right side
+        ).tooltip("quit Writer's Toolkit").style("margin-left: auto;")  # push to right side
 
     # --- Rough Draft Tools ---
     with ui.card().classes('w-full max-w-3xl'):
@@ -390,36 +531,11 @@ with ui.column().classes('w-full items-center'):
                 with ui.expansion(tool["name"], icon="description", value=False) as tool_expansion:
                     ui.label(tool["description"]).classes('tool-description')
                     
-                    # Add a textbox for command-line arguments
-                    with ui.row().classes('w-full justify-center mt-2'):
-                        ui.label("Command-line arguments:").style("margin-right: 0.5rem;")
-                        args_textbox = ui.input(
-                            placeholder="e.g. --manuscript manuscript.txt --save_dir ~/writing"
-                        ).classes('w-3/4')
-                    
-                    # Add output area using ui.log for terminal display
-                    with ui.element('div').classes('terminal-container w-full'):
-                        # Terminal header with title and clear button
-                        with ui.element('div').classes('terminal-header'):
-                            ui.label(f"{tool['name']} output")
-                            # Create the log component for terminal output
-                            log_output = ui.log().classes('terminal-log w-full h-64')
-                            log_output.push(f"{tool['name']} output here:")
-                            
-                            # Create a clear button with proper event handler
-                            # Using lambda with default arguments to capture the current log_output
-                            clear_btn = ui.button(
-                                "Clear", 
-                                on_click=lambda _, log=log_output: clear_output(log)
-                            ).props('no-caps flat dense').classes('clear-button text-xs')
-                    
-                    # Create a 'Run' button for this script
+                    # Create a 'Run' button for this script that opens the tool runner dialog
                     with ui.row().classes('w-full justify-center mt-2 mb-4'):
-                        # Use lambda with default arguments to capture the current tool, args_textbox, and log_output
                         run_btn = ui.button(
                             f"Run {tool['name'].lower()}",
-                            on_click=lambda _, name=tool['name'], args=args_textbox, log=log_output: 
-                                handle_run_button_click(name, args, log)
+                            on_click=lambda _, name=tool['name']: run_tool_ui(name)
                         ).classes('run-button').props('no-caps flat dense')
                         run_buttons.append(run_btn)
     
@@ -428,79 +544,17 @@ with ui.column().classes('w-full items-center'):
         with ui.row().classes('w-full justify-center'):
             ui.label("EDITING & REWRITING").classes('text-bold text-h6 text-red-7')
         with ui.expansion("Tools for refinement", icon="construction", value=False).classes('w-full'):
-
-            chat_settings = ui.button(icon='settings', on_click=lambda: run_tool_ui()) \
-            .tooltip("run tool") \
-            .props('no-caps flat fab-mini')
-
             for tool in editing_tools:
                 with ui.expansion(tool["name"], icon="description", value=False) as tool_expansion:
                     ui.label(tool["description"]).classes('tool-description')
                     
-                    # Add a textbox for command-line arguments
-                    with ui.row().classes('w-full justify-center mt-2'):
-                        ui.label("Command-line arguments:").style("margin-right: 0.5rem;")
-                        args_textbox = ui.input(
-                            placeholder="e.g. --manuscript manuscript.txt --save_dir ~/writing"
-                        ).classes('w-3/4')
-                    
-                    # Add output area using ui.log for terminal display
-                    with ui.element('div').classes('terminal-container w-full'):
-                        # Terminal header with title and clear button
-                        with ui.element('div').classes('terminal-header'):
-                            ui.label(f"{tool['name']} output")
-                            # Create the log component for terminal output
-                            log_output = ui.log().classes('terminal-log w-full h-64')
-                            log_output.push(f"{tool['name']} output here:")
-                            
-                            # Create a clear button with proper event handler
-                            clear_btn = ui.button(
-                                "Clear", 
-                                on_click=lambda _, log=log_output: clear_output(log)
-                            ).props('flat dense').classes('clear-button text-xs')
-                    
-                    # Create a 'Run' button for this script with proper event handler
+                    # Create a 'Run' button for this script that opens the tool runner dialog
                     with ui.row().classes('w-full justify-center mt-2 mb-4'):
                         run_btn = ui.button(
                             f"Run {tool['name'].lower()}",
-                            on_click=lambda _, name=tool['name'], args=args_textbox, log=log_output: 
-                                handle_run_button_click(name, args, log)
+                            on_click=lambda _, name=tool['name']: run_tool_ui(name)
                         ).classes('run-button').props('no-caps flat dense')
                         run_buttons.append(run_btn)
-
-async def run_tool_ui():
-    with ui.dialog() as runner_popup:
-        runner_popup.props("persistent")
-        runner_popup.props("maximized")
-        with runner_popup, ui.card().classes("w-full items-center"):
-            with ui.column():
-                with ui.row().classes("w-full items-center mb-0.1 space-x-2"):
-                    ui.space()
-                    ui.label('Tool Runner').style("font-size: 20px; font-weight: bold").classes("m-0")
-
-                    async def close_clear_dialog():
-                        runner_popup.close()
-                        runner_popup.clear() # removes the hidden runner_popup ui.dialog
-
-                    ui.button(
-                        icon='close', 
-                        on_click=close_clear_dialog
-                        ) \
-                        .tooltip("Close") \
-                        .props('no-caps flat fab-mini')
-                    
-                # Add a textbox for command-line arguments
-                with ui.row().classes('w-full justify-left mt-2'):
-                    ui.label("Command-line arguments:").style("margin-right: 0.5rem;")
-                    args_textbox = ui.input(
-                        placeholder="e.g. --help --manuscript manuscript.txt --save_dir ~/writing"
-                    ).classes('w-3/4')
-
-                ui.separator().props("size=4px color=primary") # insinuate bottom of settings
-
-    runner_popup.open()
-
-
 
 try:
     ui.run(
