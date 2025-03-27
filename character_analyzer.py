@@ -12,9 +12,12 @@ import pypandoc
 import os
 import argparse
 import sys
+import io
 import time
 from datetime import datetime
 
+# make stdout line-buffered (effectively the same as flush=True for each print)
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, line_buffering=True)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(

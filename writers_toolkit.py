@@ -208,12 +208,12 @@ editing_tools = [
 def run_tool(script_name: str, args_str: str = "", log_output=None):
     """
     Run a tool script with the provided arguments.
-    
+
     Args:
         script_name: The script filename to run
         args_str: Command-line arguments as a string
         log_output: A ui.log component to output to in real-time
-    
+
     Returns:
         Tuple of (stdout, stderr) from the subprocess
     """
@@ -222,13 +222,14 @@ def run_tool(script_name: str, args_str: str = "", log_output=None):
         args = shlex.split(args_str)
     else:
         args = []
-    
+
     # If --save_dir isn't specified, add the default
     if not any(arg.startswith('--save_dir') for arg in args):
         args.extend(['--save_dir', DEFAULT_SAVE_DIR])
     
     # Construct the full command: python script_name [args]
-    cmd = ["python", script_name] + args
+    # Add -u flag to force unbuffered Python output
+    cmd = ["python", "-u", script_name] + args
     
     if log_output:
         # Log the command
