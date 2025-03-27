@@ -20,7 +20,7 @@ run_buttons = []
 DEFAULT_SAVE_DIR = os.path.expanduser("~/writing")
 
 ###############################################################################
-# DATA: Rough Draft Tools and Editing/Rewriting Tools
+# info: Rough Draft Tools and Editing/Rewriting Tools
 ###############################################################################
 
 rough_draft_tools = [
@@ -361,62 +361,6 @@ async def run_tool_ui(script_name=None):
     with ui.dialog() as runner_popup:
         runner_popup.props("persistent")
         runner_popup.props("maximized")
-        # with runner_popup, ui.card().classes("w-full items-center"):
-        #     with ui.column().classes("w-full"):
-        #         # Header with title and close button
-        #         with ui.row().classes("w-full items-center mb-0.1 space-x-2"):
-        #             ui.space()
-        #             ui.label(f'Running Tool: {script_name if script_name else ""}').style("font-size: 20px; font-weight: bold").classes("m-0")
-                    
-        #             async def close_clear_dialog():
-        #                 runner_popup.close()
-        #                 runner_popup.clear()  # removes the hidden runner_popup ui.dialog
-                    
-        #             ui.button(
-        #                 icon='close', 
-        #                 on_click=close_clear_dialog
-        #             ) \
-        #             .tooltip("Close") \
-        #             .props('no-caps flat fab-mini')
-                
-        #         # Add a textbox for command-line arguments
-        #         with ui.row().classes('w-full items-center mt-0').style('margin-top: -1.75rem;'):
-        #             ui.label("Options:").style("margin-right: 0.5rem;")
-        #             args_textbox = ui.input(
-        #                 placeholder="--manuscript my_story.txt --save_dir ~/writing"
-        #             ).classes('w-3/4 flex-grow')
-
-        #         with ui.row().classes('w-full items-center justify-between mt-2 mb-0 flex-nowrap'):
-        #             # Left side - Run button (primary action)
-        #             run_btn = ui.button(
-        #                 f"Run {script_name if script_name else 'Tool'}:",
-        #                 on_click=lambda: handle_run_button_click(script_name, args_textbox, log_output, runner_popup)
-        #             ).classes('run-button').props('no-caps flat dense')
-                    
-        #             # Push utility buttons to the right
-        #             ui.space()
-                    
-        #             # Right side - utility buttons
-        #             with ui.row().classes('items-center gap-2 flex-nowrap'):
-        #                 # Clear button with blue styling and tooltip
-        #                 clear_btn = ui.button(
-        #                     "Clear", icon="cleaning_services"
-        #                 ).props('no-caps flat dense size="sm"').classes('bg-blue-600 text-white').tooltip("Clears the Tool output box")
-                        
-        #                 # Emergency exit button with warning styling
-        #                 ui.button("Force Quit", icon="power_settings_new", on_click=lambda: app.shutdown()).props(
-        #                     'no-caps flat dense size="sm"'
-        #                 ).classes('bg-red-600 text-white').tooltip("Emergency exit if program gets stuck")
-                
-        #         # Add output area using ui.log for terminal display
-        #         with ui.element('div').classes('terminal-container w-full').style('margin-top: -0.75rem'):
-        #             # Create the log component for terminal output with increased height
-        #             log_output = ui.log().classes('terminal-log w-full h-96').style('min-height: 32rem')
-        #             log_output.push("Tool output will appear here...")
-                
-        #         # Set the clear button on_click after log_output is defined
-        #         clear_btn.on_click(lambda: clear_output(log_output))
-
         with runner_popup, ui.card().classes("w-full items-center"):
             with ui.column().classes("w-full"):
                 # Header with title and close button

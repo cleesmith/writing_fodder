@@ -1,5 +1,0 @@
-{"custom_id":"my-first-request","result":{"type":"errored","error":
-{"type":"error","error":
-{"details":null,"type":"invalid_request_error","message":"max_tokens:
-176000 > 128000, which is the maximum allowed number of output tokens
-for claude-3-7-sonnet-20250219"}}}}
