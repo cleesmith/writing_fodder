@@ -22,7 +22,6 @@ DEFAULT_SAVE_DIR = os.path.expanduser("~/writing")
 ###############################################################################
 # info: Rough Draft Tools and Editing/Rewriting Tools
 ###############################################################################
-
 rough_draft_tools = [
     {
         "name": "brainstorm.py",
@@ -64,80 +63,135 @@ rough_draft_tools = [
 editing_tools = [
     {
         "name": "character_analyzer.py",
-        "description": (
-            "Analyzes a manuscript, outline, and world file to identify and compare "
-            "characters, extracting a master character list with appearances. "
-            "Helps you maintain consistency in roles, relationships, and names."
+        "description": ("""Analyzes manuscript, outline, and world files to
+        identify and compare character appearances. It extracts
+        a master character list that details which files each
+        character appears in, examines consistency across documents,
+        and highlights discrepancies in names, roles, or
+        relationships. The analysis produces a detailed report with
+        sections and recommendations to improve character coherence.
+        This is needed because AI draft writing has a tendency to add new characters!
+        """
         ),
     },
     {
         "name": "tense_consistency_checker.py",
-        "description": (
-            "Examines the manuscript for verb tense (past vs. present) to ensure "
-            "a consistent narrative flow. Generates a report with suggested fixes."
+        "description": ("""Examines the manuscript to evaluate verb tense consistency. 
+        It identifies shifts between past and present
+        tense that might confuse readers, focusing on unintentional
+        changes in narrative flow. With customizable analysis levels
+        and configurable chapter markers, it generates a detailed
+        report with examples, explanations, and suggestions for
+        improving consistency.
+        """
         ),
     },
     {
         "name": "adjective_adverb_optimizer.py",
-        "description": (
-            "Scans for overused or weak adjectives/adverbs and suggests stronger "
-            "verbs or nouns, following Ursula K. Le Guin's guidance."
+        "description": ("""Analyzes manuscript for adjective and adverb usage to pinpoint
+        unnecessary modifiers and overused qualifiers, offering
+        specific suggestions for replacing weak descriptive patterns
+        with stronger verbs and nouns.
+        """
         ),
     },
     {
         "name": "dangling_modifier_checker.py",
-        "description": (
-            "Detects dangling or misplaced modifiers that lead to confusing phrases. "
-            "Generates a report with examples and revision suggestions."
+        "description": ("""Detects dangling and
+        misplaced modifiers in a manuscript. It examines text to pinpoint instances
+        where descriptive phrases don’t logically connect to their
+        intended subjects, potentially causing confusion or
+        unintended humor. With customizable analysis level,
+        sensitivity, and specific modifier types, it generates a
+        detailed report complete with examples, explanations, and
+        revision suggestions to enhance clarity and precision.
+        """
         ),
     },
     {
         "name": "rhythm_analyzer.py",
-        "description": (
-            "Evaluates sentence-level rhythm and flow, highlighting monotony "
-            "or mismatch of pacing. Offers suggestions for more varied prose."
+        "description": ("""Analyzes manuscript for the rhythm and flow
+        of prose. It measures sentence length variations, detects
+        monotonous patterns, and highlights sections where the
+        writing’s rhythm doesn’t match the intended mood.
+        Configurable analysis levels, selectable scene types, and
+        adjustable sensitivity settings allow it to generate a
+        detailed report with examples, explanations, and suggestions
+        for enhancing overall narrative rhythm.
+        """
         ),
     },
     {
         "name": "crowding_leaping_evaluator.py",
-        "description": (
-            "Checks for narrative 'crowding' (overly dense sections) or 'leaping' "
-            "(abrupt time jumps) based on concepts inspired by Ursula K. Le Guin."
+        "description": ("""Evaluate manuscript structure for pacing issues. 
+        It identifies overly dense sections
+        ("crowding") and abrupt transitions or time jumps
+        ("leaping") based on concepts inspired by Ursula K. Le Guin.
+        With configurable analysis levels and sensitivity settings,
+        it produces a detailed report—including optional text-based
+        visualizations—that offers feedback and suggestions for
+        improving narrative rhythm and clarity.
+        """
         ),
     },
     {
         "name": "punctuation_auditor.py",
-        "description": (
-            "Looks for run-on sentences, missing commas, or inconsistent punctuation. "
-            "Generates a comprehensive punctuation usage report."
+        "description": ("""Focused on evaluating punctuation effectiveness in the manuscript. 
+        It detects issues such as run-on sentences,missing commas, and 
+        irregular punctuation patterns that may hinder clarity and flow. 
+        Configurable analysis levels, strictness settings, and selectable punctuation 
+        elements enable it to generate a detailed report with examples,
+        explanations, and recommendations for enhancing punctuation
+        and overall readability.
+        """
         ),
     },
     {
         "name": "consistency_checker.py",
-        "description": (
-            "Compares manuscript text against a world doc (and optional outline) "
-            "to ensure consistency in characters, settings, timelines, etc."
+        "description": ("""Consistency checker utility that compares a manuscript
+        against a world document (and optionally an outline). It supports
+        various consistency checks—world, internal, development, and
+        unresolved. Configurable options enable targeted analysis of
+        character, setting, timeline, and thematic consistency, producing
+        detailed reports with examples and recommendations for resolving
+        discrepancies.
+        """
         ),
     },
     {
         "name": "conflict_analyzer.py",
-        "description": (
-            "Analyzes conflict patterns and escalation at scene, chapter, and arc levels. "
-            "Identifies types of conflict and suggests ways to strengthen them."
+        "description": ("""Examines conflict patterns at different narrative levels. 
+        It identifies conflict nature, escalation, and resolution at scene,
+        chapter, and arc levels. With customizable analysis levels
+        and selectable conflict types, it produces a detailed report
+        featuring examples, assessments, and recommendations for
+        strengthening narrative tension and coherence.
+        """
         ),
     },
     {
         "name": "foreshadowing_tracker.py",
-        "description": (
-            "Identifies foreshadowing elements (Chekhov's Gun, subtle hints) "
-            "and checks if they're resolved. Helps ensure narrative payoffs."
+        "description": ("""Identifies foreshadowing elements and tracks their payoffs. 
+        It pinpoints explicit clues, subtle hints, and Chekhov's Gun elements 
+        to evaluate how well narrative setups are resolved. With customizable
+        options to select foreshadowing types and organization modes
+        (chronological or by type), it generates detailed reports
+        featuring examples, assessments, and recommendations for
+        fulfilling narrative promises.
+        """
         ),
     },
     {
         "name": "plot_thread_tracker.py",
-        "description": (
-            "Tracks distinct plot threads through the manuscript, showing "
-            "where they diverge/converge. Can generate ASCII-based maps."
+        "description": ("""Identifies and tracks distinct plot threads—revealing 
+        how they interconnect, converge, and diverge throughout the narrative. 
+        It uses text-based representations (with optional ASCII art
+        visualization) and supports configurable analysis depth
+        (basic, detailed, or comprehensive) to produce detailed
+        reports with progression maps, thread connections, and
+        narrative assessments, including manuscript excerpts and
+        recommendations for strengthening the plot architecture.
+        """
         ),
     },
 ]
