@@ -3,6 +3,8 @@ import shlex  # For safely splitting command-line arguments
 import os     # For path expansion
 import threading
 import time
+import datetime
+import asyncio
 from nicegui import ui, run, app
 from functools import partial  # For proper closure handling
 
@@ -15,6 +17,9 @@ tool_in_progress = None
 
 # We'll collect references to all "Run" buttons here so we can disable/enable them.
 run_buttons = []
+
+# Add a global variable for the timer task
+timer_task = None
 
 # Default save directory
 DEFAULT_SAVE_DIR = os.path.expanduser("~/writing")
@@ -99,7 +104,7 @@ editing_tools = [
         "name": "dangling_modifier_checker.py",
         "description": ("""Detects dangling and
         misplaced modifiers in a manuscript. It examines text to pinpoint instances
-        where descriptive phrases don’t logically connect to their
+        where descriptive phrases don't logically connect to their
         intended subjects, potentially causing confusion or
         unintended humor. With customizable analysis level,
         sensitivity, and specific modifier types, it generates a
@@ -113,7 +118,7 @@ editing_tools = [
         "description": ("""Analyzes manuscript for the rhythm and flow
         of prose. It measures sentence length variations, detects
         monotonous patterns, and highlights sections where the
-        writing’s rhythm doesn’t match the intended mood.
+        writing's rhythm doesn't match the intended mood.
         Configurable analysis levels, selectable scene types, and
         adjustable sensitivity settings allow it to generate a
         detailed report with examples, explanations, and suggestions
@@ -282,8 +287,8 @@ def run_tool(script_name: str, args_str: str = "", log_output=None):
 # HANDLER: Initiates the run in a background thread so the UI won't block
 ###############################################################################
 
-async def handle_run_button_click(script_name, args_textbox, log_output, runner_popup=None):
-    global tool_in_progress
+async def handle_run_button_click(script_name, args_textbox, log_output, runner_popup=None, timer_label=None):
+    global tool_in_progress, timer_task
 
     # If something else is running, bail out
     if tool_in_progress is not None:
@@ -308,6 +313,27 @@ async def handle_run_button_click(script_name, args_textbox, log_output, runner_
     # Notify user that the tool is running
     ui.notify(f"Running {script_name}...")
 
+    # Initialize the timer
+    start_time = time.time()
+    
+    # Update timer function
+    async def update_timer():
+        while tool_in_progress:
+            elapsed = time.time() - start_time
+            minutes = int(elapsed // 60)
+            seconds = int(elapsed % 60)
+            timer_label.text = f"elapsed time: {minutes}m {seconds}s"
+            await asyncio.sleep(1)
+    
+    # Start the timer
+    if timer_label:
+        timer_label.text = "elapsed time: 0m 0s"
+        # Cancel any existing timer task
+        if timer_task:
+            timer_task.cancel()
+        # Start a new timer task
+        timer_task = asyncio.create_task(update_timer())
+
     try:
         # Run the script in a background thread so the UI remains responsive
         stdout, stderr = await run.io_bound(run_tool, script_name, args_str, log_output)
@@ -324,6 +350,11 @@ async def handle_run_button_click(script_name, args_textbox, log_output, runner_
         tool_in_progress = None
         for btn in run_buttons:
             btn.enable()
+        
+        # Don't reset the timer text - let it stay visible
+        # Just cancel the timer task to stop updating
+        if timer_task:
+            timer_task.cancel()
 
 ###############################################################################
 # CLEAR OUTPUT HANDLER
@@ -440,11 +471,17 @@ async def run_tool_ui(script_name=None):
                         placeholder="--manuscript my_story.txt --save_dir ~/writing"
                     ).classes('w-3/4 flex-grow')
                 with ui.row().classes('w-full items-center justify-between mt-2 mb-0 flex-nowrap'):
-                    # Left side - Run button (primary action)
-                    run_btn = ui.button(
-                        f"Run {script_name if script_name else 'Tool'}:",
-                        on_click=lambda: handle_run_button_click(script_name, args_textbox, log_output, runner_popup)
-                    ).classes('run-button').props('no-caps flat dense')
+                    # Left side - Run button (primary action) and timer label
+                    with ui.row().classes('items-center gap-2'):
+                        run_btn = ui.button(
+                            f"Run {script_name if script_name else 'Tool'}:",
+                            on_click=lambda: handle_run_button_click(script_name, args_textbox, log_output, runner_popup, timer_label)
+                        ).classes('run-button').props('no-caps flat dense')
+                        # Add this button to the run_buttons list so it gets disabled too
+                        run_buttons.append(run_btn)
+                        
+                        # Add timer label next to the run button
+                        timer_label = ui.label("").classes('text-italic').style('margin-left: 10px; min-width: 120px;')
                     
                     # Push utility buttons to the right
                     ui.space()
@@ -484,10 +521,8 @@ async def run_tool_ui(script_name=None):
                     """)
                     log_output.push("Tool output will appear here...")
                 
-                # Set the clear button on_click after log_output is defined
-                clear_btn.on_click(lambda: clear_output(log_output))
-
-                # ui.separator().props("size=4px color=primary")  # insinuate bottom of settings
+                # Set the clear button on_click to clear both log output and timer
+                clear_btn.on_click(lambda: [clear_output(log_output), timer_label.set_text("")])
 
     runner_popup.open()
     return runner_popup, args_textbox, log_output
