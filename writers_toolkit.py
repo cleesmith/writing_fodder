@@ -541,7 +541,7 @@ with ui.column().classes('w-full items-center'):
     with ui.card().classes('w-full max-w-3xl'):
         with ui.row().classes('w-full justify-center'):
             ui.label("EDITING & REWRITING").classes('text-bold text-h6 text-red-7')
-        with ui.expansion("Tools for refinement", icon="construction", value=False).classes('w-full'):
+        with ui.expansion("Tools for refinement ... where the AI really shines", icon="construction", value=False).classes('w-full'):
             for tool in editing_tools:
                 with ui.expansion(tool["name"], icon="description", value=False) as tool_expansion:
                     ui.label(tool["description"]).classes('tool-description')
