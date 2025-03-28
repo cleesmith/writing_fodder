@@ -7,6 +7,7 @@ import re
 import json
 import asyncio
 import platform
+import time
 from nicegui import ui, run, app
 from copy import deepcopy
 
@@ -19,6 +20,15 @@ DEFAULT_SAVE_DIR = os.path.expanduser("~/writing")
 
 # Default JSON file path for tool configurations
 TOOLS_JSON_PATH = "tools_config.json"
+
+# Add a global variable for the timer task
+timer_task = None
+
+# A simple global to mark which tool is running (or None if none).
+tool_in_progress = None
+
+# We'll collect references to all "Run" buttons here so we can disable/enable them.
+run_buttons = []
 
 ###############################################################################
 # FUNCTION: Simplified JSON Config handling with Integer Enforcement
@@ -766,6 +776,17 @@ async def show_command_preview(script_name, option_values):
     return await result_future
 
 ###############################################################################
+# FUNCTION: Clear Output Helper
+###############################################################################
+
+def clear_output(log_output, timer_label=None):
+    """Clear the content of a log area and reset timer if provided."""
+    log_output.clear()
+    log_output.push("Tool output will appear here...")
+    if timer_label:
+        timer_label.text = "elapsed time: 0m 0s"
+
+###############################################################################
 # FUNCTION: Tool Runner UI
 ###############################################################################
 
@@ -777,6 +798,8 @@ async def run_tool_ui(script_name, args_dict=None):
         script_name: The script to run
         args_dict: Dictionary of argument name-value pairs
     """
+    global tool_in_progress, timer_task
+    
     if args_dict is None:
         args_dict = {}
     
@@ -810,20 +833,89 @@ async def run_tool_ui(script_name, args_dict=None):
             # Arguments display
             ui.label(f"Arguments: {args_str}").classes('text-caption q-px-md')
             
+            # Add row for run button and timer
+            with ui.row().classes('w-full items-center justify-between mt-2 mb-0 q-px-md'):
+                # Left side - Run button (primary action) and timer label
+                with ui.row().classes('items-center gap-2'):
+                    run_btn = ui.button(
+                        f"Run {script_name}:",
+                        on_click=lambda: run_tool_execution()
+                    ).classes('bg-green-600 text-white').props('no-caps flat dense')
+                    
+                    # Add timer label next to the run button
+                    timer_label = ui.label("elapsed time: 0m 0s").classes('text-italic').style('margin-left: 10px; min-width: 120px;')
+                
+                # Right side - utility buttons
+                with ui.row().classes('items-center gap-2'):
+                    # Clear button with blue styling
+                    clear_btn = ui.button(
+                        "Clear", icon="cleaning_services",
+                        on_click=lambda: clear_output(log_output, timer_label)
+                    ).props('no-caps flat dense').classes('bg-blue-600 text-white')
+                    
+                    # Force Quit button
+                    force_quit_btn = ui.button(
+                        "Force Quit", icon="power_settings_new",
+                        on_click=lambda: app.shutdown()
+                    ).props('no-caps flat dense').classes('bg-red-600 text-white')
+            
             # Output area using a terminal-like log component
             log_output = ui.log().classes('w-full flex-grow') \
                 .style('min-height: 60vh; background-color: #0f1222; color: #b2f2bb; font-family: monospace; padding: 1rem; border-radius: 4px; margin: 1rem;')
-            log_output.push(f"Running {script_name} with args: {args_str}")
+            log_output.push("Tool output will appear here...")
             
-            # Buttons
-            with ui.row().classes('w-full justify-end q-pa-md'):
-                ui.button('Close', on_click=dialog.close).props('flat no-caps')
+            # Define the function to run the tool with timer updates - inside the dialog scope
+            async def run_tool_execution():
+                global tool_in_progress, timer_task
+                
+                # If another tool is running, don't start a new one
+                if tool_in_progress is not None:
+                    ui.notify(f"Cannot run '{script_name}' because '{tool_in_progress}' is already in progress.")
+                    return
+                
+                # Mark this script as running
+                tool_in_progress = script_name
+                
+                # Clear output and show starting message
+                log_output.clear()
+                log_output.push(f"Running {script_name} with args: {args_str}")
+                
+                # Initialize the timer
+                start_time = time.time()
+                
+                # Update timer function
+                async def update_timer():
+                    while tool_in_progress:
+                        elapsed = time.time() - start_time
+                        minutes = int(elapsed // 60)
+                        seconds = int(elapsed % 60)
+                        timer_label.text = f"elapsed time: {minutes}m {seconds}s"
+                        await asyncio.sleep(1)
+                
+                # Start the timer
+                if timer_task:
+                    timer_task.cancel()
+                timer_task = asyncio.create_task(update_timer())
+                
+                try:
+                    # Run the tool and display output
+                    stdout, stderr = await run.io_bound(run_tool, script_name, args_dict, log_output)
+                    ui.notify(f"Finished running {script_name}")
+                
+                except Exception as e:
+                    log_output.push(f"Error running {script_name}: {e}")
+                    ui.notify(f"Error: {e}")
+                
+                finally:
+                    # Reset the tool in progress
+                    tool_in_progress = None
+                    
+                    # Stop the timer
+                    if timer_task:
+                        timer_task.cancel()
     
     # Open the dialog
     dialog.open()
-    
-    # Run the tool and display output
-    await run.io_bound(run_tool, script_name, args_dict, log_output)
 
 ###############################################################################
 # Check for JSON config file existence
