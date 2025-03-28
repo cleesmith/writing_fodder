@@ -126,12 +126,23 @@ def update_tool_preferences(script_name, new_preferences):
         changes_made = False
         processed_preferences = {}
         
-        # First process all preferences, converting floats to ints
+        # First process all preferences, converting floats to ints where needed
         for name, value in new_preferences.items():
-            # Convert all floating-point values to integers
-            if isinstance(value, float):
-                processed_preferences[name] = int(value)
-            else:
+            # Convert all floating-point values to integers if option type is int
+            option_found = False
+            for option in config[script_name]["options"]:
+                if option["name"] == name:
+                    option_found = True
+                    option_type = option.get("type", "str")
+                    
+                    if option_type == "int" and isinstance(value, float):
+                        processed_preferences[name] = int(value)
+                    else:
+                        processed_preferences[name] = value
+                    break
+            
+            if not option_found:
+                # If option not found, just pass the value as is
                 processed_preferences[name] = value
         
         # Now update the configuration with the processed values
@@ -176,6 +187,7 @@ def update_tool_preferences(script_name, new_preferences):
 def create_parser_for_tool(script_name, options):
     """
     Create an argparse parser for a specific tool based on its options.
+    Uses the explicit type information from the JSON config.
     
     Args:
         script_name: The name of the script
@@ -197,25 +209,58 @@ def create_parser_for_tool(script_name, options):
         required = option.get("required", False)
         default = option.get("default", None)
         arg_name = option.get("arg_name", "")
+        option_type = option.get("type", "str")  # Get the explicit type, default to "str"
+        choices = option.get("choices", None)  # Optional list of choices
         
-        # Determine the appropriate argument type
-        is_flag = not arg_name or arg_name.lower() in ["flag", "enable", "disable"]
-        
-        if is_flag:
+        # Handle different types of arguments based on the explicit type
+        if option_type == "bool":
             # Boolean flags
             parser.add_argument(
                 name, 
                 action="store_true",
                 help=description
             )
-        else:
-            # Value arguments
+        elif option_type == "int":
+            # Integer values
+            parser.add_argument(
+                name,
+                metavar=arg_name,
+                type=int,
+                help=description,
+                required=required,
+                default=default,
+                choices=choices
+            )
+        elif option_type == "float":
+            # Float values
+            parser.add_argument(
+                name,
+                metavar=arg_name,
+                type=float,
+                help=description,
+                required=required,
+                default=default,
+                choices=choices
+            )
+        elif option_type == "choices":
+            # Choice from a list of values
             parser.add_argument(
                 name,
                 metavar=arg_name,
                 help=description,
                 required=required,
-                default=default
+                default=default,
+                choices=choices
+            )
+        else:
+            # Default to string for all other types
+            parser.add_argument(
+                name,
+                metavar=arg_name,
+                help=description,
+                required=required,
+                default=default,
+                choices=choices
             )
     
     return parser
@@ -232,19 +277,30 @@ def run_tool(script_name, args_dict, log_output=None):
     Returns:
         Tuple of (stdout, stderr) from the subprocess
     """
+    # Get the tool configuration to determine types
+    config = load_tools_config()
+    options = config.get(script_name, {}).get("options", [])
+    
+    # Create a mapping of option names to their types
+    option_types = {opt["name"]: opt.get("type", "str") for opt in options}
+    
     # Convert the arguments dictionary into a command-line argument list
     args_list = []
     for name, value in args_dict.items():
-        # Convert any floats to integers
-        if isinstance(value, float):
+        # Get the option type, default to "str"
+        option_type = option_types.get(name, "str")
+        
+        # Handle different types
+        if option_type == "int" and isinstance(value, float):
             value = int(value)
-            
-        if isinstance(value, bool):
+        elif option_type == "bool":
             if value:
                 # Just add the flag for boolean options
                 args_list.append(name)
-        elif value is not None:
-            # Add the option name and value as separate items
+            continue  # Skip adding value for boolean options
+        
+        # For all non-boolean options, add the name and value
+        if value is not None:
             args_list.append(name)
             args_list.append(str(value))
     
@@ -293,7 +349,7 @@ async def get_tool_options(script_name, log_output=None):
         log_output: Optional log component to display information
         
     Returns:
-        List of option dictionaries with name, arg_name, description, required, default
+        List of option dictionaries with name, arg_name, description, required, default, type
     """
     # Always load the tool configurations fresh from disk
     config = load_tools_config(force_reload=True)
@@ -326,9 +382,12 @@ async def get_tool_options(script_name, log_output=None):
             log_output.push(f"\n{group_name}:")
             for option in group_options:
                 required_mark = " (required)" if option.get('required', False) else ""
-                log_output.push(f"  {option['name']} {option.get('arg_name', '')}{required_mark}")
+                option_type = option.get('type', 'str')
+                log_output.push(f"  {option['name']} {option.get('arg_name', '')}{required_mark} [Type: {option_type}]")
                 log_output.push(f"    {option['description']}")
                 log_output.push(f"    Default: {option.get('default', 'None')}")
+                if option.get('choices'):
+                    log_output.push(f"    Choices: {', '.join(str(c) for c in option['choices'])}")
     
     return tool_config['options']
 
@@ -339,10 +398,11 @@ async def get_tool_options(script_name, log_output=None):
 async def build_options_dialog(script_name, options):
     """
     Create a dialog to collect options for a script.
+    Uses explicit type information from the JSON config.
     
     Args:
         script_name: The name of the script
-        options: List of option dictionaries with name, arg_name, description, required, default
+        options: List of option dictionaries with name, arg_name, description, required, default, type
         
     Returns:
         Dictionary mapping option names to their values
@@ -380,10 +440,8 @@ async def build_options_dialog(script_name, options):
                         required = option.get("required", False)
                         arg_name = option.get("arg_name", "")
                         default_value = option.get("default")
-                        
-                        # If default_value is a float, convert to int
-                        if isinstance(default_value, float):
-                            default_value = int(default_value)
+                        option_type = option.get("type", "str")  # Get the explicit type
+                        choices = option.get("choices", None)
                         
                         # Format the label
                         label = f"{name}"
@@ -401,25 +459,70 @@ async def build_options_dialog(script_name, options):
                             if default_value is not None:
                                 ui.label(f"Default: {default_value}").classes('text-caption text-grey-7')
                             
-                            # Some common option types based on arg_name or name patterns
-                            is_file = any(keyword in arg_name.lower() for keyword in ["file", "path", "dir", "directory"]) \
-                                   or any(keyword in name.lower() for keyword in ["file", "path", "dir", "directory", "save_dir"])
-                            
-                            is_number = any(keyword in arg_name.lower() for keyword in ["num", "count", "threshold", "level", "tokens", "window", "timeout"])
-                            
-                            is_boolean = not arg_name or arg_name.lower() in ["flag", "enable", "disable"]
-                            
-                            # Create appropriate input fields based on the option type
-                            if is_boolean:
+                            # Create appropriate input fields based on the explicit type
+                            if option_type == "bool":
                                 # Boolean options (checkboxes)
-                                # Use default value
                                 value_to_use = default_value if default_value is not None else False
                                 checkbox = ui.checkbox("Enable this option", value=value_to_use)
                                 input_elements[name] = checkbox
-                            elif is_file:
+                            elif option_type == "int":
+                                # Integer input fields
+                                value_to_use = default_value if default_value is not None else None
+                                
+                                # If the option has choices, create a dropdown
+                                if choices:
+                                    dropdown = ui.select(
+                                        options=choices,
+                                        value=value_to_use,
+                                        label=f"Select value for {name}"
+                                    )
+                                    input_elements[name] = dropdown
+                                else:
+                                    # Regular number input for integers
+                                    input_field = ui.number(
+                                        placeholder="Enter number...", 
+                                        value=value_to_use,
+                                        precision=0  # Force integer values only
+                                    )
+                                    input_elements[name] = input_field
+                            elif option_type == "float":
+                                # Float input fields
+                                value_to_use = default_value if default_value is not None else None
+                                
+                                # If the option has choices, create a dropdown
+                                if choices:
+                                    dropdown = ui.select(
+                                        options=choices,
+                                        value=value_to_use,
+                                        label=f"Select value for {name}"
+                                    )
+                                    input_elements[name] = dropdown
+                                else:
+                                    # Regular number input for floats
+                                    input_field = ui.number(
+                                        placeholder="Enter number...", 
+                                        value=value_to_use
+                                    )
+                                    input_elements[name] = input_field
+                            elif option_type == "choices":
+                                # Dropdown for choices
+                                if choices:
+                                    dropdown = ui.select(
+                                        options=choices,
+                                        value=default_value,
+                                        label=f"Select value for {name}"
+                                    )
+                                    input_elements[name] = dropdown
+                                else:
+                                    # Fallback to text input if no choices provided
+                                    input_field = ui.input(
+                                        placeholder="Enter value...",
+                                        value=default_value
+                                    )
+                                    input_elements[name] = input_field
+                            elif option_type == "file" or option_type == "path" or any(kw in name.lower() for kw in ["file", "path", "dir", "directory"]):
                                 # File/directory paths
                                 with ui.row().classes('w-full items-center'):
-                                    # Use default value
                                     input_field = ui.input(
                                         placeholder="Enter path...",
                                         value=default_value
@@ -440,32 +543,8 @@ async def build_options_dialog(script_name, options):
                                     
                                     ui.button("Default", icon='folder').props('flat dense no-caps').on('click', 
                                         lambda i=input_field, p=default_path: i.set_value(p))
-                            elif is_number:
-                                # Use default value
-                                value_to_use = default_value
-                                
-                                # If no value, try to extract from description
-                                if value_to_use is None:
-                                    # Match numbers with or without commas: 1000, 1,000, etc.
-                                    default_match = re.search(r'default:\s*([\d,]+)', description)
-                                    if default_match:
-                                        # Remove commas and convert to int
-                                        default_str = default_match.group(1).replace(',', '')
-                                        try:
-                                            value_to_use = int(default_str)
-                                        except ValueError:
-                                            value_to_use = None
-                                
-                                # Set precision=0 to force integer values for all number inputs
-                                # This prevents users from entering decimal values
-                                input_field = ui.number(
-                                    placeholder="Enter number...", 
-                                    value=value_to_use,
-                                    precision=0  # Force integer values only - no decimals allowed
-                                )
-                                input_elements[name] = input_field
                             else:
-                                # Default to text input with default value
+                                # Default to text input for all other types
                                 input_field = ui.input(
                                     placeholder="Enter value...",
                                     value=default_value
@@ -487,23 +566,19 @@ async def build_options_dialog(script_name, options):
                     
                     for name, input_element in input_elements.items():
                         if hasattr(input_element, 'value'):
-                            # Find the original option to get its default value
+                            # Find the original option to get its default value and type
                             original_option = next((opt for opt in options if opt['name'] == name), None)
                             if original_option is None:
                                 continue
                                 
                             current_value = input_element.value
-                            
-                            # Convert any float values to integers
-                            if isinstance(current_value, float):
-                                current_value = int(current_value)
-                                
                             default_value = original_option.get('default')
-                            # Convert default value to int if it's a float
-                            if isinstance(default_value, float):
-                                default_value = int(default_value)
-                                
+                            option_type = original_option.get('type', 'str')
                             is_required = original_option.get('required', False)
+                            
+                            # Convert values to correct type if needed
+                            if option_type == "int" and isinstance(current_value, float):
+                                current_value = int(current_value)
                             
                             # Add to the command execution values if it has a value
                             if current_value is not None:
@@ -552,6 +627,9 @@ def build_command_string(script_name, option_values):
     # Get all required option names
     required_options = [opt['name'] for opt in options if opt.get('required', False)]
     
+    # Create a mapping of option names to their types
+    option_types = {opt['name']: opt.get('type', 'str') for opt in options}
+    
     # Check if all required options are provided
     missing_required = [opt for opt in required_options if opt not in option_values]
     if missing_required:
@@ -565,11 +643,14 @@ def build_command_string(script_name, option_values):
     
     # Simply include ALL parameters - don't check against defaults
     for name, value in option_values.items():
-        # Convert any float values to integers
-        if isinstance(value, float):
+        # Get the option type
+        option_type = option_types.get(name, 'str')
+        
+        # Convert values to correct type if needed
+        if option_type == "int" and isinstance(value, float):
             value = int(value)
-            
-        if isinstance(value, bool):
+        
+        if option_type == "bool":
             if value:
                 # Just add the flag for boolean options
                 args_list.append(name)
@@ -859,6 +940,73 @@ async def show_config_dialog():
                     
                     ui.button('Update', on_click=update_save_dir).props('no-caps')
             
+            # Add a section with information about types
+            with ui.card().classes('w-full p-3'):
+                ui.label('Supported Option Types').classes('text-bold')
+                ui.label('When creating your tools_config.json file, you can use the following types:').classes('text-caption text-grey-7')
+                
+                types_info = [
+                    {"type": "str", "description": "String values (text)"},
+                    {"type": "int", "description": "Integer values (whole numbers)"},
+                    {"type": "float", "description": "Floating-point values (decimal numbers)"},
+                    {"type": "bool", "description": "Boolean flags (true/false, displayed as checkboxes)"},
+                    {"type": "file", "description": "File paths (includes file browser button)"},
+                    {"type": "path", "description": "Directory paths (includes folder browser button)"},
+                    {"type": "choices", "description": "Selection from a list of options (dropdown)"}
+                ]
+                
+                with ui.table().props('bordered dense').classes('w-full'):
+                    with ui.thead():
+                        with ui.tr():
+                            ui.th('Type')
+                            ui.th('Description')
+                    
+                    with ui.tbody():
+                        for type_info in types_info:
+                            with ui.tr():
+                                ui.td(type_info["type"]).classes('font-mono')
+                                ui.td(type_info["description"])
+                
+                ui.label('Example JSON option configuration:').classes('text-caption text-grey-7 mt-2')
+                
+                example_json = """{
+  "script_name.py": {
+    "name": "Tool Name",
+    "description": "Tool description",
+    "help_text": "Help text for the tool",
+    "options": [
+      {
+        "name": "--option_name",
+        "arg_name": "VALUE",
+        "description": "Description of the option",
+        "required": true,
+        "default": "default_value",
+        "type": "str",
+        "group": "Option Group"
+      },
+      {
+        "name": "--flag_option",
+        "description": "A boolean flag option",
+        "type": "bool",
+        "default": false,
+        "group": "Option Group"
+      },
+      {
+        "name": "--choice_option",
+        "arg_name": "CHOICE",
+        "description": "Option with predefined choices",
+        "type": "choices",
+        "choices": ["option1", "option2", "option3"],
+        "default": "option1",
+        "group": "Option Group"
+      }
+    ]
+  }
+}"""
+                
+                with ui.element('div').classes('w-full p-3 rounded bg-grey-8 my-2'):
+                    ui.label(example_json).style('font-family: monospace; overflow-wrap: break-word; color: white; white-space: pre-wrap;')
+            
             # Backup and restore options
             with ui.card().classes('w-full p-3'):
                 ui.label('Backup & Restore').classes('text-bold')
@@ -877,14 +1025,10 @@ async def show_config_dialog():
 ###############################################################################
 
 def main():
-    """Main function to set up the UI."""
-    # Check if configuration file exists
     check_config_file()
     
-    # Create dark mode control - default to dark mode
     darkness = ui.dark_mode(True)
     
-    # Create the UI elements
     with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
         # Header row with dark mode toggle, title, and buttons
         with ui.row().classes('w-full items-center justify-between mb-4'):
@@ -987,9 +1131,7 @@ def main():
                         ui.notify('Failed to load options from JSON. Check if the configuration exists.', type="negative")
                         return
                     
-                    # Loop to allow editing options
                     while True:
-                        # Show options dialog to collect values and save preference
                         result = await build_options_dialog(script_name, options)
                         
                         if result[0] is None:
@@ -998,7 +1140,6 @@ def main():
                             
                         option_values, should_save = result
                         
-                        # Show command preview
                         should_run = await show_command_preview(script_name, option_values)
                         
                         if should_run is None:
@@ -1016,7 +1157,6 @@ def main():
                             # User cancelled - don't show any status message
                             break
                 
-                # Changed button text from "Config and Run" to "Setup and/or Run"
                 ui.button('Setup and/or Run', on_click=configure_and_run_tool) \
                     .props('no-caps').classes('bg-green-600 text-white')
 

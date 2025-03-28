@@ -8,7 +8,8 @@
                 "name": "--manuscript_file",
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
-                "default": "",
+                "type": "str",
+                "default": "manuscript.txt",
                 "required": true,
                 "group": "Input Files"
             },
@@ -16,14 +17,16 @@
                 "name": "--outline_file",
                 "arg_name": "OUTLINE_FILE",
                 "description": "File containing the story outline (optional)",
+                "type": "str",
                 "required": false,
                 "group": "Input Files",
-                "default": "/Users/cleesmith/writing/outline.txt"
+                "default": ""
             },
             {
                 "name": "--world_file",
                 "arg_name": "WORLD_FILE",
                 "description": "File containing the story world/lore information (optional)",
+                "type": "str",
                 "required": false,
                 "group": "Input Files",
                 "default": "/Users/cleesmith/writing/world.txt"
@@ -32,6 +35,7 @@
                 "name": "--context_window",
                 "arg_name": "CONTEXT_WINDOW",
                 "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
                 "default": 200000,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -40,6 +44,7 @@
                 "name": "--betas_max_tokens",
                 "arg_name": "BETAS_MAX_TOKENS",
                 "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
                 "default": 128000,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -48,6 +53,7 @@
                 "name": "--thinking_budget_tokens",
                 "arg_name": "THINKING_BUDGET_TOKENS",
                 "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
                 "default": 32000,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -56,6 +62,7 @@
                 "name": "--desired_output_tokens",
                 "arg_name": "DESIRED_OUTPUT_TOKENS",
                 "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
                 "default": 12000,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -64,7 +71,8 @@
                 "name": "--request_timeout",
                 "arg_name": "REQUEST_TIMEOUT",
                 "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
-                "default": 400.0,
+                "type": "int",
+                "default": 300,
                 "required": false,
                 "group": "Claude API Configuration"
             },
@@ -72,7 +80,8 @@
                 "name": "--save_dir",
                 "arg_name": "SAVE_DIR",
                 "description": "Directory to save character analysis reports (default: current directory)",
-                "default": "/Users/cleesmith/writing",
+                "type": "str",
+                "default": ".",
                 "required": false,
                 "group": "Output Configuration"
             },
@@ -80,7 +89,8 @@
                 "name": "--skip_thinking",
                 "arg_name": "",
                 "description": "Skip saving the AI thinking process (smaller output files)",
-                "default": true,
+                "type": "bool",
+                "default": false,
                 "required": false,
                 "group": "Output Configuration"
             },
@@ -88,7 +98,8 @@
                 "name": "--analysis_description",
                 "arg_name": "ANALYSIS_DESCRIPTION",
                 "description": "Optional description to include in output filenames",
-                "default": "true",
+                "type": "str",
+                "default": "",
                 "required": false,
                 "group": "Output Configuration"
             }
@@ -103,6 +114,7 @@
                 "name": "--manuscript_file",
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
+                "type": "str",
                 "default": "",
                 "required": true,
                 "group": "Input Files"
@@ -111,6 +123,7 @@
                 "name": "--analysis_level",
                 "arg_name": "basic,standard,detailed",
                 "description": "Level of tense analysis detail (default: standard)",
+                "type": "str",
                 "default": "detailed",
                 "required": false,
                 "group": "Analysis Options"
@@ -119,6 +132,7 @@
                 "name": "--chapter_markers",
                 "arg_name": "CHAPTER_MARKERS",
                 "description": "Text that marks the start of chapters (default: 'Chapter')",
+                "type": "str",
                 "default": "Chapter",
                 "required": false,
                 "group": "Analysis Options"
@@ -127,6 +141,7 @@
                 "name": "--context_window",
                 "arg_name": "CONTEXT_WINDOW",
                 "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
                 "default": 200000,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -135,6 +150,7 @@
                 "name": "--betas_max_tokens",
                 "arg_name": "BETAS_MAX_TOKENS",
                 "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
                 "default": 128000,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -143,6 +159,7 @@
                 "name": "--thinking_budget_tokens",
                 "arg_name": "THINKING_BUDGET_TOKENS",
                 "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
                 "default": 32000,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -151,6 +168,7 @@
                 "name": "--desired_output_tokens",
                 "arg_name": "DESIRED_OUTPUT_TOKENS",
                 "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
                 "default": 12000,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -159,6 +177,7 @@
                 "name": "--request_timeout",
                 "arg_name": "REQUEST_TIMEOUT",
                 "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "type": "int",
                 "default": 300,
                 "required": false,
                 "group": "Claude API Configuration"
@@ -167,6 +186,7 @@
                 "name": "--save_dir",
                 "arg_name": "SAVE_DIR",
                 "description": "Directory to save tense analysis reports (default: current directory)",
+                "type": "str",
                 "default": false,
                 "required": false,
                 "group": "Output Configuration"
@@ -175,6 +195,7 @@
                 "name": "--skip_thinking",
                 "arg_name": "",
                 "description": "Skip saving the AI thinking process (smaller output files)",
+                "type": "bool",
                 "default": false,
                 "required": false,
                 "group": "Output Configuration"
@@ -183,7 +204,8 @@
                 "name": "--analysis_description",
                 "arg_name": "ANALYSIS_DESCRIPTION",
                 "description": "Optional description to include in output filenames",
-                "default": false,
+                "type": "str",
+                "default": "",
                 "required": false,
                 "group": "Output Configuration"
             }
