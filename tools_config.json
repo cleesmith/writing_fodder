@@ -1,0 +1,182 @@
+{
+    "character_analyzer.py": {
+        "name": "character_analyzer.py",
+        "description": "Analyzes manuscript, outline, and world files to\n        identify and compare character appearances. It extracts\n        a master character list that details which files each\n        character appears in, examines consistency across documents,\n        and highlights discrepancies in names, roles, or\n        relationships. The analysis produces a detailed report with\n        sections and recommendations to improve character coherence.\n        This is needed because AI draft writing has a tendency to add new characters!\n        ",
+        "help_text": "Analyze characters across story files using Claude AI.",
+        "options": [
+            {
+                "name": "--manuscript_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the manuscript to analyze (required)",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--outline_file",
+                "arg_name": "OUTLINE_FILE",
+                "description": "File containing the story outline (optional)",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--world_file",
+                "arg_name": "WORLD_FILE",
+                "description": "File containing the story world/lore information (optional)",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save character analysis reports (default: current directory)",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--skip_thinking",
+                "arg_name": "",
+                "description": "Skip saving the AI thinking process (smaller output files)",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--analysis_description",
+                "arg_name": "ANALYSIS_DESCRIPTION",
+                "description": "Optional description to include in output filenames",
+                "required": false,
+                "group": "Output Configuration"
+            }
+        ]
+    },
+    "tense_consistency_checker.py": {
+        "name": "tense_consistency_checker.py",
+        "description": "Analyzes manuscript for verb tense consistency using Claude AI.\n        Identifies and reports on tense shifts, inconsistencies, and patterns\n        across the manuscript. Helps ensure narrative voice remains consistent\n        throughout your story, especially when working with AI-generated content\n        which may struggle with maintaining consistent tense.\n        ",
+        "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
+        "options": [
+            {
+                "name": "--manuscript_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the manuscript to analyze (required)",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--analysis_level",
+                "arg_name": "basic,standard,detailed",
+                "description": "Level of tense analysis detail (default: standard)",
+                "default": "standard",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--chapter_markers",
+                "arg_name": "CHAPTER_MARKERS",
+                "description": "Text that marks the start of chapters (default: 'Chapter')",
+                "default": "Chapter",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save tense analysis reports (default: current directory)",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--skip_thinking",
+                "arg_name": "",
+                "description": "Skip saving the AI thinking process (smaller output files)",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--analysis_description",
+                "arg_name": "ANALYSIS_DESCRIPTION",
+                "description": "Optional description to include in output filenames",
+                "required": false,
+                "group": "Output Configuration"
+            }
+        ]
+    }
+}
