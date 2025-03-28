@@ -115,6 +115,9 @@ def save_user_preferences(script_name, preferences):
     # Update the user_preferences
     updated_config[script_name]["user_preferences"] = preferences
     
+    # Print to console for debugging
+    print(f"Saving preferences for {script_name}: {preferences}")
+    
     # Save the updated configuration
     return save_tools_config(updated_config)
 
@@ -296,6 +299,7 @@ async def build_options_dialog(script_name, options):
     """
     # Load user preferences if they exist
     user_preferences = get_user_preferences(script_name)
+    print(f"Loaded preferences for {script_name}: {user_preferences}")
     
     # Create an async result that we'll resolve when the form is submitted
     result_future = asyncio.Future()
@@ -430,18 +434,14 @@ async def build_options_dialog(script_name, options):
                             original_option = next((opt for opt in options if opt['name'] == name), None)
                             default_value = original_option.get('default') if original_option else None
                             
-                            # Include the value if it's not None and either it differs from default
-                            # or it's a required parameter
+                            # Always include the value if it exists
                             if input_element.value is not None:
-                                # Skip empty strings for non-required parameters
+                                # Special handling for empty strings
                                 is_empty_string = isinstance(input_element.value, str) and input_element.value.strip() == ""
                                 is_required = original_option and original_option.get('required', False)
                                 
-                                if is_required:
-                                    # Always include required parameters
-                                    option_values[name] = input_element.value
-                                elif input_element.value != default_value and not is_empty_string:
-                                    # Include non-default, non-empty values
+                                if is_required or not is_empty_string:
+                                    # Include required params or non-empty values
                                     option_values[name] = input_element.value
                     
                     # Get the save preferences checkbox value
@@ -752,9 +752,7 @@ def main():
     
     # Create the UI elements
     with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
-        ui.label('Writer\'s Toolkit JSON Config Parser').classes('text-h4 text-center mb-4')
-        
-        ui.label('This tool uses a JSON configuration to create form-based UIs for Writer\'s Toolkit scripts').classes('text-subtitle1 text-center mb-6')
+        ui.label('Writer\'s Toolkit').classes('text-h4 text-center mb-4')
         
         # Tool selection
         with ui.card().classes('w-full mb-4 p-4'):
@@ -804,31 +802,7 @@ def main():
             # Attach the update function to the select element's change event
             selected_tool.on('update:model-value', update_description)
         
-        # JSON config file path display and edit
-        with ui.card().classes('w-full mb-4 p-4'):
-            ui.label('JSON Configuration').classes('text-h6 mb-2')
-            
-            with ui.row().classes('w-full items-center'):
-                json_path_input = ui.input(
-                    label='Config Path',
-                    value=TOOLS_JSON_PATH
-                ).classes('w-full')
-                
-                def reload_config():
-                    global TOOLS_JSON_PATH
-                    TOOLS_JSON_PATH = json_path_input.value
-                    check_config_file()
-                    # Force reload the page to refresh the tool selection
-                    ui.run_javascript('window.location.reload()')
-                
-                ui.button('Reload', icon='refresh').props('flat').on('click', reload_config)
-            
-            # Add backup and restore buttons
-            with ui.row().classes('w-full justify-end gap-2 mt-3'):
-                ui.button('Backup Config', icon='save').props('outline').on('click', backup_config_file)
-                ui.button('Restore from Backup', icon='settings_backup_restore').props('outline').on('click', restore_config_from_backup)
-        
-        # Main control area - status and buttons
+        # Main control area - status and buttons (MOVED UP as requested)
         with ui.card().classes('w-full mb-4 p-4'):
             status_label = ui.label(f'Ready to configure tools' if config_exists else 'Configuration file missing').classes('text-center')
             
@@ -893,6 +867,7 @@ def main():
                         elif should_run:
                             # Save preferences if requested
                             if should_save_preferences:
+                                print(f"Preferences to save: {option_values}")
                                 if save_user_preferences(script_name, option_values):
                                     ui.notify(f"Preferences saved for {script_name}", type="positive")
                                 else:
@@ -913,6 +888,30 @@ def main():
                 
                 ui.button('Quit', on_click=lambda: app.shutdown()) \
                     .props('no-caps').classes('bg-red-600 text-white')
+        
+        # Configuration section (MOVED DOWN and renamed as requested)
+        with ui.card().classes('w-full mb-4 p-4'):
+            ui.label('Configuration').classes('text-h6 mb-2')
+            
+            with ui.row().classes('w-full items-center'):
+                json_path_input = ui.input(
+                    label='Config Path',
+                    value=TOOLS_JSON_PATH
+                ).classes('w-full')
+                
+                def reload_config():
+                    global TOOLS_JSON_PATH
+                    TOOLS_JSON_PATH = json_path_input.value
+                    check_config_file()
+                    # Force reload the page to refresh the tool selection
+                    ui.run_javascript('window.location.reload()')
+                
+                ui.button('RELOAD', icon='refresh').props('flat').on('click', reload_config)
+            
+            # Add backup and restore buttons
+            with ui.row().classes('w-full justify-end gap-2 mt-3'):
+                ui.button('BACKUP CONFIG', icon='save').props('outline').on('click', backup_config_file)
+                ui.button('RESTORE FROM BACKUP', icon='settings_backup_restore').props('outline').on('click', restore_config_from_backup)
 
 if __name__ == "__main__":
     main()
@@ -920,7 +919,7 @@ if __name__ == "__main__":
     ui.run(
         host=HOST,
         port=PORT,
-        title="Writer's Toolkit JSON Config Parser",
+        title="Writer's Toolkit",
         reload=False,
         show_welcome_message=False,
     )
