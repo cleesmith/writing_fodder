@@ -744,7 +744,7 @@ def restore_config_from_backup():
 def main():
     """Main function to set up the UI."""
     # Check if configuration file exists
-    config_exists = check_config_file()
+    check_config_file()
     
     # Add a dark mode toggle
     dark_mode = ui.dark_mode()
@@ -754,7 +754,7 @@ def main():
     with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
         ui.label('Writer\'s Toolkit').classes('text-h4 text-center mb-4')
         
-        # Tool selection
+        # Combined main card for tool selection and action buttons
         with ui.card().classes('w-full mb-4 p-4'):
             ui.label('Select a tool to run:').classes('text-h6')
             
@@ -801,12 +801,11 @@ def main():
             
             # Attach the update function to the select element's change event
             selected_tool.on('update:model-value', update_description)
-        
-        # Main control area - status and buttons (MOVED UP as requested)
-        with ui.card().classes('w-full mb-4 p-4'):
-            status_label = ui.label(f'Ready to configure tools' if config_exists else 'Configuration file missing').classes('text-center')
             
-            # Action buttons row
+            # Spacer to create vertical space where the status message used to be
+            ui.space().classes('h-4')
+            
+            # Action buttons row - no status message
             with ui.row().classes('w-full justify-center gap-4 mt-3'):
                 async def configure_and_run_tool():
                     script_name = selected_tool.value
@@ -814,8 +813,8 @@ def main():
                         ui.notify('Please select a tool first', type='warning')
                         return
                     
-                    # Update status
-                    status_label.set_text(f'Loading options for {script_name} from JSON...')
+                    # Use notifications for important status updates instead of labels
+                    ui.notify(f"Loading options for {script_name}...", type="info", timeout=2000)
                     
                     # Create a log dialog for displaying JSON information
                     json_dialog = ui.dialog().props('maximized')
@@ -836,26 +835,19 @@ def main():
                     json_dialog.close()
                     
                     if not options:
-                        status_label.set_text('Failed to load options from JSON. Check if the configuration exists.')
+                        ui.notify('Failed to load options from JSON. Check if the configuration exists.', type="negative")
                         return
                     
                     # Loop to allow editing options
                     while True:
-                        # Update status
-                        status_label.set_text(f'Configuring options for {script_name}...')
-                        
                         # Show options dialog to collect values and save preference
                         result = await build_options_dialog(script_name, options)
                         
                         if result[0] is None:
-                            # User cancelled
-                            status_label.set_text('Option configuration cancelled.')
+                            # User cancelled - don't show any status message
                             break
                             
                         option_values, should_save_preferences = result
-                        
-                        # Update status
-                        status_label.set_text(f'Previewing command for {script_name}...')
                         
                         # Show command preview
                         should_run, option_values, should_save_preferences = await show_command_preview(
@@ -874,13 +866,13 @@ def main():
                                     ui.notify(f"Failed to save preferences for {script_name}", type="warning")
                             
                             # User confirmed, run the tool
-                            status_label.set_text(f'Running {script_name}...')
+                            # Don't update any static status label, just use notifications
+                            ui.notify(f"Running {script_name}...", type="info")
                             await run_tool_ui(script_name, option_values)
-                            status_label.set_text(f'Finished running {script_name}.')
+                            ui.notify(f"Finished running {script_name}", type="positive")
                             break
                         else:
-                            # User cancelled
-                            status_label.set_text('Command execution cancelled.')
+                            # User cancelled - don't show any status message
                             break
                 
                 ui.button('Set Args/Options', on_click=configure_and_run_tool) \
@@ -889,7 +881,7 @@ def main():
                 ui.button('Quit', on_click=lambda: app.shutdown()) \
                     .props('no-caps').classes('bg-red-600 text-white')
         
-        # Configuration section (MOVED DOWN and renamed as requested)
+        # Configuration section (as a separate card)
         with ui.card().classes('w-full mb-4 p-4'):
             ui.label('Configuration').classes('text-h6 mb-2')
             
