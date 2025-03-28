@@ -8,7 +8,7 @@
                 "name": "--manuscript_file",
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
-                "default": "/Users/cleesmith/writing/manuscript.txt",
+                "default": "",
                 "required": true,
                 "group": "Input Files"
             },
@@ -103,7 +103,7 @@
                 "name": "--manuscript_file",
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
-                "default": "manuscript.txt",
+                "default": "",
                 "required": true,
                 "group": "Input Files"
             },

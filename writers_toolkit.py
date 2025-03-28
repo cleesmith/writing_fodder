@@ -1,3 +1,5 @@
+# python -B writers_toolkit.json
+# tools_config.json file must exist
 import subprocess
 import argparse
 import os
@@ -19,7 +21,7 @@ DEFAULT_SAVE_DIR = os.path.expanduser("~/writing")
 TOOLS_JSON_PATH = "tools_config.json"
 
 ###############################################################################
-# FUNCTION: Simplified JSON Config handling
+# FUNCTION: Simplified JSON Config handling with Integer Enforcement
 ###############################################################################
 
 def load_tools_config(force_reload=False):
@@ -45,10 +47,30 @@ def load_tools_config(force_reload=False):
         ui.notify(f"Error loading JSON config: {str(e)}", type="negative")
         return {}
 
+def ensure_integer_values(obj):
+    """
+    Recursively ensure all numeric values are integers, not floats.
+    
+    Args:
+        obj: Any Python object (dict, list, etc.)
+        
+    Returns:
+        The same object with all float values converted to integers
+    """
+    if isinstance(obj, float):
+        # Convert all floats to integers
+        return int(obj)
+    elif isinstance(obj, dict):
+        return {k: ensure_integer_values(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [ensure_integer_values(item) for item in obj]
+    else:
+        return obj
+
 def save_tools_config(config):
     """
     Save tool configurations to the JSON file.
-    Simple function that saves the entire configuration at once.
+    Converts all numeric values to integers before saving.
     
     Args:
         config: Dictionary of tool configurations
@@ -66,9 +88,12 @@ def save_tools_config(config):
             except Exception as e:
                 ui.notify(f"Warning: Failed to create backup file: {str(e)}", type="warning")
         
+        # Convert all floats to integers
+        integer_config = ensure_integer_values(config)
+        
         # Write the entire configuration to the file
         with open(TOOLS_JSON_PATH, 'w') as f:
-            json.dump(config, f, indent=4)
+            json.dump(integer_config, f, indent=4)
         
         ui.notify(f"Configuration saved", type="positive")
         return True
@@ -79,6 +104,7 @@ def save_tools_config(config):
 def update_tool_preferences(script_name, new_preferences):
     """
     Update tool preferences using a simple load-modify-save approach.
+    Ensures all numeric values are integers.
     
     Args:
         script_name: The script filename
@@ -98,8 +124,18 @@ def update_tool_preferences(script_name, new_preferences):
         
         # MODIFY: Update the preferences
         changes_made = False
+        processed_preferences = {}
         
-        for name, new_value in new_preferences.items():
+        # First process all preferences, converting floats to ints
+        for name, value in new_preferences.items():
+            # Convert all floating-point values to integers
+            if isinstance(value, float):
+                processed_preferences[name] = int(value)
+            else:
+                processed_preferences[name] = value
+        
+        # Now update the configuration with the processed values
+        for name, new_value in processed_preferences.items():
             # Find and update the option in the configuration
             for option in config[script_name]["options"]:
                 if option["name"] == name:
@@ -199,6 +235,10 @@ def run_tool(script_name, args_dict, log_output=None):
     # Convert the arguments dictionary into a command-line argument list
     args_list = []
     for name, value in args_dict.items():
+        # Convert any floats to integers
+        if isinstance(value, float):
+            value = int(value)
+            
         if isinstance(value, bool):
             if value:
                 # Just add the flag for boolean options
@@ -341,6 +381,10 @@ async def build_options_dialog(script_name, options):
                         arg_name = option.get("arg_name", "")
                         default_value = option.get("default")
                         
+                        # If default_value is a float, convert to int
+                        if isinstance(default_value, float):
+                            default_value = int(default_value)
+                        
                         # Format the label
                         label = f"{name}"
                         if arg_name:
@@ -413,6 +457,7 @@ async def build_options_dialog(script_name, options):
                                             value_to_use = None
                                 
                                 # Set precision=0 to force integer values for all number inputs
+                                # This prevents users from entering decimal values
                                 input_field = ui.number(
                                     placeholder="Enter number...", 
                                     value=value_to_use,
@@ -448,7 +493,16 @@ async def build_options_dialog(script_name, options):
                                 continue
                                 
                             current_value = input_element.value
+                            
+                            # Convert any float values to integers
+                            if isinstance(current_value, float):
+                                current_value = int(current_value)
+                                
                             default_value = original_option.get('default')
+                            # Convert default value to int if it's a float
+                            if isinstance(default_value, float):
+                                default_value = int(default_value)
+                                
                             is_required = original_option.get('required', False)
                             
                             # Add to the command execution values if it has a value
@@ -511,20 +565,23 @@ def build_command_string(script_name, option_values):
     
     # Simply include ALL parameters - don't check against defaults
     for name, value in option_values.items():
-        if value is not None:
-            if isinstance(value, bool):
-                if value:
-                    # Just add the flag for boolean options
-                    args_list.append(name)
-            else:
-                # Handle empty strings
-                is_empty_string = isinstance(value, str) and value.strip() == ""
-                is_required = name in required_options
-                
-                # Include the parameter if it's not an empty string or if it's required
-                if not is_empty_string or is_required:
-                    args_list.append(name)
-                    args_list.append(str(value))
+        # Convert any float values to integers
+        if isinstance(value, float):
+            value = int(value)
+            
+        if isinstance(value, bool):
+            if value:
+                # Just add the flag for boolean options
+                args_list.append(name)
+        else:
+            # Handle empty strings
+            is_empty_string = isinstance(value, str) and value.strip() == ""
+            is_required = name in required_options
+            
+            # Include the parameter if it's not an empty string or if it's required
+            if not is_empty_string or is_required:
+                args_list.append(name)
+                args_list.append(str(value))
     
     # Add default save_dir if not specified
     if not any(arg.startswith('--save_dir') for arg in args_list):

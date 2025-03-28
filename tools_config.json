@@ -64,7 +64,7 @@
                 "name": "--request_timeout",
                 "arg_name": "REQUEST_TIMEOUT",
                 "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
-                "default": 400.0,
+                "default": 399,
                 "required": false,
                 "group": "Claude API Configuration"
             },
@@ -88,7 +88,7 @@
                 "name": "--analysis_description",
                 "arg_name": "ANALYSIS_DESCRIPTION",
                 "description": "Optional description to include in output filenames",
-                "default": "true",
+                "default": "",
                 "required": false,
                 "group": "Output Configuration"
             }
@@ -103,7 +103,7 @@
                 "name": "--manuscript_file",
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
-                "default": "manuscript.txt",
+                "default": "",
                 "required": true,
                 "group": "Input Files"
             },
@@ -183,7 +183,7 @@
                 "name": "--analysis_description",
                 "arg_name": "ANALYSIS_DESCRIPTION",
                 "description": "Optional description to include in output filenames",
-                "default": false,
+                "default": "",
                 "required": false,
                 "group": "Output Configuration"
             }
