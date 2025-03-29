@@ -1,6 +1,6 @@
 {
     "brainstorm.py": {
-        "name": "brainstorm.py",
+        "title": "Brainstorm",
         "description": "Helps generate initial story ideas, prompts, and creative angles. Appends more ideas to the existing 'ideas.txt' file.",
         "help_text": "Generates creative writing concepts, characters, and worldbuilding based on input ideas",
         "options": [
@@ -151,7 +151,7 @@
         ]
     },
     "outline_writer.py": {
-        "name": "outline_writer.py",
+        "title": "Outline Writer",
         "description": "Generates a plot outline from your brainstorming file.  You can provide your own outline skeleton and let the AI fill in details.",
         "help_text": "Generates comprehensive novel outlines with customizable sections, chapters, and detail levels",
         "options": [
@@ -293,7 +293,7 @@
         ]
     },
     "world_writer.py": {
-        "name": "world_writer.py",
+        "title": "World Writer",
         "description": "Extract and develop characters and world elements from a novel outline.  It requires: title, POV, and characters.txt and outline.txt.",
         "help_text": "Creates comprehensive world-building documents based on story outlines and character files",
         "options": [
@@ -390,7 +390,7 @@
         ]
     },
     "tokens_words_counter.py": {
-        "name": "tokens_words_counter.py",
+        "title": "Counts words and AI tokens",
         "description": "Counts words and AI tokens for a given text file.",
         "help_text": "Counts words and AI tokens for a given text file.",
         "options": [
@@ -460,7 +460,7 @@
         ]
     },
     "character_analyzer.py": {
-        "name": "character_analyzer.py",
+        "title": "Character Analyzer",
         "description": "Analyzes manuscript, outline, and world files to identify and compare character appearances. It extracts a master character list that details which files each character appears in, examines consistency across documents, and highlights discrepancies in names, roles, or relationships. The analysis produces a detailed report with sections and recommendations to improve character coherence. This is needed because AI draft writing has a tendency to add new characters!",
         "help_text": "Analyze characters across story files using Claude AI.",
         "options": [
@@ -565,8 +565,8 @@
             }
         ]
     },
-    "tense consistency checker": {
-        "name": "tense_consistency_checker.py",
+    "tense_consistency_checker.py": {
+        "title": "Tense Consistency Checker",
         "description": "Examines the manuscript to evaluate verb tense consistency. It identifies shifts between past and present tense that might confuse readers, focusing on unintentional changes in narrative flow. With customizable analysis levels and configurable chapter markers, it generates a detailed report with examples, explanations, and suggestions for improving consistency.",
         "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
         "options": [
@@ -575,7 +575,7 @@
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
                 "type": "str",
-                "default": "manuscript.txt",
+                "default": "",
                 "required": true,
                 "group": "Input Files"
             },

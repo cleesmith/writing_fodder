@@ -376,7 +376,7 @@ async def get_tool_options(script_name, log_output=None):
     # Display the help information in the log if provided
     if log_output:
         log_output.push("Tool information from JSON config:")
-        log_output.push(f"Name: {tool_config['name']}")
+        log_output.push(f"Name: {tool_config['title']}")
         log_output.push(f"Description: {tool_config['description']}")
         log_output.push(f"Help text: {tool_config['help_text']}")
         log_output.push(f"Options: {len(tool_config['options'])} found")
@@ -635,8 +635,6 @@ def build_command_string(script_name, option_values):
     tool_config = config.get(script_name, {})
     options = tool_config.get('options', [])
 
-    actual_script_name = config[script_name]["name"] # with .py
-
     # Get all required option names
     required_options = [opt['name'] for opt in options if opt.get('required', False)]
     
@@ -701,7 +699,7 @@ def build_command_string(script_name, option_values):
             else:
                 quoted_args.append(arg)
     
-    full_command = f"{python_exe} -u {actual_script_name} {' '.join(quoted_args)}"
+    full_command = f"{python_exe} -u {script_name} {' '.join(quoted_args)}"
     
     return full_command, args_list
 
@@ -809,7 +807,7 @@ async def run_tool_ui(script_name, args_dict=None):
     
     # Generate command and args list for display
     full_command, args_list = build_command_string(script_name, args_dict)
-    
+
     # Create a readable version of args for display
     args_display = []
     i = 0
@@ -1146,13 +1144,14 @@ def main():
             
             # Load tool options from JSON file
             config = load_tools_config()
+
             tool_options = []
-            
+
             if config:
                 # Extract tool names and descriptions
                 for tool_name, tool_data in config.items():
                     tool_options.append({
-                        "name": tool_name,
+                        "title": tool_name,
                         "description": tool_data.get("description", "No description available")
                     })
             
@@ -1161,12 +1160,12 @@ def main():
                 default_tool_name = ""
                 default_description = ""
             else:
-                default_tool_name = tool_options[0]["name"]
+                default_tool_name = tool_options[0]["title"]
                 default_description = tool_options[0]["description"]
             
             # Create a dropdown with the tool names
             selected_tool = ui.select(
-                options=[tool["name"] for tool in tool_options] if tool_options else [],
+                options=[tool["title"] for tool in tool_options] if tool_options else [],
                 label='Tool',
                 value=default_tool_name if tool_options else None
             ).classes('w-full')
@@ -1179,7 +1178,7 @@ def main():
                 selected_value = selected_tool.value
                 if selected_value:
                     for tool in tool_options:
-                        if tool['name'] == selected_value:
+                        if tool['title'] == selected_value:
                             tool_description.set_text(tool.get('description', ''))
                             break
                 else:
