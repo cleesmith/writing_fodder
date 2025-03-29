@@ -9,7 +9,7 @@
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
                 "type": "str",
-                "default": "manuscript.txt",
+                "default": "",
                 "required": true,
                 "group": "Input Files"
             },

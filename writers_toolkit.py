@@ -341,7 +341,8 @@ def run_tool(script_name, args_dict, log_output=None):
             log_output.push(result.stdout)
         if result.stderr:
             log_output.push(f"ERROR: {result.stderr}")
-        log_output.push(f"Process finished with return code {result.returncode}")
+        log_output.push(f"\nProcess finished with return code {result.returncode}")
+        log_output.push("Done!")
     
     return result.stdout, result.stderr
 
@@ -562,7 +563,7 @@ async def build_options_dialog(script_name, options):
                                 input_elements[name] = input_field
             
             # Add save preferences checkbox
-            save_preferences_checkbox = ui.checkbox("Save these settings as defaults", value=True)
+            save_preferences_checkbox = True # ui.checkbox("Save these settings as defaults", value=True)
             
             # Button row
             with ui.row().classes('w-full justify-end gap-2 mt-4'):
@@ -600,8 +601,8 @@ async def build_options_dialog(script_name, options):
                             if current_value != default_value:
                                 changed_options[name] = current_value
                     
-                    # Get the save preferences checkbox value
-                    should_save = save_preferences_checkbox.value
+                    # Get the save preferences checkbox value, no, always save:
+                    should_save = True
                     
                     # Save preferences immediately if requested
                     if should_save and changed_options:
@@ -758,7 +759,8 @@ async def show_command_preview(script_name, option_values):
             ui.label(args_str).style('font-family: monospace; overflow-wrap: break-word; color: white;')
         
         # Explanation text
-        ui.label('Review the command above before running it. You can edit the options or proceed with execution.').classes('text-caption mt-3 mb-3')
+        ui.label('Review the command above before running it.').classes('text-caption mt-3 mb-3')
+        ui.label('You can edit the options or proceed with the run.').classes('text-caption mt-3 mb-3')
         
         # Button row
         with ui.row().classes('w-full justify-end gap-2 mt-4'):
@@ -830,9 +832,6 @@ async def run_tool_ui(script_name, args_dict=None):
                 ui.label(f'Running Tool: {script_name}').classes('text-h6')
                 ui.button(icon='close', on_click=dialog.close).props('flat round no-caps')
             
-            # Arguments display
-            ui.label(f"Arguments: {args_str}").classes('text-caption q-px-md')
-            
             # Add row for run button and timer
             with ui.row().classes('w-full items-center justify-between mt-2 mb-0 q-px-md'):
                 # Left side - Run button (primary action) and timer label
@@ -856,7 +855,7 @@ async def run_tool_ui(script_name, args_dict=None):
                     # Force Quit button
                     force_quit_btn = ui.button(
                         "Force Quit", icon="power_settings_new",
-                        on_click=lambda: app.shutdown()
+                        on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
                     ).props('no-caps flat dense').classes('bg-red-600 text-white')
             
             # Output area using a terminal-like log component
@@ -1037,27 +1036,25 @@ async def show_config_dialog():
                 ui.label('Supported Option Types').classes('text-bold')
                 ui.label('When creating your tools_config.json file, you can use the following types:').classes('text-caption text-grey-7')
                 
+                # Define the data for the table
                 types_info = [
-                    {"type": "str", "description": "String values (text)"},
-                    {"type": "int", "description": "Integer values (whole numbers)"},
-                    {"type": "float", "description": "Floating-point values (decimal numbers)"},
-                    {"type": "bool", "description": "Boolean flags (true/false, displayed as checkboxes)"},
-                    {"type": "file", "description": "File paths (includes file browser button)"},
-                    {"type": "path", "description": "Directory paths (includes folder browser button)"},
-                    {"type": "choices", "description": "Selection from a list of options (dropdown)"}
+                    {"Type": "str", "Description": "String values (text)"},
+                    {"Type": "int", "Description": "Integer values (whole numbers)"},
+                    {"Type": "float", "Description": "Floating-point values (decimal numbers)"},
+                    {"Type": "bool", "Description": "Boolean flags (true/false, displayed as checkboxes)"},
+                    {"Type": "file", "Description": "File paths (includes file browser button)"},
+                    {"Type": "path", "Description": "Directory paths (includes folder browser button)"},
+                    {"Type": "choices", "Description": "Selection from a list of options (dropdown)"}
                 ]
                 
-                with ui.table().props('bordered dense').classes('w-full'):
-                    with ui.thead():
-                        with ui.tr():
-                            ui.th('Type')
-                            ui.th('Description')
-                    
-                    with ui.tbody():
-                        for type_info in types_info:
-                            with ui.tr():
-                                ui.td(type_info["type"]).classes('font-mono')
-                                ui.td(type_info["description"])
+                # Create the table with the required 'rows' parameter
+                ui.table(
+                    columns=[
+                        {'name': 'Type', 'label': 'Type', 'field': 'Type', 'align': 'left'},
+                        {'name': 'Description', 'label': 'Description', 'field': 'Description', 'align': 'left'}
+                    ],
+                    rows=types_info
+                ).props('bordered dense').classes('w-full')
                 
                 ui.label('Example JSON option configuration:').classes('text-caption text-grey-7 mt-2')
                 
@@ -1137,7 +1134,9 @@ def main():
             # Right side: Config and Quit buttons
             with ui.row().classes('gap-2'):
                 ui.button("Config", on_click=show_config_dialog).props('no-caps flat').classes('text-green-600')
-                ui.button("Quit", on_click=lambda: app.shutdown()).props('no-caps flat').classes('text-red-600')
+                ui.button("Quit", 
+                    on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
+                    ).props('no-caps flat').classes('text-red-600')
         
         # Combined main card for tool selection and action buttons
         with ui.card().classes('w-full mb-4 p-4'):
@@ -1241,9 +1240,9 @@ def main():
                             continue
                         elif should_run:
                             # User confirmed, run the tool
-                            ui.notify(f"Running {script_name}...", type="info")
+                            # ui.notify(f"*** Running {script_name}...", type="info")
                             await run_tool_ui(script_name, option_values)
-                            ui.notify(f"Finished running {script_name}", type="positive")
+                            # ui.notify(f"*** Finished running {script_name}", type="positive")
                             break
                         else:
                             # User cancelled - don't show any status message

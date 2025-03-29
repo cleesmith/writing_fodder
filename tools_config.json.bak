@@ -9,7 +9,7 @@
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
                 "type": "str",
-                "default": "manuscript.txt",
+                "default": "",
                 "required": true,
                 "group": "Input Files"
             },
@@ -29,7 +29,7 @@
                 "type": "str",
                 "required": false,
                 "group": "Input Files",
-                "default": "/Users/cleesmith/writing/world.txt"
+                "default": ""
             },
             {
                 "name": "--context_window",
@@ -90,7 +90,7 @@
                 "arg_name": "",
                 "description": "Skip saving the AI thinking process (smaller output files)",
                 "type": "bool",
-                "default": false,
+                "default": true,
                 "required": false,
                 "group": "Output Configuration"
             },
