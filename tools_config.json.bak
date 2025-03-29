@@ -90,7 +90,7 @@
                 "arg_name": "",
                 "description": "Skip saving the AI thinking process (smaller output files)",
                 "type": "bool",
-                "default": true,
+                "default": false,
                 "required": false,
                 "group": "Output Configuration"
             },
