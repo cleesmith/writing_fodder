@@ -160,7 +160,7 @@
                 "arg_name": "PREMISE_FILE",
                 "description": "File containing the story premise (required)",
                 "type": "str",
-                "default": "spud.txt",
+                "default": "",
                 "required": true,
                 "group": "Input Files"
             },
@@ -356,7 +356,7 @@
                 "arg_name": "CHARACTERS_FILE",
                 "description": "Characters",
                 "type": "str",
-                "default": "characters.txt",
+                "default": "",
                 "required": true,
                 "group": "Input Files"
             },

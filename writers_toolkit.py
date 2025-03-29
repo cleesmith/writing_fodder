@@ -1151,7 +1151,8 @@ def main():
                 # Extract tool names and descriptions
                 for tool_name, tool_data in config.items():
                     tool_options.append({
-                        "title": tool_name,
+                        "name": tool_name,
+                        "title": tool_data.get("title", tool_name),
                         "description": tool_data.get("description", "No description available")
                     })
             
@@ -1160,16 +1161,18 @@ def main():
                 default_tool_name = ""
                 default_description = ""
             else:
-                default_tool_name = tool_options[0]["title"]
+                default_tool_name = tool_options[0]["name"]
                 default_description = tool_options[0]["description"]
-            
-            # Create a dropdown with the tool names
+
+            # Create a dictionary mapping tool names to their titles
+            options_dict = {tool["name"]: tool["title"] for tool in tool_options} if tool_options else {}
+
             selected_tool = ui.select(
-                options=[tool["title"] for tool in tool_options] if tool_options else [],
+                options=options_dict,
                 label='Tool',
-                value=default_tool_name if tool_options else None
+                value=tool_options[0]["name"] if tool_options else None
             ).classes('w-full')
-            
+
             # Display the description of the selected tool
             tool_description = ui.label(default_description).classes('text-caption text-grey-7 mt-2')
             
@@ -1190,7 +1193,7 @@ def main():
             # Spacer to create vertical space where the status message used to be
             ui.space().classes('h-4')
             
-            # Action buttons row - with the modified button text
+            # Action buttons row
             with ui.row().classes('w-full justify-center gap-4 mt-3'):
                 async def configure_and_run_tool():
                     script_name = selected_tool.value
