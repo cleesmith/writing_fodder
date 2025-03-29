@@ -1,4 +1,394 @@
 {
+    "brainstorm.py": {
+        "name": "brainstorm.py",
+        "description": "Helps generate initial story ideas, prompts, and creative angles. Appends more ideas to the existing 'ideas.txt' file.",
+        "help_text": "Generates creative writing concepts, characters, and worldbuilding based on input ideas",
+        "options": [
+            {
+                "name": "--ideas_file",
+                "arg_name": "IDEAS_FILE",
+                "description": "Path to ideas.txt file containing the concept and/or characters",
+                "type": "str",
+                "default": "/Users/cleesmith/writing/Dire_Consequences/ideas.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--continue",
+                "arg_name": "CONTINUE",
+                "description": "Continue building on existing ideas in the ideas file",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Operation Mode"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds or about 5 minutes)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget",
+                "arg_name": "THINKING_BUDGET",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--max_tokens",
+                "arg_name": "MAX_TOKENS",
+                "description": "Maximum tokens for output (default: 12000)",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 204648)",
+                "type": "int",
+                "default": 204648,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save generated files (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--lang",
+                "arg_name": "LANG",
+                "description": "Language for writing (default: English)",
+                "type": "str",
+                "default": "English",
+                "required": false,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--title",
+                "arg_name": "TITLE",
+                "description": "Suggested title for the writing (optional)",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--genre",
+                "arg_name": "GENRE",
+                "description": "Suggested genre for the writing (optional)",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--num_characters",
+                "arg_name": "NUM_CHARACTERS",
+                "description": "Number of main characters to generate (default: 5)",
+                "type": "int",
+                "default": 5,
+                "required": false,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--worldbuilding_depth",
+                "arg_name": "WORLDBUILDING_DEPTH",
+                "description": "Depth of worldbuilding detail (1-5, where 5 is most detailed) (default: 3)",
+                "type": "int",
+                "default": 3,
+                "required": false,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--character_relationships",
+                "arg_name": "CHARACTER_RELATIONSHIPS",
+                "description": "Include detailed character relationships",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--concept_only",
+                "arg_name": "CONCEPT_ONLY",
+                "description": "Generate only the concept file",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Operation Mode"
+            },
+            {
+                "name": "--characters_only",
+                "arg_name": "CHARACTERS_ONLY",
+                "description": "Generate only the characters file",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Operation Mode"
+            },
+            {
+                "name": "--allow_new_characters",
+                "arg_name": "ALLOW_NEW_CHARACTERS",
+                "description": "Allow creation of new characters not in the ideas file",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Content Configuration"
+            }
+        ]
+    },
+    "outline_writer.py": {
+        "name": "outline_writer.py",
+        "description": "Generates a plot outline from your brainstorming file.  You can provide your own outline skeleton and let the AI fill in details.",
+        "help_text": "Generates comprehensive novel outlines with customizable sections, chapters, and detail levels",
+        "options": [
+            {
+                "name": "--premise_file",
+                "arg_name": "PREMISE_FILE",
+                "description": "File containing the story premise (required)",
+                "type": "str",
+                "default": "spud.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--example_outline",
+                "arg_name": "EXAMPLE_OUTLINE",
+                "description": "Example outline for reference",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--concept_file",
+                "arg_name": "CONCEPT_FILE",
+                "description": "File containing detailed concept information (optional)",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--characters_file",
+                "arg_name": "CHARACTERS_FILE",
+                "description": "File containing character descriptions (optional)",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--sections",
+                "arg_name": "SECTIONS",
+                "description": "Number of main parts/sections in the outline (default: 5)",
+                "type": "int",
+                "default": 5,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--chapters",
+                "arg_name": "CHAPTERS",
+                "description": "Number of chapters in the outline (default: 25)",
+                "type": "int",
+                "default": 25,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--lang",
+                "arg_name": "LANG",
+                "description": "Language for writing (default: English)",
+                "type": "str",
+                "default": "English",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--title",
+                "arg_name": "TITLE",
+                "description": "Suggested title for the novel (optional)",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--genre",
+                "arg_name": "GENRE",
+                "description": "Suggested genre for the novel (optional)",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--detailed",
+                "arg_name": "DETAILED",
+                "description": "Generate a more detailed outline with chapter summaries",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save generated files (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds or about 5 minutes)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget",
+                "arg_name": "THINKING_BUDGET",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--max_tokens",
+                "arg_name": "MAX_TOKENS",
+                "description": "Maximum tokens for output (default: 12000)",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 204648)",
+                "type": "int",
+                "default": 204648,
+                "required": false,
+                "group": "Claude API Configuration"
+            }
+        ]
+    },
+    "world_writer.py": {
+        "name": "world_writer.py",
+        "description": "Extract and develop characters and world elements from a novel outline.  It requires: title, POV, and characters.txt and outline.txt.",
+        "help_text": "Creates comprehensive world-building documents based on story outlines and character files",
+        "options": [
+            {
+                "name": "--thinking_budget",
+                "arg_name": "THINKING_BUDGET",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--max_tokens",
+                "arg_name": "MAX_TOKENS",
+                "description": "Maximum tokens for output (default: 20000)",
+                "type": "int",
+                "default": 20000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 204648)",
+                "type": "int",
+                "default": 204648,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--lang",
+                "arg_name": "LANG",
+                "description": "Language for writing (default: English)",
+                "type": "str",
+                "default": "English",
+                "required": false,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--title",
+                "arg_name": "TITLE",
+                "description": "Title of story",
+                "type": "str",
+                "default": "",
+                "required": true,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--pov",
+                "arg_name": "POV",
+                "description": "Point of view",
+                "type": "str",
+                "default": "third person perspective",
+                "required": true,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--characters_file",
+                "arg_name": "CHARACTERS_FILE",
+                "description": "Characters",
+                "type": "str",
+                "default": "characters.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--outline_file",
+                "arg_name": "OUTLINE_FILE",
+                "description": "Path to the outline file generated by outline_writer.py",
+                "type": "str",
+                "default": null,
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--detailed",
+                "arg_name": "DETAILED",
+                "description": "Generate more detailed character and world profiles",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Content Configuration"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save generated files (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            }
+        ]
+    },
     "tokens_words_counter.py": {
         "name": "tokens_words_counter.py",
         "description": "Counts words and AI tokens for a given text file.",
@@ -6,10 +396,10 @@
         "options": [
             {
                 "name": "--text_file",
-                "arg_name": "MANUSCRIPT_FILE",
+                "arg_name": "TEXT_FILE",
                 "description": "File containing the text to count (required)",
                 "type": "str",
-                "default": "",
+                "default": "manuscript.txt",
                 "required": true,
                 "group": "Input Files"
             },
@@ -57,12 +447,21 @@
                 "default": 300,
                 "required": false,
                 "group": "Claude API Configuration"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save character analysis reports (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
             }
         ]
     },
     "character_analyzer.py": {
         "name": "character_analyzer.py",
-        "description": "Analyzes manuscript, outline, and world files to\n        identify and compare character appearances. It extracts\n        a master character list that details which files each\n        character appears in, examines consistency across documents,\n        and highlights discrepancies in names, roles, or\n        relationships. The analysis produces a detailed report with\n        sections and recommendations to improve character coherence.\n        This is needed because AI draft writing has a tendency to add new characters!\n        ",
+        "description": "Analyzes manuscript, outline, and world files to identify and compare character appearances. It extracts a master character list that details which files each character appears in, examines consistency across documents, and highlights discrepancies in names, roles, or relationships. The analysis produces a detailed report with sections and recommendations to improve character coherence. This is needed because AI draft writing has a tendency to add new characters!",
         "help_text": "Analyze characters across story files using Claude AI.",
         "options": [
             {
@@ -166,9 +565,9 @@
             }
         ]
     },
-    "tense_consistency_checker.py": {
+    "tense consistency checker": {
         "name": "tense_consistency_checker.py",
-        "description": "Analyzes manuscript for verb tense consistency using Claude AI.\n        Identifies and reports on tense shifts, inconsistencies, and patterns\n        across the manuscript. Helps ensure narrative voice remains consistent\n        throughout your story, especially when working with AI-generated content\n        which may struggle with maintaining consistent tense.\n        ",
+        "description": "Examines the manuscript to evaluate verb tense consistency. It identifies shifts between past and present tense that might confuse readers, focusing on unintentional changes in narrative flow. With customizable analysis levels and configurable chapter markers, it generates a detailed report with examples, explanations, and suggestions for improving consistency.",
         "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
         "options": [
             {

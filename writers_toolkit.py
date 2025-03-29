@@ -364,7 +364,7 @@ async def get_tool_options(script_name, log_output=None):
     """
     # Always load the tool configurations fresh from disk
     config = load_tools_config(force_reload=True)
-    
+
     if script_name not in config:
         if log_output:
             log_output.push(f"Error: Configuration for {script_name} not found in JSON config")
@@ -634,7 +634,9 @@ def build_command_string(script_name, option_values):
     config = load_tools_config(force_reload=True)
     tool_config = config.get(script_name, {})
     options = tool_config.get('options', [])
-    
+
+    actual_script_name = config[script_name]["name"] # with .py
+
     # Get all required option names
     required_options = [opt['name'] for opt in options if opt.get('required', False)]
     
@@ -699,7 +701,7 @@ def build_command_string(script_name, option_values):
             else:
                 quoted_args.append(arg)
     
-    full_command = f"{python_exe} -u {script_name} {' '.join(quoted_args)}"
+    full_command = f"{python_exe} -u {actual_script_name} {' '.join(quoted_args)}"
     
     return full_command, args_list
 
