@@ -1,4 +1,65 @@
 {
+    "tokens_words_counter.py": {
+        "name": "tokens_words_counter.py",
+        "description": "Counts words and AI tokens for a given text file.",
+        "help_text": "Counts words and AI tokens for a given text file.",
+        "options": [
+            {
+                "name": "--text_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the text to count (required)",
+                "type": "str",
+                "default": "",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            }
+        ]
+    },
     "character_analyzer.py": {
         "name": "character_analyzer.py",
         "description": "Analyzes manuscript, outline, and world files to\n        identify and compare character appearances. It extracts\n        a master character list that details which files each\n        character appears in, examines consistency across documents,\n        and highlights discrepancies in names, roles, or\n        relationships. The analysis produces a detailed report with\n        sections and recommendations to improve character coherence.\n        This is needed because AI draft writing has a tendency to add new characters!\n        ",
@@ -115,7 +176,7 @@
                 "arg_name": "MANUSCRIPT_FILE",
                 "description": "File containing the manuscript to analyze (required)",
                 "type": "str",
-                "default": "",
+                "default": "manuscript.txt",
                 "required": true,
                 "group": "Input Files"
             },
@@ -187,7 +248,7 @@
                 "arg_name": "SAVE_DIR",
                 "description": "Directory to save tense analysis reports (default: current directory)",
                 "type": "str",
-                "default": false,
+                "default": ".",
                 "required": false,
                 "group": "Output Configuration"
             },

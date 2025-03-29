@@ -17,15 +17,6 @@ except Exception as e:
     print(f"Error reading prompt file '{prompt_file}': {e}")
     sys.exit(1)
 
-# # cls: yields a lower number:
-# response2 = client.beta.messages.count_tokens(
-#     model="claude-3-7-sonnet-20250219",
-#     messages=[{"role": "user", "content": prompt}],
-# )
-# # print(response2)
-# # print(response2.model_dump_json())
-# print(f"input_tokens: {response2.input_tokens}")
-
 response = client.beta.messages.count_tokens(
     model="claude-3-7-sonnet-20250219",
     thinking={
@@ -50,21 +41,27 @@ max_tokens = thinking_tokens + response.input_tokens
 print(f"max_tokens: {max_tokens}")
 
 
-# # Use actual token count from the API response
-# input_tokens = response.input_tokens
+# Calculate available tokens after prompt
+prompt_tokens = prompt_token_count
+available_tokens = args.context_window - prompt_tokens
+# For API call, max_tokens must respect the API limit
+max_tokens = min(available_tokens, args.betas_max_tokens)
+# Thinking budget must be LESS than max_tokens to leave room for visible output
+thinking_budget = max_tokens - args.desired_output_tokens
+if thinking_budget > 32000:
+    print(f"Warning: thinking budget is larger than 32K, reset to 32K. Use batch for larger thinking budgets.")
+    thinking_budget = 32000
 
-# # Calculate available tokens for thinking
-# # Here we account for the 128K output capacity from the beta
-# context_total = 200000  # Total context window size
-# output_capacity = 128000  # From the beta feature
-# reserved_for_output = min(args.max_tokens, output_capacity)  # Your desired output size
-# print(f"reserved_for_output={reserved_for_output}")
+print(f"Running character analysis...")
+print(f"\nToken stats:")
+print(f"Max AI model context window: [{args.context_window}] tokens")
+print(f"Input prompt tokens: [{prompt_tokens}]")
+print(f"Available tokens: [{available_tokens}]  = {args.context_window} - {prompt_tokens}")
+print(f"Desired output tokens: [{args.desired_output_tokens}]")
+print(f"AI model thinking budget: [{thinking_budget}] tokens")
+print(f"Max output tokens (max_tokens): [{max_tokens}] tokens")
 
-# # Maximum thinking budget (with safety buffer)
-# buffer = 1000
-# thinking_budget = context_total - input_tokens - reserved_for_output - buffer
-# # Ensure it's a positive number
-# thinking_budget = max(0, thinking_budget)
-# print(f"thinking_budget={thinking_budget}")
-
+if thinking_budget < args.thinking_budget_tokens:
+    print(f"Error: prompt is too large to have a {args.thinking_budget_tokens} thinking budget!")
+    sys.exit(1)
 
