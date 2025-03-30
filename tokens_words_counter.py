@@ -53,8 +53,18 @@ Example usages:
 
     # Add arguments to the Output Configuration group
     # cls: this is ignored, as the tool only outputs counts
-    output_group.add_argument('--save_dir', type=str, default=".",
-                            help='Directory to save character analysis reports (default: current directory)')
+    # output_group.add_argument('--save_dir', type=str, default=".",
+    #                         help='Directory to save character analysis reports (default: current directory)')
+    # // ,
+    # // {
+    # //     "name": "--save_dir",
+    # //     "arg_name": "SAVE_DIR",
+    # //     "description": "Directory to save character analysis reports (default: current directory)",
+    # //     "type": "str",
+    # //     "default": ".",
+    # //     "required": false,
+    # //     "group": "Output Configuration"
+    # // }
 
     return parser.parse_args()
 

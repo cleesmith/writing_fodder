@@ -447,15 +447,6 @@
                 "default": 300,
                 "required": false,
                 "group": "Claude API Configuration"
-            },
-            {
-                "name": "--save_dir",
-                "arg_name": "SAVE_DIR",
-                "description": "Directory to save character analysis reports (default: current directory)",
-                "type": "str",
-                "default": ".",
-                "required": false,
-                "group": "Output Configuration"
             }
         ]
     },

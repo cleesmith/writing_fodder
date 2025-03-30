@@ -249,44 +249,8 @@ class local_file_picker(ui.dialog):
         except Exception as e:
             self.status_msg.text = f"Error handling selection: {str(e)}"
 
-    # async def handle_ok(self):
-    #     """Handle OK button click"""
-    #     try:
-    #         rows = await self.grid.get_selected_rows()
-    #         valid_paths = []
-            
-    #         for r in rows:
-    #             # Skip parent navigation entry
-    #             if r['path'] == self.PARENT_NAV_ID:
-    #                 continue
-                    
-    #             path = r['path']
-    #             is_dir = r.get('is_dir', False)
-                
-    #             # In folders-only mode, only allow directories
-    #             if self.folders_only:
-    #                 if is_dir:
-    #                     valid_paths.append(path)
-    #             # In regular mode, allow directories and .txt files
-    #             else:
-    #                 if is_dir or path.endswith('.txt'):
-    #                     valid_paths.append(path)
-            
-    #         if valid_paths:
-    #             self.status_msg.text = f"Selected: {valid_paths}"
-    #             self.submit(valid_paths)
-    #         else:
-    #             self.status_msg.text = "No valid items selected"
-                
-    #     except Exception as e:
-    #         self.status_msg.text = f"Error processing selection: {str(e)}"
-    #         # If we can't get selected rows, submit empty list
-    #         self.submit([])
     async def handle_ok(self):
         try:
-            # Show processing notification
-            ui.notify("Processing selection...", timeout=1000)
-            
             # Get selected rows from grid
             rows = await self.grid.get_selected_rows()
             valid_paths = []
@@ -310,7 +274,7 @@ class local_file_picker(ui.dialog):
             
             # Log what we're about to submit
             self.status_msg.text = f"Submitting selection: {valid_paths}"
-            ui.notify(f"Selection: {valid_paths}", timeout=2000)
+            # ui.notify(f"Selection: {valid_paths}", timeout=2000)
             
             # Submit the results and explicitly close the dialog
             self.submit(valid_paths)

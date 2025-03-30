@@ -377,8 +377,8 @@ def run_tool(script_name, args_dict, log_output=None):
             args_list.append(str(value))
     
     # If --save_dir isn't specified, add the default
-    if not any(arg.startswith('--save_dir') for arg in args_list):
-        args_list.extend(['--save_dir', DEFAULT_SAVE_DIR])
+    # if not any(arg.startswith('--save_dir') for arg in args_list):
+    #     args_list.extend(['--save_dir', DEFAULT_SAVE_DIR])
     
     # Determine the Python executable based on platform
     if platform.system() == 'Windows':
@@ -804,8 +804,8 @@ def build_command_string(script_name, option_values):
                 args_list.append(str(value))
     
     # Add default save_dir if not specified
-    if not any(arg.startswith('--save_dir') for arg in args_list):
-        args_list.extend(['--save_dir', DEFAULT_SAVE_DIR])
+    # if not any(arg.startswith('--save_dir') for arg in args_list):
+    #     args_list.extend(['--save_dir', DEFAULT_SAVE_DIR])
     
     # Determine the Python executable based on platform
     python_exe = 'python'  # Using python directly for all platforms
@@ -1027,7 +1027,7 @@ async def run_tool_ui(script_name, args_dict=None):
                 try:
                     # Run the tool and display output
                     stdout, stderr = await run.io_bound(run_tool, script_name, args_dict, log_output)
-                    ui.notify(f"Finished running {script_name}")
+                    ui.notify(f"Finished running {script_name}", type="positive")
                 
                 except Exception as e:
                     log_output.push(f"Error running {script_name}: {e}")
