@@ -88,12 +88,7 @@ def save_global_settings(settings_dict):
         # Update the global settings with the provided values
         config["_global_settings"].update(settings_dict)
         
-        # Save the updated config
         result = save_tools_config(config)
-        
-        if result:
-            ui.notify("Global settings saved", type="positive")
-        
         return result
     except Exception as e:
         ui.notify(f"Error saving global settings: {str(e)}", type="negative")
@@ -146,8 +141,6 @@ def save_tools_config(config):
         # Write the entire configuration to the file
         with open(TOOLS_JSON_PATH, 'w') as f:
             json.dump(integer_config, f, indent=4)
-        
-        ui.notify(f"Configuration saved", type="positive")
         return True
     except Exception as e:
         ui.notify(f"Error saving configuration: {str(e)}", type="negative")
@@ -217,7 +210,7 @@ def update_tool_preferences(script_name, new_preferences):
             changes_made = True
         
         if not changes_made:
-            ui.notify("No changes were made to the configuration", type="info")
+            # ui.notify("No changes were made to the configuration", type="info")
             return True  # Not an error, just no changes
         
         # SAVE: Write the entire configuration back to the file
@@ -482,9 +475,6 @@ async def browse_files_handler(input_element, start_path, option_name, option_ty
         is_dir_selection = "dir" in option_name.lower() or "directory" in option_name.lower() or "folder" in option_name.lower()
         allow_multiple = "multiple" in option_name.lower() or "files" in option_name.lower()
         
-        # Display what we're doing
-        ui.notify(f"Opening file picker for {option_name}...", timeout=1000)
-        
         # Get starting directory
         start_dir = input_element.value if input_element.value else start_path
         if os.path.isfile(os.path.expanduser(start_dir)):
@@ -523,9 +513,6 @@ async def browse_files_handler(input_element, start_path, option_name, option_ty
             }}, 100);
             """
             ui.run_javascript(js_code)
-            
-            # Show a notification
-            ui.notify(f"Selected: {formatted_value}", type="positive")
             return True
         else:
             ui.notify("No selection made", type="warning")
@@ -695,81 +682,6 @@ async def build_options_dialog(script_name, options):
                                     ui.button("Browse", icon='folder_open').props('flat dense no-caps').on('click', 
                                         lambda e, input=current_input, path=current_default_path, n=current_name, t=current_option_type: 
                                             browse_files_handler(input, path, n, t))
-                                    
-                                    # Browse button opens the file picker
-                                    # async def browse_files(input_element=input_field, start_path=default_path):
-                                    #     # Check if the option name suggests folder selection
-                                    #     is_dir_selection = "dir" in name.lower() or "directory" in name.lower() or "folder" in name.lower()
-                                    #     allow_multiple = "multiple" in name.lower() or "files" in name.lower()
-                                        
-                                    #     # Select a starting directory - use the current value if it exists
-                                    #     start_dir = input_element.value if input_element.value else start_path
-                                    #     if os.path.isfile(os.path.expanduser(start_dir)):
-                                    #         # If it's a file, use its parent directory
-                                    #         start_dir = os.path.dirname(start_dir)
-                                        
-                                    #     # Use the file picker
-                                    #     selected = await select_file_or_folder(
-                                    #         start_dir=start_dir,
-                                    #         multiple=allow_multiple,
-                                    #         dialog_title=f"Select {'Folder' if is_dir_selection else 'File'}" 
-                                    #     )
-                                        
-                                    #     # Update the input field with the selection
-                                    #     if selected:
-                                    #         if isinstance(selected, list) and selected:
-                                    #             # If multiple files were selected, join them with comma
-                                    #             input_element.set_value(", ".join(selected))
-                                    #         else:
-                                    #             input_element.set_value(selected)
-                                    # async def browse_files(input_element=input_field, start_path=default_path):
-                                    #     """Browse for files or folders with proper UI context management"""
-                                    #     print(f"\nbrowse_files:\ninput_element:\ntype={type(input_element)}\n{input_element}\n")
-                                    #     try:
-                                    #         # Check option type
-                                    #         is_dir_selection = "dir" in name.lower() or "directory" in name.lower() or "folder" in name.lower()
-                                    #         allow_multiple = "multiple" in name.lower() or "files" in name.lower()
-                                            
-                                    #         # Get starting directory
-                                    #         start_dir = input_element.value if input_element.value else start_path
-                                    #         if os.path.isfile(os.path.expanduser(start_dir)):
-                                    #             start_dir = os.path.dirname(start_dir)
-                                            
-                                    #         # Use file picker
-                                    #         selected = await select_file_or_folder(
-                                    #             start_dir=start_dir,
-                                    #             multiple=allow_multiple,
-                                    #             dialog_title=f"Select {'Folder' if is_dir_selection else 'File'}",
-                                    #             folders_only=is_dir_selection
-                                    #         )
-                                            
-                                    #         # Process selection within proper UI context
-                                    #         if selected:
-                                    #             # Create a formatted value from the selection
-                                    #             if isinstance(selected, list) and selected and allow_multiple:
-                                    #                 formatted_value = ", ".join(selected)
-                                    #             else:
-                                    #                 formatted_value = selected[0] if isinstance(selected, list) and len(selected) == 1 else selected
-                                                
-                                    #             # Use a proper UI context manager for updates
-                                    #             with ui.element():  # This creates a UI context
-                                    #                 # Update within the established context
-                                    #                 input_element.set_value(formatted_value)
-                                                    
-                                    #                 # Show confirmation within the same context
-                                    #                 ui.notify(f"Set value to: {formatted_value}", type="positive")
-                                                
-                                    #             return True
-                                    #         else:
-                                    #             ui.notify("No selection made", type="warning")
-                                    #             return False
-                                                
-                                    #     except Exception as e:
-                                    #         ui.notify(f"Error: {str(e)}", type="negative", timeout=3000)
-                                    #         return False
-
-                                    # ui.button("Browse", icon='folder_open').props('flat dense no-caps').on('click', 
-                                    #     lambda: browse_files())
                             else:
                                 # Default to text input for all other types
                                 input_field = ui.input(
@@ -1167,7 +1079,6 @@ def backup_config_file():
             backup_path = f"{TOOLS_JSON_PATH}.bak"
             with open(TOOLS_JSON_PATH, 'r') as src, open(backup_path, 'w') as dst:
                 dst.write(src.read())
-            ui.notify(f"Created backup", type="positive")
             return True
         else:
             ui.notify(f"Cannot create backup - file does not exist", type="negative")
@@ -1230,15 +1141,12 @@ async def show_config_dialog():
                         new_dir = save_dir_input.value
                         DEFAULT_SAVE_DIR = new_dir
                         save_global_settings({"default_save_dir": new_dir})
-                        ui.notify(f"Default save directory updated and saved", type="positive")
+                        ui.notify(f"Updated save directory.", type="positive", timeout=2000)
                     
                     async def browse_save_dir():
                         try:
                             # Get starting directory from current input value or default to home
                             start_dir = save_dir_input.value if save_dir_input.value else "~"
-                            
-                            # Notify that we're opening the picker
-                            ui.notify(f"Opening folder picker at: {start_dir}")
                             
                             # Use the file picker to select a directory
                             selected = await select_file_or_folder(
@@ -1248,15 +1156,11 @@ async def show_config_dialog():
                                 folders_only=True
                             )
                             
-                            # Debug what was returned
-                            ui.notify(f"Picker returned: {selected}")
-                            
                             # Update the input field with the selection if we got one
                             if selected:
                                 # Use normalized path
                                 normalized_path = os.path.normpath(os.path.expanduser(selected))
                                 save_dir_input.set_value(normalized_path)
-                                ui.notify(f"Updated save directory: {normalized_path}", type="positive", timeout=2000)
                             else:
                                 ui.notify("No directory selected", type="warning", timeout=2000)
                         except Exception as e:
@@ -1369,9 +1273,6 @@ def main():
                         ui.notify('Please select a tool first', type='warning')
                         return
                     
-                    # Use notifications for important status updates
-                    ui.notify(f"Loading options for {script_name}...", type="info", timeout=2000)
-                    
                     # Create a log dialog for displaying JSON information
                     json_dialog = ui.dialog().props('maximized')
                     
@@ -1411,10 +1312,7 @@ def main():
                             options = await get_tool_options(script_name)
                             continue
                         elif should_run:
-                            # User confirmed, run the tool
-                            # ui.notify(f"*** Running {script_name}...", type="info")
                             await run_tool_ui(script_name, option_values)
-                            # ui.notify(f"*** Finished running {script_name}", type="positive")
                             break
                         else:
                             # User cancelled - don't show any status message

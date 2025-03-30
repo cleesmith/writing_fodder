@@ -9,7 +9,7 @@
                 "arg_name": "IDEAS_FILE",
                 "description": "Path to ideas.txt file containing the concept and/or characters",
                 "type": "str",
-                "default": "/Users/cleesmith/writing",
+                "default": "/Users/cleesmith/writing/Tracking_the_Dead_Wax/ideas.txt",
                 "required": true,
                 "group": "Input Files"
             },
@@ -63,7 +63,7 @@
                 "arg_name": "SAVE_DIR",
                 "description": "Directory to save generated files (default: current directory)",
                 "type": "str",
-                "default": "/Users/cleesmith/writing/A_Darker_Roast/manuscript.txt",
+                "default": "/Users/cleesmith/writing",
                 "required": false,
                 "group": "Output Configuration"
             },
@@ -399,7 +399,7 @@
                 "arg_name": "TEXT_FILE",
                 "description": "File containing the text to count (required)",
                 "type": "str",
-                "default": "/Users/cleesmith/writing/A_Darker_Roast/manuscript.txt",
+                "default": "/Users/cleesmith/writing/Tsu_Liz/manuscript.txt",
                 "required": true,
                 "group": "Input Files"
             },
