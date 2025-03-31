@@ -267,7 +267,9 @@ async def edit_tool_dialog(tool_name):
         ui.label(f'Edit Tool: {tool_name}').classes('text-h6 mb-4')
         
         title = ui.input('Title', value=tool_info.get('title', '')).props('outlined').classes('w-full mb-2')
-        description = ui.input('Description', value=tool_info.get('description', '')).props('outlined').classes('w-full mb-2')
+        # description = ui.input('Description', value=tool_info.get('description', '')).props('outlined').classes('w-full mb-2')
+        description = ui.textarea('Description', value=tool_info.get('description', '')).props('outlined').classes('w-full mb-2')
+
         help_text = ui.textarea('Help Text', value=tool_info.get('help_text', '')).props('outlined').classes('w-full mb-4').style('min-height: 200px')
         
         with ui.row().classes('w-full justify-end'):
@@ -310,7 +312,9 @@ async def create_tool_dialog():
         
         tool_name = ui.input('Tool Name (e.g., "tool_name.py")').props('outlined').classes('w-full mb-2')
         title = ui.input('Title').props('outlined').classes('w-full mb-2')
-        description = ui.input('Description').props('outlined').classes('w-full mb-2')
+        # description = ui.input('Description').props('outlined').classes('w-full mb-2')
+        description = ui.textarea('Description').props('outlined').classes('w-full mb-2')
+
         help_text = ui.textarea('Help Text').props('outlined').classes('w-full mb-4').style('min-height: 200px')
         
         with ui.row().classes('w-full justify-end'):
@@ -354,8 +358,9 @@ async def add_option_dialog(tool_name):
         
         option_name = ui.input('Option Name (e.g., "--option_name")').props('outlined').classes('w-full mb-2')
         arg_name = ui.input('Argument Name (e.g., "OPTION_NAME")').props('outlined').classes('w-full mb-2')
-        description = ui.input('Description').props('outlined').classes('w-full mb-2')
-        
+        # description = ui.input('Description').props('outlined').classes('w-full mb-2')
+        description = ui.textarea('Description').props('outlined').classes('w-full mb-2')
+
         option_type = ui.select(
             label='Type',
             options=['str', 'int', 'bool', 'float'],
@@ -458,7 +463,8 @@ async def edit_option_dialog(tool_name, option_name):
             
             # Pre-populate fields with existing values
             arg_name = ui.input('Argument Name', value=option_data.get('arg_name', '')).props('outlined').classes('w-full mb-2')
-            description = ui.input('Description', value=option_data.get('description', '')).props('outlined').classes('w-full mb-2')
+            # description = ui.input('Description', value=option_data.get('description', '')).props('outlined').classes('w-full mb-2')
+            description = ui.textarea('Description', value=option_data.get('description', '')).props('outlined').classes('w-full mb-2')
             
             option_type_val = option_data.get('type', 'str')
             option_type = ui.select(
@@ -612,14 +618,14 @@ async def view_edit_options_dialog(tool_name):
                 ui.label('Required').classes('w-1/12')
                 ui.label('Default').classes('w-1/6')
                 ui.label('Group').classes('w-1/8')
-                ui.label('Actions').classes('w-1/6')
             
             # Create a row for each option
             for option in tool_options:
                 with ui.row().classes('w-full border-b p-2 items-center'):
                     ui.label(option.get('name', '')).classes('w-1/6 overflow-hidden text-ellipsis')
                     ui.label(option.get('type', 'str')).classes('w-1/12')
-                    ui.label(option.get('description', '')).classes('w-1/4 overflow-hidden text-ellipsis')
+                    # ui.label(option.get('description', '')).classes('w-1/4 overflow-hidden text-ellipsis')
+                    ui.label(option.get('description', '')).classes('w-1/4 overflow-hidden text-ellipsis').style('white-space: pre-wrap')
                     ui.label('Yes' if option.get('required', False) else 'No').classes('w-1/12')
                     ui.label(str(option.get('default', 'None'))).classes('w-1/6 overflow-hidden text-ellipsis')
                     ui.label(option.get('group', '')).classes('w-1/8 overflow-hidden text-ellipsis')
@@ -774,8 +780,12 @@ def main():
             
             # Settings and Quit buttons
             with ui.row().classes('gap-2'):
-                ui.button("Settings", on_click=settings_dialog).props('flat').classes('text-green-600')
-                ui.button("Quit", on_click=lambda: app.shutdown()).props('flat').classes('text-red-600')
+                ui.button("Settings", on_click=settings_dialog).props('no-caps flat').classes('text-green-600')
+                # ui.button("Quit", on_click=lambda: app.shutdown()).props('flat').classes('text-red-600')
+                ui.button(
+                    "Quit",
+                    on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
+                ).props('no-caps flat dense').classes('bg-red-600 text-white')
         
         # Config Path Display
         with ui.card().classes('w-full mb-2 p-2 bg-gray-100 dark:bg-gray-800'):
@@ -838,7 +848,7 @@ def main():
             with ui.row().classes('w-full justify-center gap-4 mt-4'):
                 # View/Edit Options button
                 ui.button('Manage Options', icon='settings', on_click=lambda: view_edit_selected_options(selected_tool.value)) \
-                    .props('color=primary') \
+                    .props('no-caps color=primary') \
                     .bind_visibility_from(selected_tool, 'value', backward=lambda v: bool(v))
         
         # Status or help information

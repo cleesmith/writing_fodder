@@ -31,9 +31,9 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('--request',                type=str, help="Single chapter format: --request \"Chapter 9: Title\", \"9: Title\", or \"9. Title\"")
+
 parser.add_argument('--request_timeout',        type=int, default=300, help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds = 5 minutes)')
 parser.add_argument('--max_retries',            type=int, default=1, help='Maximum times to retry request, may get expensive if too many')
-    
 parser.add_argument('--context_window',         type=int, default=200000, help='Context window for Claude 3.7 Sonnet (default: 200000)')
 parser.add_argument('--betas_max_tokens',       type=int, default=128000, help='Maximum tokens for AI output (default: 128000)')
 parser.add_argument('--thinking_budget_tokens', type=int, default=32000, help='Maximum tokens for AI thinking (default: 32000)')

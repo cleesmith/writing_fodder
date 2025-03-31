@@ -1,4 +1,8 @@
 {
+    "_global_settings": {
+        "default_save_dir": "/Users/cleesmith/writing",
+        "tools_config_json_dir": "."
+    },
     "brainstorm.py": {
         "title": "Brainstorm",
         "description": "Helps generate initial story ideas, prompts, and creative angles. Appends more ideas to the existing 'ideas.txt' file.",
@@ -389,6 +393,175 @@
             }
         ]
     },
+    "chapter_writer.py": {
+        "title": "Chapter Writer",
+        "description": "Uses the outline, chapters list, world document, and any existing manuscript to write rough draft chapters",
+        "help_text": "Uses the outline, chapters list, world document, and any existing manuscript to write rough draft chapters",
+        "options": [
+            {
+                "name": "--chapters_to_write",
+                "arg_name": "chapters_to_write",
+                "description": "Path to a file containing a list of chapters to write sequentially, and the format is \"9. Chapter Title\" per line. \nIt may contain one or more chapters. \nIt must match the chapter format in the outline. \nSee: --request to do just one chapter",
+                "type": "str",
+                "default": "chapters.txt",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--manuscript",
+                "arg_name": "manuscript",
+                "description": "Path to manuscript file",
+                "type": "str",
+                "default": "manuscript.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--outline",
+                "arg_name": "outline",
+                "description": "Path to outline file",
+                "type": "str",
+                "default": "outline.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--world",
+                "arg_name": "world",
+                "description": "Path to world file",
+                "type": "str",
+                "default": "world.txt",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--lang",
+                "arg_name": "lang",
+                "description": "Language for writing",
+                "type": "str",
+                "default": "English",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--chapter_delay",
+                "arg_name": "chapter_delay",
+                "description": "Delay in seconds between processing multiple chapters (default: 15 seconds)",
+                "type": "int",
+                "default": 15,
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--no_dialogue_emphasis",
+                "arg_name": "no_dialogue_emphasis",
+                "description": "Turn off the additional dialogue emphasis (dialogue emphasis is ON by default)",
+                "type": "bool",
+                "default": true,
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--no_append",
+                "arg_name": "no_append",
+                "description": "Disable auto-appending new chapters to manuscript file",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "save_dir",
+                "description": "Directory to save chapter files (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": true,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--backup",
+                "arg_name": "backup",
+                "description": "Create backup of manuscript file before appending (default: False)",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "context_window",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000=200K)",
+                "type": "int",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "betas_max_tokens",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "thinking_budget_tokens",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "desired_output_tokens",
+                "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
+                "default": 8000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--show_token_stats",
+                "arg_name": "show_token_stats",
+                "description": "Show tokens stats but do not call API\nYou just want to double check the settings/numbers.",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "request_timeout",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds = 5 minutes)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--max_retries",
+                "arg_name": "max_retries",
+                "description": "Maximum times to retry request, may get expensive if too many",
+                "type": "int",
+                "default": 1,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request",
+                "arg_name": "request",
+                "description": "Single chapter format: --request \"Chapter 9: Title\"   or  \"9: Title\"   or  \"9. Title\"",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Input Files"
+            }
+        ]
+    },
     "tokens_words_counter.py": {
         "title": "Counts words and AI tokens",
         "description": "Counts words and AI tokens for a given text file.",
@@ -661,9 +834,5 @@
                 "group": "Output Configuration"
             }
         ]
-    },
-    "_global_settings": {
-        "default_save_dir": "/Users/cleesmith/writing_foddr",
-        "tools_config_json_dir": "."
     }
 }
