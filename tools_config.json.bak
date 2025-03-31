@@ -64,7 +64,7 @@
                 "description": "Directory to save generated files (default: current directory)",
                 "type": "str",
                 "default": "/Users/cleesmith/writing",
-                "required": false,
+                "required": true,
                 "group": "Output Configuration"
             },
             {
@@ -447,15 +447,6 @@
                 "default": 300,
                 "required": false,
                 "group": "Claude API Configuration"
-            },
-            {
-                "name": "--save_dir",
-                "arg_name": "SAVE_DIR",
-                "description": "Directory to save character analysis reports (default: current directory)",
-                "type": "str",
-                "default": ".",
-                "required": false,
-                "group": "Output Configuration"
             }
         ]
     },
@@ -672,6 +663,7 @@
         ]
     },
     "_global_settings": {
-        "default_save_dir": "/Users/cleesmith/writing/A_Darker_Roast"
+        "default_save_dir": "/Users/cleesmith/writing_foddr",
+        "tools_config_json_dir": "."
     }
 }

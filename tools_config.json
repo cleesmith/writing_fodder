@@ -663,6 +663,7 @@
         ]
     },
     "_global_settings": {
-        "default_save_dir": "/Users/cleesmith/writing/A_Darker_Roast"
+        "default_save_dir": "/Users/cleesmith/writing_foddr",
+        "tools_config_json_dir": "."
     }
 }
