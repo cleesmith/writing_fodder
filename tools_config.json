@@ -835,10 +835,241 @@
             }
         ]
     },
+    "punctuation_auditor.py": {
+        "title": "Punctuation Auditor",
+        "description": "Manuscript analysis utility focused on evaluating punctuation effectiveness.\nIt detects issues such as run-on sentences, missing commas, and irregular punctuation patterns that may hinder clarity and flow.\nConfigurable analysis levels, strictness settings, and selectable punctuation elements enable it to generate a detailed report with examples, explanations, and recommendations for enhancing punctuation and overall readability.",
+        "help_text": "Punctuation Auditor",
+        "options": [
+            {
+                "name": "--manuscript_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the manuscript to analyze",
+                "type": "str",
+                "default": "manuscript.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save tense analysis reports (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--skip_thinking",
+                "arg_name": "skip_thinking",
+                "description": "Skip saving the AI thinking process",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--analysis_description",
+                "arg_name": "ANALYSIS_DESCRIPTION",
+                "description": "Optional description to include in output filenames",
+                "type": "str",
+                "default": "",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--analysis_level",
+                "arg_name": "analysis_level",
+                "description": "Level of analysis detail (default: standard)\nChoices: basic, standard, detailed",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--elements",
+                "arg_name": "elements",
+                "description": "Specific punctuation elements to focus on (default: all elements)\nChoices: commas, periods, semicolons, dashes, parentheses, colons, run-ons",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--strictness",
+                "arg_name": "strictness",
+                "description": "Strictness level for punctuation analysis (default: medium)\nChoices: low, medium, high",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            }
+        ]
+    },
+
+    "consistency_checker.py": {
+        "title": "Consistency Checker",
+        "description": "Manuscript consistency checker utility that compares a manuscript against a world document (and optionally an outline).\nIt supports various consistency checks: world, internal, development, and unresolved—and automatically strips Markdown formatting from responses.\nConfigurable options enable targeted analysis of character, setting, timeline, and thematic consistency, producing detailed reports with examples and recommendations for resolving discrepancies.",
+        "help_text": "Manuscript consistency checker",
+        "options": [
+            {
+                "name": "--manuscript_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the manuscript to analyze",
+                "type": "str",
+                "default": "manuscript.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--world_file",
+                "arg_name": "world_file",
+                "description": "File containing the world details (required)",
+                "type": "str",
+                "default": "world.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--outline_file",
+                "arg_name": "outline_file",
+                "description": "File containing the story outline (optional)",
+                "type": "str",
+                "default": "outline.txt",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save tense analysis reports (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--skip_thinking",
+                "arg_name": "skip_thinking",
+                "description": "Skip saving the AI thinking process",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--check_type",
+                "arg_name": "check_type",
+                "description": "Type of consistency check to perform (default: world)\nChoices: world, internal, development, unresolved, all",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--check_description",
+                "arg_name": "check_description",
+                "description": "Optional description to include in output filenames",
+                "type": "str",
+                "default": "",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            }
+        ]
+    },
     "conflict_analyzer.py": {
         "title": "Conflict Analyzer",
         "description": "Manuscript conflict analysis utility that examines conflict patterns at different narrative levels.\nIt identifies conflict nature, escalation, and resolution at scene, chapter, and arc levels.\nWith customizable analysis levels and selectable conflict types, it produces a detailed report featuring examples, assessments, and recommendations for strengthening narrative tension and coherence.",
-        "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
+        "help_text": "Conflict Analyzer",
         "options": [
             {
                 "name": "--manuscript_file",
@@ -953,7 +1184,7 @@
     "foreshadowing_tracker.py": {
         "title": "Foreshadowing Tracker",
         "description": "Manuscript analysis utility for identifying foreshadowing elements and tracking their payoffs.\n It pinpoints explicit clues, subtle hints, and Chekhov's Gun elements to evaluate how well narrative setups are resolved.\n With customizable options to select foreshadowing types and organization modes (chronological or by type), it generates detailed reports featuring examples, assessments, and recommendations for fulfilling narrative promises.",
-        "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
+        "help_text": "Foreshadowing Tracker",
         "options": [
             {
                 "name": "--manuscript_file",
@@ -1068,7 +1299,7 @@
     "plot_thread_tracker.py": {
         "title": "Plot Thread Tracker",
         "description": "Manuscript analysis utility for identifying and tracking distinct plot threads\u2014revealing how they interconnect, converge, and diverge throughout the narrative.\n It uses text-based representations (with optional ASCII art visualization) and supports configurable analysis depth (basic, detailed, or comprehensive) to produce detailed reports with progression maps, thread connections, and narrative assessments, including manuscript excerpts and recommendations for strengthening the plot architecture.",
-        "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
+        "help_text": "Plot Thread Tracker",
         "options": [
             {
                 "name": "--manuscript_file",

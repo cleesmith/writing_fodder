@@ -852,14 +852,14 @@ def main():
                     .bind_visibility_from(selected_tool, 'value', backward=lambda v: bool(v))
         
         # Status or help information
-        with ui.card().classes('w-full p-4'):
-            ui.label('Quick Help').classes('text-h6 mb-2')
-            ui.label('• Select a tool from the dropdown to work with it').classes('text-body1')
-            ui.label('• Create new tools with the + button').classes('text-body1')
-            ui.label('• Edit tool properties with the pencil button').classes('text-body1')
-            ui.label('• Delete tools with the trash button').classes('text-body1')
-            ui.label('• Click "Manage Options" to add, edit, or delete options for the selected tool').classes('text-body1')
-            ui.label('• Change global settings using the "Settings" button in the header').classes('text-body1')
+        # with ui.card().classes('w-full p-4'):
+        #     ui.label('Quick Help').classes('text-h6 mb-2')
+        #     ui.label('• Select a tool from the dropdown to work with it').classes('text-body1')
+        #     ui.label('• Create new tools with the + button').classes('text-body1')
+        #     ui.label('• Edit tool properties with the pencil button').classes('text-body1')
+        #     ui.label('• Delete tools with the trash button').classes('text-body1')
+        #     ui.label('• Click "Manage Options" to add, edit, or delete options for the selected tool').classes('text-body1')
+        #     ui.label('• Change global settings using the "Settings" button in the header').classes('text-body1')
 
     # Check if config file exists
     config_path = get_config_path()
