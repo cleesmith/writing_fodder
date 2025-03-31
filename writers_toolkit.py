@@ -1248,17 +1248,26 @@ def main():
             # Display the description of the selected tool
             tool_description = ui.label(default_description).classes('text-caption text-grey-7 mt-2')
             
-            # Update the description when the tool selection changes
+            # # Update the description when the tool selection changes
+            # def update_description(e):
+            #     selected_value = selected_tool.value
+            #     if selected_value:
+            #         for tool in tool_options:
+            #             if tool['title'] == selected_value:
+            #                 tool_description.set_text(tool.get('description', ''))
+            #                 break
+            #     else:
+            #         tool_description.set_text('')
             def update_description(e):
-                selected_value = selected_tool.value
+                selected_value = selected_tool.value  # This is the tool name
                 if selected_value:
                     for tool in tool_options:
-                        if tool['title'] == selected_value:
+                        if tool['name'] == selected_value:  # Compare with name, not title
                             tool_description.set_text(tool.get('description', ''))
                             break
                 else:
-                    tool_description.set_text('')
-            
+                    tool_description.set_text('')            
+
             # Attach the update function to the select element's change event
             selected_tool.on('update:model-value', update_description)
             
