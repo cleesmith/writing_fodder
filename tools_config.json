@@ -835,9 +835,115 @@
             }
         ]
     },
+    "adjective_adverb_optimizer.py": {
+        "title": "Adjective Adverb Optimizer",
+        "description": "Analyzes manuscript adjective and adverb usage to pinpoint unnecessary modifiers and overused qualifiers, offering specific suggestions for replacing weak descriptive patterns with stronger verbs and nouns, in line with Ursula K. Le Guin's guidance.",
+        "help_text": "Adjective Adverb Optimizer",
+        "options": [
+            {
+                "name": "--manuscript_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the manuscript to analyze",
+                "type": "str",
+                "default": "manuscript.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save tense analysis reports (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--skip_thinking",
+                "arg_name": "skip_thinking",
+                "description": "Skip saving the AI thinking process",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--analysis_description",
+                "arg_name": "ANALYSIS_DESCRIPTION",
+                "description": "Optional description to include in output filenames",
+                "type": "str",
+                "default": "",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--analysis_level",
+                "arg_name": "analysis_level",
+                "description": "Level of analysis detail (default: standard)\nChoices: basic, standard, detailed",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--focus_areas",
+                "arg_name": "focus_areas",
+                "description": "Specific areas to focus analysis on (default: all areas)\nChoices: qualifiers, adverbs, adjectives, imagery",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            }
+        ]
+    },
     "dangling_modifier_checker.py": {
         "title": "Dangling Modifier Checker",
-        "description": "Manuscript analysis software that detects dangling and misplaced modifiers.\nIt examines text to pinpoint instances where descriptive phrases don’t logically connect to their intended subjects, potentially causing confusion or unintended humor.\nWith customizable analysis level, sensitivity, and specific modifier types, it generates a detailed report complete with examples, explanations, and revision suggestions to enhance clarity and precision.",
+        "description": "Manuscript analysis software that detects dangling and misplaced modifiers.\nIt examines text to pinpoint instances where descriptive phrases don\u2019t logically connect to their intended subjects, potentially causing confusion or unintended humor.\nWith customizable analysis level, sensitivity, and specific modifier types, it generates a detailed report complete with examples, explanations, and revision suggestions to enhance clarity and precision.",
         "help_text": "Dangling Modifier Checker",
         "options": [
             {
@@ -952,7 +1058,7 @@
     },
     "rhythm_analyzer.py": {
         "title": "Rhythm Analyzer",
-        "description": "Manuscript analysis utility for evaluating the rhythm and flow of prose.\nIt measures sentence length variations, detects monotonous patterns, and highlights sections where the writing’s rhythm doesn’t match the intended mood.\n Configurable analysis levels, selectable scene types, and adjustable sensitivity settings allow it to generate a detailed report with examples, explanations, and suggestions for enhancing overall narrative rhythm.",
+        "description": "Manuscript analysis utility for evaluating the rhythm and flow of prose.\nIt measures sentence length variations, detects monotonous patterns, and highlights sections where the writing\u2019s rhythm doesn\u2019t match the intended mood.\n Configurable analysis levels, selectable scene types, and adjustable sensitivity settings allow it to generate a detailed report with examples, explanations, and suggestions for enhancing overall narrative rhythm.",
         "help_text": "Rhythm Analyzer",
         "options": [
             {
@@ -1067,7 +1173,7 @@
     },
     "crowding_leaping_evaluator.py": {
         "title": "Crowding Leaping Evaluator",
-        "description": "Manuscript pacing evaluator that examines narrative structure for pacing issues.\nIt identifies overly dense sections (crowding) and abrupt transitions or time jumps (leaping) based on concepts inspired by Ursula K. Le Guin.\n With configurable analysis levels and sensitivity settings, it produces a detailed report—including optional text-based visualizations—that offers feedback and suggestions for improving narrative rhythm and clarity.",
+        "description": "Manuscript pacing evaluator that examines narrative structure for pacing issues.\nIt identifies overly dense sections (crowding) and abrupt transitions or time jumps (leaping) based on concepts inspired by Ursula K. Le Guin.\n With configurable analysis levels and sensitivity settings, it produces a detailed report\u2014including optional text-based visualizations\u2014that offers feedback and suggestions for improving narrative rhythm and clarity.",
         "help_text": "Crowding Leaping Evaluator",
         "options": [
             {
@@ -1306,7 +1412,7 @@
     },
     "consistency_checker.py": {
         "title": "Consistency Checker",
-        "description": "Manuscript consistency checker utility that compares a manuscript against a world document (and optionally an outline).\nIt supports various consistency checks: world, internal, development, and unresolved—and automatically strips Markdown formatting from responses.\nConfigurable options enable targeted analysis of character, setting, timeline, and thematic consistency, producing detailed reports with examples and recommendations for resolving discrepancies.",
+        "description": "Manuscript consistency checker utility that compares a manuscript against a world document (and optionally an outline).\nIt supports various consistency checks: world, internal, development, and unresolved.\nConfigurable options enable targeted analysis of character, setting, timeline, and thematic consistency, producing detailed reports with examples and recommendations for resolving discrepancies.",
         "help_text": "Manuscript consistency checker",
         "options": [
             {
