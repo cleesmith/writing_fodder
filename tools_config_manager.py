@@ -364,7 +364,20 @@ async def add_option_dialog(tool_name):
         
         default_value = ui.input('Default Value').props('outlined').classes('w-full mb-2')
         required = ui.checkbox('Required')
-        group = ui.input('Group (e.g., "Input Files")').props('outlined').classes('w-full mb-4')
+        
+        # Group dropdown instead of text input
+        group = ui.select(
+            label='Group',
+            options=[
+                'Input Files',
+                'Claude API Configuration',
+                'Output Configuration',
+                'Content Configuration',
+                'Operation Mode',
+                'Analysis Options'
+            ],
+            value='Input Files'
+        ).props('outlined').classes('w-full mb-4')
         
         with ui.row().classes('w-full justify-end'):
             ui.button('Cancel', on_click=lambda: result.close()).props('flat')
@@ -460,7 +473,27 @@ async def edit_option_dialog(tool_name, option_name):
             
             default_value = ui.input('Default Value', value=default_str).props('outlined').classes('w-full mb-2')
             required = ui.checkbox('Required', value=option_data.get('required', False))
-            group = ui.input('Group', value=option_data.get('group', '')).props('outlined').classes('w-full mb-4')
+            
+            # Group dropdown with current value pre-selected
+            group_val = option_data.get('group', 'Input Files')
+            group_options = [
+                'Input Files',
+                'Claude API Configuration',
+                'Output Configuration',
+                'Content Configuration',
+                'Operation Mode',
+                'Analysis Options'
+            ]
+            
+            # If current group value isn't in standard options, add it
+            if group_val and group_val not in group_options:
+                group_options.append(group_val)
+            
+            group = ui.select(
+                label='Group',
+                options=group_options,
+                value=group_val
+            ).props('outlined').classes('w-full mb-4')
             
             with ui.row().classes('w-full justify-end'):
                 ui.button('Cancel', on_click=lambda: result.close()).props('flat')
