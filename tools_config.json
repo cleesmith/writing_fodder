@@ -745,8 +745,8 @@
             },
             {
                 "name": "--analysis_level",
-                "arg_name": "basic,standard,detailed",
-                "description": "Level of tense analysis detail (default: standard)",
+                "arg_name": "analysis_level",
+                "description": "Level of tense analysis detail:\nbasic, standard, detailed",
                 "type": "str",
                 "default": "detailed",
                 "required": false,
@@ -832,6 +832,360 @@
                 "default": "",
                 "required": false,
                 "group": "Output Configuration"
+            }
+        ]
+    },
+    "conflict_analyzer.py": {
+        "title": "Conflict Analyzer",
+        "description": "Manuscript conflict analysis utility that examines conflict patterns at different narrative levels.\nIt identifies conflict nature, escalation, and resolution at scene, chapter, and arc levels.\nWith customizable analysis levels and selectable conflict types, it produces a detailed report featuring examples, assessments, and recommendations for strengthening narrative tension and coherence.",
+        "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
+        "options": [
+            {
+                "name": "--manuscript_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the manuscript to analyze",
+                "type": "str",
+                "default": "manuscript.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--outline_file",
+                "arg_name": "outline_file",
+                "description": "File containing the story outline (optional)",
+                "type": "str",
+                "default": "outline.txt",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save tense analysis reports (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--skip_thinking",
+                "arg_name": "skip_thinking",
+                "description": "Skip saving the AI thinking process",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--analysis_level",
+                "arg_name": "analysis_level",
+                "description": "Level of conflict analysis to perform (default: all)\nChoices: scene, chapter, arc, all",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--analysis_description",
+                "arg_name": "ANALYSIS_DESCRIPTION",
+                "description": "Optional description to include in output filenames",
+                "type": "str",
+                "default": "",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--conflict_types",
+                "arg_name": "conflict_types",
+                "description": "Specific conflict types to analyze (default: all main types)\nChoices: internal, interpersonal, environmental, societal, cosmic",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            }
+        ]
+    },
+    "foreshadowing_tracker.py": {
+        "title": "Foreshadowing Tracker",
+        "description": "Manuscript analysis utility for identifying foreshadowing elements and tracking their payoffs.\n It pinpoints explicit clues, subtle hints, and Chekhov's Gun elements to evaluate how well narrative setups are resolved.\n With customizable options to select foreshadowing types and organization modes (chronological or by type), it generates detailed reports featuring examples, assessments, and recommendations for fulfilling narrative promises.",
+        "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
+        "options": [
+            {
+                "name": "--manuscript_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the manuscript to analyze",
+                "type": "str",
+                "default": "manuscript.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--outline_file",
+                "arg_name": "outline_file",
+                "description": "File containing the story outline (optional)",
+                "type": "str",
+                "default": "outline.txt",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save tense analysis reports (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--skip_thinking",
+                "arg_name": "skip_thinking",
+                "description": "Skip saving the AI thinking process",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--chronological",
+                "arg_name": "chronological",
+                "description": "Sort foreshadowing elements chronologically rather than by type",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--foreshadowing_type",
+                "arg_name": "foreshadowing_type",
+                "description": "Type of foreshadowing to analyze (default: all)\nChoices: explicit, implicit, chekhov, all",
+                "type": "str",
+                "default": "all",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--analysis_description",
+                "arg_name": "ANALYSIS_DESCRIPTION",
+                "description": "Optional description to include in output filenames",
+                "type": "str",
+                "default": "",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
+            }
+        ]
+    },
+    "plot_thread_tracker.py": {
+        "title": "Plot Thread Tracker",
+        "description": "Manuscript analysis utility for identifying and tracking distinct plot threads\u2014revealing how they interconnect, converge, and diverge throughout the narrative.\n It uses text-based representations (with optional ASCII art visualization) and supports configurable analysis depth (basic, detailed, or comprehensive) to produce detailed reports with progression maps, thread connections, and narrative assessments, including manuscript excerpts and recommendations for strengthening the plot architecture.",
+        "help_text": "Analyze manuscript for verb tense consistency using Claude AI.",
+        "options": [
+            {
+                "name": "--manuscript_file",
+                "arg_name": "MANUSCRIPT_FILE",
+                "description": "File containing the manuscript to analyze",
+                "type": "str",
+                "default": "manuscript.txt",
+                "required": true,
+                "group": "Input Files"
+            },
+            {
+                "name": "--outline_file",
+                "arg_name": "outline_file",
+                "description": "File containing the story outline (optional)",
+                "type": "str",
+                "default": "outline.txt",
+                "required": false,
+                "group": "Input Files"
+            },
+            {
+                "name": "--save_dir",
+                "arg_name": "SAVE_DIR",
+                "description": "Directory to save tense analysis reports (default: current directory)",
+                "type": "str",
+                "default": ".",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--skip_thinking",
+                "arg_name": "skip_thinking",
+                "description": "Skip saving the AI thinking process",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--ascii_art",
+                "arg_name": "ascii_art",
+                "description": "Include simple ASCII art visualization in the output",
+                "type": "bool",
+                "default": false,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--analysis_depth",
+                "arg_name": "analysis_depth",
+                "description": "Depth of plot thread analysis to perform (default: comprehensive)",
+                "type": "str",
+                "default": "comprehensive",
+                "required": false,
+                "group": "Analysis Options"
+            },
+            {
+                "name": "--analysis_description",
+                "arg_name": "ANALYSIS_DESCRIPTION",
+                "description": "Optional description to include in output filenames",
+                "type": "str",
+                "default": "",
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--thread_focus",
+                "arg_name": "thread_focus",
+                "description": "Optional list of specific plot threads to focus on (e.g., 'romance' 'mystery'). \nAlternative default: [\"romance\", \"mystery\"]",
+                "type": "str",
+                "default": null,
+                "required": false,
+                "group": "Output Configuration"
+            },
+            {
+                "name": "--context_window",
+                "arg_name": "CONTEXT_WINDOW",
+                "description": "Context window for Claude 3.7 Sonnet (default: 200000)",
+                "type": "int",
+                "default": 200000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--betas_max_tokens",
+                "arg_name": "BETAS_MAX_TOKENS",
+                "description": "Maximum tokens for AI output (default: 128000)",
+                "type": "int",
+                "default": 128000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--thinking_budget_tokens",
+                "arg_name": "THINKING_BUDGET_TOKENS",
+                "description": "Maximum tokens for AI thinking (default: 32000)",
+                "type": "int",
+                "default": 32000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--desired_output_tokens",
+                "arg_name": "DESIRED_OUTPUT_TOKENS",
+                "description": "User desired number of tokens to generate before stopping output",
+                "type": "int",
+                "default": 12000,
+                "required": false,
+                "group": "Claude API Configuration"
+            },
+            {
+                "name": "--request_timeout",
+                "arg_name": "REQUEST_TIMEOUT",
+                "description": "Maximum timeout for each *streamed chunk* of output (default: 300 seconds)",
+                "type": "int",
+                "default": 300,
+                "required": false,
+                "group": "Claude API Configuration"
             }
         ]
     }
