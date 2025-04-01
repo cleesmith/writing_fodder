@@ -241,7 +241,7 @@ async def select_file_or_folder(start_dir=None, multiple=False, dialog_title="Se
         result = await local_file_picker(
             start_dir, 
             multiple=multiple,
-            folders_only=folders_only  # Add this line
+            folders_only=folders_only
         )
         
         if result and not multiple:
