@@ -7,23 +7,25 @@ HOST = "127.0.0.1"
 PORT = 8080
 DEFAULT_CONFIG_FILENAME = "manuscript.txt"
 
-def read_manuscript():
+def read_text_file():
     try:
         if os.path.exists(DEFAULT_CONFIG_FILENAME):
             with open(DEFAULT_CONFIG_FILENAME, 'r', encoding='utf-8') as file:
+                ui.notify('Read text file saved successfully!', type='positive')
                 return file.read()
         else:
             return f"File not found: {DEFAULT_CONFIG_FILENAME}\n\nStart typing to create content!"
     except Exception as e:
         return f"Error reading file: {str(e)}\n\nStart typing to create content!"
 
-def save_manuscript(content):
+def save_text_file(content):
     try:
         with open(DEFAULT_CONFIG_FILENAME, 'w', encoding='utf-8') as file:
             file.write(content)
-        ui.notify('Manuscript saved successfully!', type='positive')
+        ui.notify('Text file saved successfully!', type='positive')
     except Exception as e:
-        ui.notify(f'Error saving file: {str(e)}', type='negative')
+        ui.notify(f'Error saving text file: {str(e)}', type='negative')
+
 
 @ui.page('/')
 def main():
@@ -46,20 +48,22 @@ def main():
         
         # Group all buttons on the right side
         with ui.element().classes('flex gap-2'):
-            ui.button('Refresh', on_click=lambda: editor.set_value(read_manuscript())).props('no-caps flat dense')
-            ui.button('Save', on_click=lambda: save_manuscript(editor.value)).props('no-caps flat dense')
+            ui.button('Reload', on_click=lambda: editor.set_value(read_text_file())).props('no-caps flat dense')
+            ui.button('Save', on_click=lambda: save_text_file(editor.value)).props('no-caps flat dense')
             ui.button(
                 "Quit",
                 on_click=lambda: [ui.notify("Shutting down...", type="warning"), app.shutdown()]
             ).props('no-caps flat dense')
     
     with ui.column().classes('w-full h-full'):
-        # Create the editor
+        # create the text editor
         editor = ui.codemirror(
-            value=read_manuscript(),
+            value=read_text_file(),
             language='textile',
-        ).classes('w-full h-full')
-        editor._props['lineWrapping'] = True
+            line_wrapping=True,
+            highlight_whitespace=True
+        ).classes('w-full h-full').props('autofocus')
+        # editor._props['lineWrapping'] = True
         
         # Bind the editor theme to the dark mode state
         darkness.bind_value_to(
@@ -73,7 +77,7 @@ if __name__ == "__main__":
     ui.run(
         host=HOST,
         port=PORT,
-        title="Manuscript Editor",
+        title="Text Editor",
         reload=False,
         show=True
     )
