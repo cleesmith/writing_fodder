@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from file_folder_local_picker import local_file_picker
 
+from pathlib import Path
 import os
+
 from nicegui import ui, app
 from nicegui.elements.codemirror import CodeMirror
 
@@ -167,12 +169,21 @@ async def main():
     }
     </style>
     """)
-    
-    # Add HTML for creating a dialog with actual Material Icons
+
+    # Get absolute path to your static directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    static_dir = os.path.join(current_dir, 'static')
+
+    # Tell NiceGUI to serve files from this directory
+    app.add_static_files('/static', static_dir)
+
     ui.add_head_html("""
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
     """)
-    
+    # ui.add_head_html("""
+    # <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    # """)
+
     # Initialize dark mode
     darkness = ui.dark_mode(True)
     
@@ -181,7 +192,7 @@ async def main():
     
     # Function to show help dialog with visual icons
     def show_help():
-        # Create a dialog with HTML that includes the actual Material Icons
+        # Create a dialog with HTML that includes FontAwesome icons
         with ui.dialog() as dialog, ui.card().classes('help-dialog'):
             ui.label('Help: text editor').classes('text-h6 text-center q-mb-md')
             
@@ -199,8 +210,8 @@ async def main():
             <div style="padding: 8px;">
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     1. &nbsp;&nbsp;
-                    <i class="material-icons help-dialog-icon" style="margin-right: 12px;">light_mode</i>
-                    <i class="material-icons help-dialog-icon" style="margin-right: 12px;">dark_mode</i>
+                    <i class="fas fa-sun help-dialog-icon" style="margin-right: 12px;"></i>
+                    <i class="fas fa-moon help-dialog-icon" style="margin-right: 12px;"></i>
                     <span>Toggle light/dark theme</span>
                 </div>
                 
@@ -210,25 +221,25 @@ async def main():
                 
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     3. &nbsp;&nbsp;
-                    <i class="material-icons help-dialog-icon" style="margin-right: 12px;">folder</i>
+                    <i class="fas fa-folder-open help-dialog-icon" style="margin-right: 12px;"></i>
                     <span>Open a <b><i>.txt</i></b> file</span>
                 </div>
                 
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     4. &nbsp;&nbsp;
-                    <i class="material-icons help-dialog-icon" style="margin-right: 12px;">save</i>
+                    <i class="fas fa-save help-dialog-icon" style="margin-right: 12px;"></i>
                     <span>Save changes</span>
                 </div>
                 
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     5. &nbsp;&nbsp;
-                    <i class="material-icons help-dialog-icon" style="margin-right: 12px;">help</i>
+                    <i class="fas fa-question-circle help-dialog-icon" style="margin-right: 12px;"></i>
                     <span>Show this help</span>
                 </div>
                 
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
                     6. &nbsp;&nbsp;
-                    <i class="material-icons help-dialog-icon" style="margin-right: 12px;">exit_to_app</i>
+                    <i class="fas fa-sign-out-alt help-dialog-icon" style="margin-right: 12px;"></i>
                     <span>Quit the application</span>
                 </div>
             </div>
@@ -243,23 +254,23 @@ async def main():
     with ui.row().classes('w-full items-center justify-between mb-4'):
         # Left section with theme toggle and FULL file path (no more "Text Editor" label)
         with ui.element().classes('flex items-center gap-4'):
-            # Theme toggle buttons
+            # Theme toggle buttons with FontAwesome icons
             with ui.element():
-                dark_button = ui.button(icon='dark_mode', on_click=lambda: toggle_dark_mode(True)) \
+                dark_button = ui.button(icon='fas fa-moon', on_click=lambda: toggle_dark_mode(True)) \
                     .props('flat fab-mini').tooltip('Dark Mode').bind_visibility_from(darkness, 'value', value=False)
-                light_button = ui.button(icon='light_mode', on_click=lambda: toggle_dark_mode(False)) \
+                light_button = ui.button(icon='fas fa-sun', on_click=lambda: toggle_dark_mode(False)) \
                     .props('flat fab-mini').tooltip('Light Mode').bind_visibility_from(darkness, 'value', value=True)
             
             # Full file path display (more prominent now)
             file_info = ui.label("No file selected").classes('text-subtitle1 text-weight-medium')
         
-        # Group all buttons on the right side
+        # Group all buttons on the right side with FontAwesome icons
         with ui.element().classes('flex gap-2'):
-            ui.button(icon='folder', on_click=pick_file).props('flat fab-mini').tooltip('Open File')
-            ui.button(icon='save', on_click=lambda: save_text_file(editor.value, FILENAME)).props('flat fab-mini').tooltip('Save File')
-            ui.button(icon='help', on_click=show_help).props('flat fab-mini').tooltip('Help')
+            ui.button(icon='fas fa-folder-open', on_click=pick_file).props('flat fab-mini').tooltip('Open File')
+            ui.button(icon='fas fa-save', on_click=lambda: save_text_file(editor.value, FILENAME)).props('flat fab-mini').tooltip('Save File')
+            ui.button(icon='fas fa-question-circle', on_click=show_help).props('flat fab-mini').tooltip('Help')
             ui.button(
-                icon='exit_to_app',
+                icon='fas fa-sign-out-alt',
                 on_click=lambda: [ui.notify("Shutting down...", type="warning"), app.shutdown()]
             ).props('flat fab-mini').tooltip('Quit')
     
