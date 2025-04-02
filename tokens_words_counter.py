@@ -12,6 +12,7 @@ import anthropic
 import argparse
 import sys
 import io
+import os
 import time
 from datetime import datetime
 
@@ -52,19 +53,11 @@ Example usages:
                          help='Maximum timeout for each *streamed chunk* of output (default: 300 seconds)')
 
     # Add arguments to the Output Configuration group
-    # cls: this is ignored, as the tool only outputs counts
-    # output_group.add_argument('--save_dir', type=str, default=".",
-    #                         help='Directory to save character analysis reports (default: current directory)')
-    # // ,
-    # // {
-    # //     "name": "--save_dir",
-    # //     "arg_name": "SAVE_DIR",
-    # //     "description": "Directory to save character analysis reports (default: current directory)",
-    # //     "type": "str",
-    # //     "default": ".",
-    # //     "required": false,
-    # //     "group": "Output Configuration"
-    # // }
+    output_group.add_argument('--save_dir', type=str, default=".",
+                            help='Directory to save output files (default: current directory)')
+    # Add output tracking parameter for Writer's Toolkit integration
+    output_group.add_argument('--output_tracking', type=str, default=None,
+                            help='UUID-based file for tracking output files (used by Writer\'s Toolkit)')
 
     return parser.parse_args()
 
@@ -104,6 +97,52 @@ def count_tokens(client, text):
 def count_words(text):
     """Count the number of words in a text string."""
     return len(text.split())
+
+def write_output_file(args, word_count, prompt_tokens, words_per_token, available_tokens, thinking_budget):
+    """Write token and word count results to an output file."""
+    # Create output filename based on input filename
+    input_base = os.path.basename(args.text_file)
+    input_name = os.path.splitext(input_base)[0]
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = os.path.join(args.save_dir, f"count_{input_name}_{timestamp}.txt")
+    
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
+    
+    # Write results to output file
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(f"Token and Word Count Report\n")
+        f.write(f"=========================\n\n")
+        f.write(f"Analysis of file: {args.text_file}\n")
+        f.write(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write(f"Word count: {word_count}\n")
+        f.write(f"Token count: {prompt_tokens}\n")
+        f.write(f"Words per token ratio: {words_per_token:.2f}\n\n")
+        f.write(f"Context window: {args.context_window} tokens\n")
+        f.write(f"Available tokens: {available_tokens} tokens\n")
+        f.write(f"Thinking budget: {thinking_budget} tokens\n")
+        f.write(f"Desired output tokens: {args.desired_output_tokens} tokens\n")
+    
+    print(f"Report saved to: {output_file}")
+    return os.path.abspath(output_file)
+
+def write_output_tracking(tracking_file, created_files):
+    """Write a list of created files to the specified tracking file."""
+
+    print(f">>> tracking_file={tracking_file}")
+    print(f"*** created_files={created_files}")
+
+    if tracking_file:
+        try:
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(os.path.abspath(tracking_file)), exist_ok=True)
+            
+            # Write each file path on a separate line
+            with open(tracking_file, 'w', encoding='utf-8') as f:
+                for file_path in created_files:
+                    f.write(f"{file_path}\n")
+        except Exception as e:
+            print(f"Error writing output tracking file: {e}")
 
 def main():
     args = parse_arguments()
@@ -165,6 +204,17 @@ def main():
     print(f"\n{word_count} words\n")
     print(f"\n{prompt_tokens} tokens using 'client.beta.messages.count_tokens'")
     print(f"\n***************************************************************************")
+
+    # Write output file with the results
+    created_files = []
+    output_file = write_output_file(args, word_count, prompt_tokens, words_per_token, 
+                                  available_tokens, thinking_budget)
+    created_files.append(output_file)
+    
+    # Write output tracking file if requested
+    if args.output_tracking:
+        print(f"args.output_tracking={args.output_tracking}")
+        write_output_tracking(args.output_tracking, created_files)
 
 if __name__ == "__main__":
     main()

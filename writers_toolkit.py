@@ -8,9 +8,15 @@ import json
 import asyncio
 import platform
 import time
-from nicegui import ui, run, app
+import uuid
+import urllib.parse
 from copy import deepcopy
+
+from nicegui import ui, run, app
+
 from file_folder_local_picker import local_file_picker
+
+import editor_module
 
 # Define host and port for the application
 HOST = "127.0.0.1"
@@ -30,6 +36,14 @@ tool_in_progress = None
 
 # We'll collect references to all "Run" buttons here so we can disable/enable them.
 run_buttons = []
+
+def open_file_in_editor(file_path):
+    """Open a file in the integrated text editor in a new tab."""
+    try:
+        encoded_path = urllib.parse.quote(os.path.abspath(file_path))
+        ui.navigate.to(f"/editor?file={encoded_path}", new_tab=True)
+    except Exception as e:
+        ui.notify(f"Error opening file: {str(e)}", type="negative")
 
 ###############################################################################
 # FUNCTION: Simplified JSON Config handling with Integer Enforcement
@@ -337,9 +351,79 @@ def create_parser_for_tool(script_name, options):
     
     return parser
 
+# def run_tool(script_name, args_dict, log_output=None):
+#     """
+#     Run a tool script with the provided arguments.
+
+#     Args:
+#         script_name: The script filename to run
+#         args_dict: Dictionary of argument name-value pairs
+#         log_output: A ui.log component to output to in real-time
+
+#     Returns:
+#         Tuple of (stdout, stderr) from the subprocess
+#     """
+#     # Get the tool configuration to determine types
+#     config = load_tools_config()
+#     options = config.get(script_name, {}).get("options", [])
+    
+#     # Create a mapping of option names to their types
+#     option_types = {opt["name"]: opt.get("type", "str") for opt in options}
+    
+#     # Convert the arguments dictionary into a command-line argument list
+#     args_list = []
+#     for name, value in args_dict.items():
+#         # Get the option type, default to "str"
+#         option_type = option_types.get(name, "str")
+        
+#         # Handle different types
+#         if option_type == "int" and isinstance(value, float):
+#             value = int(value)
+#         elif option_type == "bool":
+#             if value:
+#                 # Just add the flag for boolean options
+#                 args_list.append(name)
+#             continue  # Skip adding value for boolean options
+        
+#         # For all non-boolean options, add the name and value
+#         if value is not None:
+#             args_list.append(name)
+#             args_list.append(str(value))
+    
+#     # If --save_dir isn't specified, add the default
+#     # if not any(arg.startswith('--save_dir') for arg in args_list):
+#     #     args_list.extend(['--save_dir', DEFAULT_SAVE_DIR])
+    
+#     # Determine the Python executable based on platform
+#     if platform.system() == 'Windows':
+#         python_exe = 'python'  # Using python directly; change to 'py' if needed
+#     else:
+#         python_exe = 'python'
+    
+#     # Construct the full command: python script_name [args]
+#     cmd = [python_exe, "-u", script_name] + args_list
+    
+#     if log_output:
+#         # Log the command
+#         log_output.push(f"Running command: {' '.join(cmd)}")
+#         log_output.push("Working...")
+    
+#     # Run the command and capture output
+#     result = subprocess.run(cmd, capture_output=True, text=True)
+    
+#     if log_output:
+#         # Log the output
+#         if result.stdout:
+#             log_output.push(result.stdout)
+#         if result.stderr:
+#             log_output.push(f"ERROR: {result.stderr}")
+#         log_output.push(f"\nProcess finished with return code {result.returncode}")
+#         log_output.push("Done!")
+    
+#     return result.stdout, result.stderr
 def run_tool(script_name, args_dict, log_output=None):
     """
-    Run a tool script with the provided arguments.
+    Run a tool script with the provided arguments and track output files.
 
     Args:
         script_name: The script filename to run
@@ -347,7 +431,7 @@ def run_tool(script_name, args_dict, log_output=None):
         log_output: A ui.log component to output to in real-time
 
     Returns:
-        Tuple of (stdout, stderr) from the subprocess
+        Tuple of (stdout, stderr, created_files) from the subprocess
     """
     # Get the tool configuration to determine types
     config = load_tools_config()
@@ -355,6 +439,18 @@ def run_tool(script_name, args_dict, log_output=None):
     
     # Create a mapping of option names to their types
     option_types = {opt["name"]: opt.get("type", "str") for opt in options}
+    
+    # Generate a unique ID for this tool run
+    run_uuid = str(uuid.uuid4())
+    print(f"run_uuid={run_uuid}")
+    
+    # Create a path for the output tracking file
+    save_dir = args_dict.get('--save_dir', DEFAULT_SAVE_DIR) 
+    tracking_file = os.path.join(save_dir, f"{run_uuid}.txt")
+    
+    # Add the tracking file parameter to the tool arguments
+    args_dict["--output_tracking"] = tracking_file
+    print(f"args_dict:\n{args_dict}")
     
     # Convert the arguments dictionary into a command-line argument list
     args_list = []
@@ -375,10 +471,6 @@ def run_tool(script_name, args_dict, log_output=None):
         if value is not None:
             args_list.append(name)
             args_list.append(str(value))
-    
-    # If --save_dir isn't specified, add the default
-    # if not any(arg.startswith('--save_dir') for arg in args_list):
-    #     args_list.extend(['--save_dir', DEFAULT_SAVE_DIR])
     
     # Determine the Python executable based on platform
     if platform.system() == 'Windows':
@@ -406,7 +498,26 @@ def run_tool(script_name, args_dict, log_output=None):
         log_output.push(f"\nProcess finished with return code {result.returncode}")
         log_output.push("Done!")
     
-    return result.stdout, result.stderr
+    # Check for the output tracking file
+    created_files = []
+    if os.path.exists(tracking_file):
+        try:
+            with open(tracking_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    file_path = line.strip()
+                    if file_path and os.path.exists(file_path):
+                        created_files.append(file_path)
+            
+            # Clean up the tracking file
+            try:
+                os.remove(tracking_file)
+            except:
+                pass  # Ignore if we can't remove the file
+        except Exception as e:
+            if log_output:
+                log_output.push(f"Error reading output files list: {e}")
+    
+    return result.stdout, result.stderr, created_files
 
 ###############################################################################
 # FUNCTION: Tool Options Retrieval
@@ -992,6 +1103,54 @@ async def run_tool_ui(script_name, args_dict=None):
             log_output.push("Tool output will appear here...")
             
             # Define the function to run the tool with timer updates - inside the dialog scope
+            # async def run_tool_execution():
+            #     global tool_in_progress, timer_task
+                
+            #     # If another tool is running, don't start a new one
+            #     if tool_in_progress is not None:
+            #         ui.notify(f"Cannot run '{script_name}' because '{tool_in_progress}' is already in progress.")
+            #         return
+                
+            #     # Mark this script as running
+            #     tool_in_progress = script_name
+                
+            #     # Clear output and show starting message
+            #     log_output.clear()
+            #     log_output.push(f"Running {script_name} with args: {args_str}")
+                
+            #     # Initialize the timer
+            #     start_time = time.time()
+                
+            #     # Update timer function
+            #     async def update_timer():
+            #         while tool_in_progress:
+            #             elapsed = time.time() - start_time
+            #             minutes = int(elapsed // 60)
+            #             seconds = int(elapsed % 60)
+            #             timer_label.text = f"elapsed time: {minutes}m {seconds}s"
+            #             await asyncio.sleep(1)
+                
+            #     # Start the timer
+            #     if timer_task:
+            #         timer_task.cancel()
+            #     timer_task = asyncio.create_task(update_timer())
+                
+            #     try:
+            #         # Run the tool and display output
+            #         stdout, stderr = await run.io_bound(run_tool, script_name, args_dict, log_output)
+            #         ui.notify(f"Finished running {script_name}", type="positive")
+                
+            #     except Exception as e:
+            #         log_output.push(f"Error running {script_name}: {e}")
+            #         ui.notify(f"Error: {e}")
+                
+            #     finally:
+            #         # Reset the tool in progress
+            #         tool_in_progress = None
+                    
+            #         # Stop the timer
+            #         if timer_task:
+            #             timer_task.cancel()
             async def run_tool_execution():
                 global tool_in_progress, timer_task
                 
@@ -1026,7 +1185,24 @@ async def run_tool_ui(script_name, args_dict=None):
                 
                 try:
                     # Run the tool and display output
-                    stdout, stderr = await run.io_bound(run_tool, script_name, args_dict, log_output)
+                    stdout, stderr, created_files = await run.io_bound(run_tool, script_name, args_dict, log_output)
+                    
+                    # If files were created, add links to open them in the editor
+                    if created_files:
+                        log_output.push("\n\n--- Text Files Created ---")
+                        for file_path in created_files:
+                            if file_path.endswith('.txt'):
+                                file_name = os.path.basename(file_path)
+                                log_output.push(f"• {file_path}")
+                                
+                                # Add a button to open the file in the text editor
+                                # No bind_to() method - removed to fix the error
+                                with ui.row().classes('ml-4 mt-1 mb-2'):
+                                    ui.button(
+                                        f"Open {file_name}", 
+                                        on_click=lambda p=file_path: open_file_in_editor(p)
+                                    ).props('small flat dense no-caps').classes('text-blue')
+                    
                     ui.notify(f"Finished running {script_name}", type="positive")
                 
                 except Exception as e:
