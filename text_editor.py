@@ -16,19 +16,18 @@ def read_text_file(filename=None):
     try:
         if filename and os.path.exists(filename):
             with open(filename, 'r', encoding='utf-8') as file:
-                ui.notify('Read text file successfully!', type='positive')
                 return file.read()
         else:
             if filename:
-                return f"File not found: {filename}\n\nStart typing to create content!"
+                return f"File not found: {filename}\n\nStart typing to create content, or use the folder icon to select a .txt file."
             else:
-                return "No file selected\n\nStart typing to create content!"
+                return "No file selected\n\nStart typing to create content, or use the folder icon to select a .txt file."
     except Exception as e:
-        return f"Error reading file: {str(e)}\n\nStart typing to create content!"
+        return f"Error reading file: {str(e)}\n\nStart typing to create content, or use the folder icon to select a .txt file."
 
 def save_text_file(content, filename=None):
     if not filename:
-        ui.notify('No file selected. Please use "Open" to select a file or create a new one.', type='warning')
+        ui.notify('No file selected. Please use the folder icon to select a file or create a new one by typing.', type='warning')
         return
         
     try:
@@ -52,6 +51,9 @@ async def pick_file() -> None:
                 return
         else:
             FILENAME = result
+        
+        # Convert to absolute path to ensure full path is displayed
+        FILENAME = os.path.abspath(FILENAME)
             
         ui.notify(f'You chose {FILENAME}')
         FILE_CONTENT = read_text_file(FILENAME)
@@ -170,13 +172,6 @@ async def main():
     </style>
     """)
 
-    # Get absolute path to your static directory
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    static_dir = os.path.join(current_dir, 'static')
-
-    # Tell NiceGUI to serve files from this directory
-    app.add_static_files('/static', static_dir)
-
     ui.add_head_html("""
     <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
     """)
@@ -198,9 +193,13 @@ async def main():
             
             ui.html("""
             <div style="padding: 8px; margin-bottom: 16px;">
-                A simple editor for plain text (.txt) files only - no formatting.
+                This app is a browser based simple editor for plain text (.txt) files only.
+                <br>
+                There is no formatting and no Markdown.
                 <br>
                 Includes line numbers and automatic line wrapping for improved readability.
+                <br>
+                It can be used without an internet connection; works offline.
             </div>
             
             <div style="padding: 8px; margin-bottom: 4px;">
@@ -216,7 +215,7 @@ async def main():
                 </div>
                 
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
-                    <span>2. &nbsp;&nbsp;<b>displays: No file selected or the <i>Actual file path</i></b></span>
+                    <span>2. &nbsp;&nbsp;<i>displays:</i> <b>No file selected</b> or the <i>actual path to the file</i></b></span>
                 </div>
                 
                 <div style="display: flex; align-items: center; margin-bottom: 12px;">
@@ -236,18 +235,37 @@ async def main():
                     <i class="fas fa-question-circle help-dialog-icon" style="margin-right: 12px;"></i>
                     <span>Show this help</span>
                 </div>
-                
-                <div style="display: flex; align-items: center; margin-bottom: 12px;">
-                    6. &nbsp;&nbsp;
-                    <i class="fas fa-sign-out-alt help-dialog-icon" style="margin-right: 12px;"></i>
-                    <span>Quit the application</span>
+
+                <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                    <div style="flex-shrink: 0; width: 24px;">6. &nbsp;</div>
+                    <div style="display: flex; flex-direction: column; width: 100%;">
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <i class="fas fa-sign-out-alt help-dialog-icon" style="margin-right: 12px;"></i>
+                            <span>Quit the application</span>
+                        </div>
+                        
+                        <div style="margin-left: 24px; margin-top: 4px; padding: 8px; background-color: rgba(33, 150, 243, 0.1); border-left: 2px solid #2196F3; border-radius: 4px; font-size: 0.9em;">
+                            <small><i>Note: after clicking Quit and after shutdown, you may see:</i></small>
+                            <div style="margin: 4px 0 4px 12px; padding: 4px 8px; border-left: 1px solid #ccc; color: #555;">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <i class="fas fa-exclamation-triangle" style="color: #F9A825; margin-right: 8px; margin-top: 3px;"></i>
+                                    <div>
+                                        Connection lost.<br><br>
+                                        Trying to reconnect...
+                                    </div>
+                                </div>
+                            </div>
+                            <small><i>This is normal behavior, so just ignore it.</i></small>
+                        </div>
+                    </div>
                 </div>
+
             </div>
             """)
             
-            with ui.row().classes('justify-center q-mt-md'):
-                ui.button('close', on_click=dialog.close).props('no-caps flat').classes('help-close-button')
-        
+            with ui.row().classes('justify-center').style('margin-top: -30px'):
+                ui.button('close', on_click=dialog.close).props('no-caps flat').classes('help-close-button')        
+
         dialog.open()
         return dialog
     
@@ -290,6 +308,11 @@ async def main():
 
 
 if __name__ == "__main__":
+    # get absolute path to your static directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    static_dir = os.path.join(current_dir, 'static')
+    app.add_static_files('/static', static_dir)
+
     ui.run(
         host=HOST,
         port=PORT,
