@@ -133,16 +133,17 @@ def write_output_tracking(tracking_file, created_files):
     print(f"*** created_files={created_files}")
 
     if tracking_file:
-        try:
-            # Ensure directory exists
-            os.makedirs(os.path.dirname(os.path.abspath(tracking_file)), exist_ok=True)
-            
-            # Write each file path on a separate line
-            with open(tracking_file, 'w', encoding='utf-8') as f:
-                for file_path in created_files:
-                    f.write(f"{file_path}\n")
-        except Exception as e:
-            print(f"Error writing output tracking file: {e}")
+        # try:
+        # Ensure directory exists
+        # os.makedirs(os.path.dirname(os.path.abspath(tracking_file)), exist_ok=True)
+        
+        # Write each file path on a separate line
+        with open(tracking_file, 'w', encoding='utf-8') as file:
+            for file_path in created_files:
+                print(f"### file_path={file_path}")
+                file.write(f"{file_path}\n")
+        # except Exception as e:
+        #     print(f"Error writing output tracking file: {e}")
 
 def main():
     args = parse_arguments()

@@ -445,8 +445,9 @@ def run_tool(script_name, args_dict, log_output=None):
     print(f"run_uuid={run_uuid}")
     
     # Create a path for the output tracking file
-    save_dir = args_dict.get('--save_dir', DEFAULT_SAVE_DIR) 
-    tracking_file = os.path.join(save_dir, f"{run_uuid}.txt")
+    # save_dir = args_dict.get('--save_dir', DEFAULT_SAVE_DIR) 
+    # tracking_file = os.path.join('.', f"{run_uuid}.txt")
+    tracking_file = "sadie_smuffin.txt"
     
     # Add the tracking file parameter to the tool arguments
     args_dict["--output_tracking"] = tracking_file
