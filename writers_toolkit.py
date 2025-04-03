@@ -72,9 +72,7 @@ def load_tools_config(force_reload=False):
     Returns:
         Dictionary of tool configurations or empty dict if file not found/invalid
     """
-    ### claude code ###
     global DEFAULT_SAVE_DIR, CURRENT_PROJECT, CURRENT_PROJECT_PATH  # Ensure we can modify the global variables
-    ### end claude code ###
     
     if not os.path.exists(TOOLS_JSON_PATH):
         ui.notify(f"Error: Configuration file not found at {TOOLS_JSON_PATH}", type="negative")
@@ -88,29 +86,33 @@ def load_tools_config(force_reload=False):
         if "_global_settings" in config:
             global_settings = config["_global_settings"]
             
-            ### claude code ###
             # Load project settings
             if "current_project" in global_settings:
                 CURRENT_PROJECT = global_settings["current_project"]
+                print(f"From config: CURRENT_PROJECT = {CURRENT_PROJECT}")
             
             if "current_project_path" in global_settings:
                 CURRENT_PROJECT_PATH = os.path.expanduser(global_settings["current_project_path"])
+                print(f"From config: CURRENT_PROJECT_PATH = {CURRENT_PROJECT_PATH}")
                 
             # Prefer to use project path for save dir if available
             if "default_save_dir" in global_settings:
                 saved_dir = global_settings["default_save_dir"]
                 # Expand user path if needed (convert ~ to actual home directory)
                 DEFAULT_SAVE_DIR = os.path.expanduser(saved_dir)
+                print(f"From config: DEFAULT_SAVE_DIR = {DEFAULT_SAVE_DIR}")
             elif CURRENT_PROJECT_PATH:
                 # If no save dir but we have a project path, use that
                 DEFAULT_SAVE_DIR = CURRENT_PROJECT_PATH
+                print(f"Using project path: DEFAULT_SAVE_DIR = {DEFAULT_SAVE_DIR}")
             else:
                 # Fallback to projects directory
                 DEFAULT_SAVE_DIR = PROJECTS_DIR
-            ### end claude code ###
+                print(f"Using default: DEFAULT_SAVE_DIR = {DEFAULT_SAVE_DIR}")
         
         return config
     except Exception as e:
+        print(f"\nError loading JSON config:\n{str(e)}\n")
         ui.notify(f"Error loading JSON config: {str(e)}", type="negative")
         return {}
 
@@ -1069,147 +1071,6 @@ def clear_output(log_output, timer_label=None):
 # FUNCTION: Tool Runner UI
 ###############################################################################
 
-# async def run_tool_ui(script_name, args_dict=None):
-#     """
-#     Create a dialog to run a tool and show its output
-    
-#     Args:
-#         script_name: The script to run
-#         args_dict: Dictionary of argument name-value pairs
-#     """
-#     global tool_in_progress, timer_task
-    
-#     if args_dict is None:
-#         args_dict = {}
-    
-#     # Generate command and args list for display
-#     full_command, args_list = build_command_string(script_name, args_dict)
-
-#     # Create a readable version of args for display
-#     args_display = []
-#     i = 0
-#     while i < len(args_list):
-#         if i+1 < len(args_list) and args_list[i].startswith('--'):
-#             # Combine option and value
-#             args_display.append(f"{args_list[i]} {args_list[i+1]}")
-#             i += 2
-#         else:
-#             # Just a flag
-#             args_display.append(args_list[i])
-#             i += 1
-    
-#     args_str = " ".join(args_display)
-    
-#     dialog = ui.dialog().props('maximized')
-    
-#     with dialog, ui.card().classes('w-full h-full'):
-#         with ui.column().classes('w-full h-full'):
-#             # Header with title and close button
-#             with ui.row().classes('w-full justify-between items-center q-pa-md'):
-#                 ui.label(f'Running Tool: {script_name}').classes('text-h6')
-#                 ui.button(icon='close', on_click=dialog.close).props('flat round no-caps')
-            
-#             # Add row for run button and timer
-#             with ui.row().classes('w-full items-center justify-between mt-2 mb-0 q-px-md'):
-#                 # Left side - Run button (primary action) and timer label
-#                 with ui.row().classes('items-center gap-2'):
-#                     run_btn = ui.button(
-#                         f"Run {script_name}:",
-#                         on_click=lambda: run_tool_execution()
-#                     ).classes('bg-green-600 text-white').props('no-caps flat dense')
-                    
-#                     # Add timer label next to the run button
-#                     timer_label = ui.label("elapsed time: 0m 0s").classes('text-italic').style('margin-left: 10px; min-width: 120px;')
-                
-#                 # Right side - utility buttons
-#                 with ui.row().classes('items-center gap-2'):
-#                     # Clear button with blue styling
-#                     clear_btn = ui.button(
-#                         "Clear", icon="cleaning_services",
-#                         on_click=lambda: clear_output(log_output, timer_label)
-#                     ).props('no-caps flat dense').classes('bg-blue-600 text-white')
-                    
-#                     # Force Quit button
-#                     force_quit_btn = ui.button(
-#                         "Force Quit", icon="power_settings_new",
-#                         on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
-#                     ).props('no-caps flat dense').classes('bg-red-600 text-white')
-            
-#             # Output area using a terminal-like log component
-#             log_output = ui.log().classes('w-full flex-grow') \
-#                 .style('min-height: 60vh; background-color: #0f1222; color: #b2f2bb; font-family: monospace; padding: 1rem; border-radius: 4px; margin: 1rem;')
-#             log_output.push("Tool output will appear here...")
-
-#             async def run_tool_execution():
-#                 global tool_in_progress, timer_task
-                
-#                 # If another tool is running, don't start a new one
-#                 if tool_in_progress is not None:
-#                     ui.notify(f"Cannot run '{script_name}' because '{tool_in_progress}' is already in progress.")
-#                     return
-                
-#                 # Mark this script as running
-#                 tool_in_progress = script_name
-                
-#                 # Clear output and show starting message
-#                 log_output.clear()
-#                 log_output.push(f"Running {script_name} with args: {args_str}")
-                
-#                 # Initialize the timer
-#                 start_time = time.time()
-                
-#                 # Update timer function
-#                 async def update_timer():
-#                     while tool_in_progress:
-#                         elapsed = time.time() - start_time
-#                         minutes = int(elapsed // 60)
-#                         seconds = int(elapsed % 60)
-#                         timer_label.text = f"elapsed time: {minutes}m {seconds}s"
-#                         await asyncio.sleep(1)
-                
-#                 # Start the timer
-#                 if timer_task:
-#                     timer_task.cancel()
-#                 timer_task = asyncio.create_task(update_timer())
-                
-#                 try:
-#                     # Run the tool and display output
-#                     print(f"\n??? await run.io_bound({run_tool}\nscript_name={script_name}\nargs_dict={args_dict}\nlog_output={log_output})\n")
-#                     stdout, stderr, created_files = await run.io_bound(run_tool, script_name, args_dict, log_output)
-                    
-#                     # If files were created, add links to open them in the editor
-#                     if created_files:
-#                         log_output.push("\n\n--- Text Files Created ---")
-#                         for file_path in created_files:
-#                             if file_path.endswith('.txt'):
-#                                 file_name = os.path.basename(file_path)
-#                                 log_output.push(f"• {file_path}")
-                                
-#                                 # Add a button to open the file in the text editor
-#                                 # No bind_to() method - removed to fix the error
-#                                 with ui.row().classes('ml-4 mt-1 mb-2'):
-#                                     ui.button(
-#                                         f"Open {file_name}", 
-#                                         on_click=lambda p=file_path: open_file_in_editor(p)
-#                                     ).props('small flat dense no-caps').classes('text-blue')
-                    
-#                     ui.notify(f"Finished running {script_name}", type="positive")
-                
-#                 except Exception as e:
-#                     log_output.push(f"Error running {script_name}: {e}")
-#                     ui.notify(f"Error: {e}")
-                
-#                 finally:
-#                     # Reset the tool in progress
-#                     tool_in_progress = None
-                    
-#                     # Stop the timer
-#                     if timer_task:
-#                         timer_task.cancel()
-    
-#     # Open the dialog
-#     dialog.open()
-
 async def run_tool_ui(script_name, args_dict=None):
     """
     Create a dialog to run a tool and show its output
@@ -1295,10 +1156,6 @@ async def run_tool_ui(script_name, args_dict=None):
                     ui.add_head_html(css_string)
                     
                     # Function to handle file selection
-                    # def open_selected_file():
-                    #     selected_file = file_select.value
-                    #     if selected_file and selected_file in file_options:
-                    #         open_file_in_editor(file_options[selected_file])
                     def open_selected_file():
                         selected_files = file_select.value
                         if selected_files:
@@ -1481,7 +1338,7 @@ async def select_project_dialog():
     This dialog is shown on startup and is required before using the toolkit.
     
     Returns:
-        Tuple of (project_name, project_path)
+        Tuple of (project_name, project_path) or (None, None) if closed without selection
     """
     global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
     
@@ -1507,7 +1364,12 @@ async def select_project_dialog():
     dialog.props('persistent')
     
     with dialog, ui.card().classes('w-full max-w-3xl p-4'):
-        ui.label('Select or Create a Project').classes('text-h6 mb-4')
+        # Header with title and close button
+        with ui.row().classes('w-full justify-between items-center mb-4'):
+            ui.label('Select or Create a Project').classes('text-h6')
+            # Close button in the header
+            ui.button(icon='close', on_click=lambda: [dialog.close(), result_future.set_result((None, None))]) \
+                .props('flat round dense').tooltip('Close without selecting')
         
         with ui.column().classes('w-full gap-4'):
             # Project selection section
@@ -1546,10 +1408,10 @@ async def select_project_dialog():
             ui.label(f"All projects are stored in: {PROJECTS_DIR}").classes('text-caption text-grey-7 mt-2')
             ui.label("You must select or create a project to continue.").classes('text-caption text-grey-7')
             
-            # Add cancel button for situations where user wants to exit without selecting
-            ui.button('Exit Without Selecting', 
-                     on_click=lambda: [dialog.close(), result_future.set_result((None, None))]) \
-               .props('flat no-caps').classes('text-grey self-end mt-4')
+            # Bottom buttons including Cancel/Close
+            with ui.row().classes('w-full justify-end gap-2 mt-4'):
+                ui.button('Cancel', on_click=lambda: [dialog.close(), result_future.set_result((None, None))]) \
+                   .props('no-caps').classes('text-grey-8')
         
         def use_selected_project():
             selected_project = project_select.value
@@ -1564,26 +1426,33 @@ async def select_project_dialog():
             CURRENT_PROJECT_PATH = project_path
             DEFAULT_SAVE_DIR = project_path
             
-            # Load the current config to ensure we have valid config before saving
+            print(f"Selected project: {CURRENT_PROJECT}")
+            print(f"Project path: {CURRENT_PROJECT_PATH}")
+            print(f"Default save dir: {DEFAULT_SAVE_DIR}")
+            
+            # Be careful with config saving - make sure we have tools first
             config = load_tools_config(force_reload=True)
-            if not config or len(config) <= 1:  # Empty or just global settings
-                ui.notify("Warning: Unable to validate configuration file - project set but settings not saved", type="warning")
-                dialog.close()
-                result_future.set_result((selected_project, project_path))
-                return
+            has_tools = False
+            for key in config.keys():
+                if not key.startswith('_'):
+                    has_tools = True
+                    break
             
-            # Save in global settings
-            success = save_global_settings({
-                "default_save_dir": project_path,
-                "current_project": selected_project,
-                "current_project_path": project_path
-            })
-            
-            if success:
-                ui.notify(f"Project '{selected_project}' opened successfully", type="positive")
-            else:
-                ui.notify(f"Project '{selected_project}' set but settings could not be saved", type="warning")
+            if has_tools:
+                # Only save settings if we have valid tools in the config
+                success = save_global_settings({
+                    "default_save_dir": project_path,
+                    "current_project": selected_project,
+                    "current_project_path": project_path
+                })
                 
+                if success:
+                    ui.notify(f"Project '{selected_project}' opened successfully", type="positive")
+                else:
+                    ui.notify(f"Project set but settings not saved to config", type="warning")
+            else:
+                ui.notify(f"Project '{selected_project}' set (no settings saved)", type="info")
+            
             dialog.close()
             result_future.set_result((selected_project, project_path))
         
@@ -1618,26 +1487,33 @@ async def select_project_dialog():
                 CURRENT_PROJECT_PATH = project_path
                 DEFAULT_SAVE_DIR = project_path
                 
-                # Load the current config to ensure we have valid config before saving
+                print(f"Created project: {CURRENT_PROJECT}")
+                print(f"Project path: {CURRENT_PROJECT_PATH}")
+                print(f"Default save dir: {DEFAULT_SAVE_DIR}")
+                
+                # Be careful with config saving - make sure we have tools first
                 config = load_tools_config(force_reload=True)
-                if not config or len(config) <= 1:  # Empty or just global settings
-                    ui.notify("Warning: Unable to validate configuration file - project created but settings not saved", type="warning")
-                    dialog.close()
-                    result_future.set_result((new_project_name, project_path))
-                    return
+                has_tools = False
+                for key in config.keys():
+                    if not key.startswith('_'):
+                        has_tools = True
+                        break
                 
-                # Save in global settings
-                success = save_global_settings({
-                    "default_save_dir": project_path,
-                    "current_project": new_project_name,
-                    "current_project_path": project_path
-                })
-                
-                if success:
-                    ui.notify(f"Project '{new_project_name}' created successfully", type="positive")
-                else:
-                    ui.notify(f"Project '{new_project_name}' created but settings could not be saved", type="warning")
+                if has_tools:
+                    # Only save settings if we have valid tools in the config
+                    success = save_global_settings({
+                        "default_save_dir": project_path,
+                        "current_project": new_project_name,
+                        "current_project_path": project_path
+                    })
                     
+                    if success:
+                        ui.notify(f"Project '{new_project_name}' created successfully", type="positive")
+                    else:
+                        ui.notify(f"Project created but settings not saved to config", type="warning")
+                else:
+                    ui.notify(f"Project '{new_project_name}' created (no settings saved)", type="info")
+                
                 dialog.close()
                 result_future.set_result((new_project_name, project_path))
                 
@@ -1742,9 +1618,12 @@ async def show_config_dialog():
 # Main UI and Workflow
 ###############################################################################
 
+### claude code ###
 @ui.page('/')
 async def main():
     darkness = ui.dark_mode(True)
+    
+    global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
 
     # Check for config file first
     if not check_config_file():
@@ -1761,17 +1640,27 @@ async def main():
             if project_name is None:
                 ui.label("Application requires a project to be selected. Please restart and select a project.").classes('text-negative')
                 return
+            
+            # Explicitly update global variables again to ensure they're set in this scope
+            CURRENT_PROJECT = project_name
+            CURRENT_PROJECT_PATH = project_path
+            DEFAULT_SAVE_DIR = project_path
                 
         except Exception as e:
             ui.notify(f"Error selecting project: {str(e)}", type="negative")
             ui.label("Encountered an error during project selection. Please restart the application.").classes('text-negative')
             return
-        
-        # If still no project, show error and quit
-        if not CURRENT_PROJECT:
-            ui.notify("Project selection is required to use the toolkit.", type="negative")
-            ui.label("Please restart the application and select a project.")
-            return
+    
+    # Debug output to verify values are set
+    print(f"DEBUG: CURRENT_PROJECT={CURRENT_PROJECT}")
+    print(f"DEBUG: CURRENT_PROJECT_PATH={CURRENT_PROJECT_PATH}")
+    print(f"DEBUG: DEFAULT_SAVE_DIR={DEFAULT_SAVE_DIR}")
+    
+    # Re-check that we now have a project set
+    if not CURRENT_PROJECT or not CURRENT_PROJECT_PATH:
+        ui.notify("Project selection is required to use the toolkit.", type="negative")
+        ui.label("Please restart the application and select a project.")
+        return
     
     with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
         # Header row with dark mode toggle, title, and buttons
@@ -1806,9 +1695,16 @@ async def main():
                 
                 async def change_project():
                     # Show the project selection dialog
-                    await select_project_dialog()
-                    # Refresh the page
-                    ui.navigate.reload()
+                    project_name, project_path = await select_project_dialog()
+                    
+                    # If a new project was selected, update globals and refresh
+                    if project_name and project_path:
+                        global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
+                        CURRENT_PROJECT = project_name
+                        CURRENT_PROJECT_PATH = project_path
+                        DEFAULT_SAVE_DIR = project_path
+                        # Refresh the page
+                        ui.navigate.reload()
         
         # Combined main card for tool selection and action buttons
         with ui.card().classes('w-full mb-4 p-4'):

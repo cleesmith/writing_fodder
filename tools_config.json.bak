@@ -1,6 +1,6 @@
 {
     "_global_settings": {
-        "default_save_dir": "/Users/cleesmith/writing",
+        "default_save_dir": "/Users/cleesmith/writing/",
         "tools_config_json_dir": "."
     },
     "brainstorm.py": {
@@ -572,7 +572,7 @@
                 "arg_name": "TEXT_FILE",
                 "description": "File containing the text to count (required)",
                 "type": "str",
-                "default": "/Users/cleesmith/writing/Tsu_Liz/manuscript.txt",
+                "default": "/Users/cleesmith/writing/Spud/Building with extended thinking - Anthropic.txt",
                 "required": true,
                 "group": "Input Files"
             },
