@@ -21,8 +21,21 @@ import editor_module
 HOST = "127.0.0.1"
 PORT = 8081
 
+### claude code ###
+# Default projects directory - all projects must be in this folder
+PROJECTS_DIR = os.path.expanduser("~/writing")
+# Ensure the projects directory exists
+os.makedirs(PROJECTS_DIR, exist_ok=True)
+# Default save directory - initially set to projects directory
+DEFAULT_SAVE_DIR = PROJECTS_DIR
+# Current project name and path
+CURRENT_PROJECT = None
+CURRENT_PROJECT_PATH = None
+### end claude code ###
+
+# Original:
 # Default save directory
-DEFAULT_SAVE_DIR = os.path.expanduser("~")
+# DEFAULT_SAVE_DIR = os.path.expanduser("~")
 
 # Default JSON file path for tool configurations
 TOOLS_JSON_PATH = "tools_config.json"
@@ -59,7 +72,9 @@ def load_tools_config(force_reload=False):
     Returns:
         Dictionary of tool configurations or empty dict if file not found/invalid
     """
-    global DEFAULT_SAVE_DIR  # Ensure we can modify the global variable
+    ### claude code ###
+    global DEFAULT_SAVE_DIR, CURRENT_PROJECT, CURRENT_PROJECT_PATH  # Ensure we can modify the global variables
+    ### end claude code ###
     
     if not os.path.exists(TOOLS_JSON_PATH):
         ui.notify(f"Error: Configuration file not found at {TOOLS_JSON_PATH}", type="negative")
@@ -70,10 +85,29 @@ def load_tools_config(force_reload=False):
             config = json.load(f)
         
         # Check for global settings and update DEFAULT_SAVE_DIR if available
-        if "_global_settings" in config and "default_save_dir" in config["_global_settings"]:
-            saved_dir = config["_global_settings"]["default_save_dir"]
-            # Expand user path if needed (convert ~ to actual home directory)
-            DEFAULT_SAVE_DIR = os.path.expanduser(saved_dir)
+        if "_global_settings" in config:
+            global_settings = config["_global_settings"]
+            
+            ### claude code ###
+            # Load project settings
+            if "current_project" in global_settings:
+                CURRENT_PROJECT = global_settings["current_project"]
+            
+            if "current_project_path" in global_settings:
+                CURRENT_PROJECT_PATH = os.path.expanduser(global_settings["current_project_path"])
+                
+            # Prefer to use project path for save dir if available
+            if "default_save_dir" in global_settings:
+                saved_dir = global_settings["default_save_dir"]
+                # Expand user path if needed (convert ~ to actual home directory)
+                DEFAULT_SAVE_DIR = os.path.expanduser(saved_dir)
+            elif CURRENT_PROJECT_PATH:
+                # If no save dir but we have a project path, use that
+                DEFAULT_SAVE_DIR = CURRENT_PROJECT_PATH
+            else:
+                # Fallback to projects directory
+                DEFAULT_SAVE_DIR = PROJECTS_DIR
+            ### end claude code ###
         
         return config
     except Exception as e:
@@ -91,8 +125,13 @@ def save_global_settings(settings_dict):
         Boolean indicating success or failure
     """
     try:
-        # Read the current config
+        # Read the current config - FORCE RELOAD to get the latest version
         config = load_tools_config(force_reload=True)
+        
+        # If we got an empty config, something went wrong - don't save it
+        if not config:
+            ui.notify("Error: Cannot save settings because config file couldn't be loaded", type="negative")
+            return False
         
         # Create _global_settings section if it doesn't exist
         if "_global_settings" not in config:
@@ -100,6 +139,19 @@ def save_global_settings(settings_dict):
         
         # Update the global settings with the provided values
         config["_global_settings"].update(settings_dict)
+        
+        # Sanity check: make sure we're not overwriting with just global settings
+        # This ensures we're not accidentally removing tool configurations
+        if len(config.keys()) <= 1:  # Only _global_settings or empty
+            backup_path = f"{TOOLS_JSON_PATH}.before_error"
+            try:
+                with open(TOOLS_JSON_PATH, 'r') as src, open(backup_path, 'w') as dst:
+                    dst.write(src.read())
+                ui.notify(f"Error: Configuration would be invalid. Created safety backup at {backup_path}", 
+                         type="negative")
+            except Exception:
+                pass
+            return False
         
         result = save_tools_config(config)
         return result
@@ -139,6 +191,22 @@ def save_tools_config(config):
         Boolean indicating success or failure
     """
     try:
+        # SAFETY CHECK - never save an empty configuration
+        if not config or len(config) == 0:
+            ui.notify("Error: Refusing to save empty configuration", type="negative")
+            return False
+            
+        # Ensure we're not just saving _global_settings
+        has_real_tools = False
+        for key in config.keys():
+            if not key.startswith('_'):
+                has_real_tools = True
+                break
+                
+        if not has_real_tools:
+            ui.notify("Error: Configuration contains no tool definitions", type="negative")
+            return False
+        
         # Create a backup of the current file if it exists
         if os.path.exists(TOOLS_JSON_PATH):
             backup_path = f"{TOOLS_JSON_PATH}.bak"
@@ -1403,6 +1471,184 @@ def restore_config_from_backup():
         return False
 
 ###############################################################################
+# Project Management Functions
+###############################################################################
+
+async def select_project_dialog():
+    """
+    Display a dialog for selecting or creating a project.
+    All projects must be within the ~/writing directory.
+    This dialog is shown on startup and is required before using the toolkit.
+    
+    Returns:
+        Tuple of (project_name, project_path)
+    """
+    global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
+    
+    # Create an async result that we'll resolve when a project is selected
+    result_future = asyncio.Future()
+    
+    # Ensure the projects directory exists
+    os.makedirs(PROJECTS_DIR, exist_ok=True)
+    
+    # Get list of existing projects (folders in ~/writing)
+    existing_projects = []
+    try:
+        # List all directories in the projects folder
+        for item in os.listdir(PROJECTS_DIR):
+            item_path = os.path.join(PROJECTS_DIR, item)
+            if os.path.isdir(item_path):
+                existing_projects.append(item)
+    except Exception as e:
+        print(f"Error listing projects: {e}")
+    
+    # Create the dialog
+    dialog = ui.dialog()
+    dialog.props('persistent')
+    
+    with dialog, ui.card().classes('w-full max-w-3xl p-4'):
+        ui.label('Select or Create a Project').classes('text-h6 mb-4')
+        
+        with ui.column().classes('w-full gap-4'):
+            # Project selection section
+            with ui.card().classes('w-full p-3'):
+                ui.label('Select Existing Project').classes('text-bold')
+                
+                if existing_projects:
+                    # Create a select dropdown with existing projects
+                    project_select = ui.select(
+                        options=existing_projects,
+                        label='Project',
+                        value=None
+                    ).classes('w-full')
+                    
+                    # Open selected project button
+                    ui.button('Open Selected Project', 
+                              on_click=lambda: use_selected_project()).props('no-caps').classes('bg-blue-600 text-white')
+                else:
+                    ui.label("No existing projects found in ~/writing").classes('text-italic')
+            
+            # Project creation section
+            with ui.card().classes('w-full p-3'):
+                ui.label('Create New Project').classes('text-bold')
+                
+                with ui.row().classes('w-full items-center'):
+                    new_project_input = ui.input(
+                        placeholder="Enter new project name...",
+                        value=""
+                    ).classes('w-full')
+                    
+                    # Create project button
+                    ui.button('Create Project', 
+                             on_click=lambda: create_new_project()).props('no-caps').classes('bg-green-600 text-white')
+            
+            # Project path information
+            ui.label(f"All projects are stored in: {PROJECTS_DIR}").classes('text-caption text-grey-7 mt-2')
+            ui.label("You must select or create a project to continue.").classes('text-caption text-grey-7')
+            
+            # Add cancel button for situations where user wants to exit without selecting
+            ui.button('Exit Without Selecting', 
+                     on_click=lambda: [dialog.close(), result_future.set_result((None, None))]) \
+               .props('flat no-caps').classes('text-grey self-end mt-4')
+        
+        def use_selected_project():
+            selected_project = project_select.value
+            if not selected_project:
+                ui.notify("Please select a project first", type="warning")
+                return
+            
+            project_path = os.path.join(PROJECTS_DIR, selected_project)
+            
+            # Set the global variables
+            CURRENT_PROJECT = selected_project
+            CURRENT_PROJECT_PATH = project_path
+            DEFAULT_SAVE_DIR = project_path
+            
+            # Load the current config to ensure we have valid config before saving
+            config = load_tools_config(force_reload=True)
+            if not config or len(config) <= 1:  # Empty or just global settings
+                ui.notify("Warning: Unable to validate configuration file - project set but settings not saved", type="warning")
+                dialog.close()
+                result_future.set_result((selected_project, project_path))
+                return
+            
+            # Save in global settings
+            success = save_global_settings({
+                "default_save_dir": project_path,
+                "current_project": selected_project,
+                "current_project_path": project_path
+            })
+            
+            if success:
+                ui.notify(f"Project '{selected_project}' opened successfully", type="positive")
+            else:
+                ui.notify(f"Project '{selected_project}' set but settings could not be saved", type="warning")
+                
+            dialog.close()
+            result_future.set_result((selected_project, project_path))
+        
+        def create_new_project():
+            new_project_name = new_project_input.value.strip()
+            
+            # Validate project name
+            if not new_project_name:
+                ui.notify("Please enter a project name", type="warning")
+                return
+            
+            # Ensure the name is valid for a directory
+            invalid_chars = r'[<>:"/\\|?*]'
+            if re.search(invalid_chars, new_project_name):
+                ui.notify("Project name contains invalid characters", type="negative")
+                return
+            
+            # Create the project directory
+            project_path = os.path.join(PROJECTS_DIR, new_project_name)
+            
+            try:
+                # Check if project already exists
+                if os.path.exists(project_path):
+                    ui.notify(f"Project '{new_project_name}' already exists", type="warning")
+                    return
+                
+                # Create the directory
+                os.makedirs(project_path, exist_ok=True)
+                
+                # Set the global variables
+                CURRENT_PROJECT = new_project_name
+                CURRENT_PROJECT_PATH = project_path
+                DEFAULT_SAVE_DIR = project_path
+                
+                # Load the current config to ensure we have valid config before saving
+                config = load_tools_config(force_reload=True)
+                if not config or len(config) <= 1:  # Empty or just global settings
+                    ui.notify("Warning: Unable to validate configuration file - project created but settings not saved", type="warning")
+                    dialog.close()
+                    result_future.set_result((new_project_name, project_path))
+                    return
+                
+                # Save in global settings
+                success = save_global_settings({
+                    "default_save_dir": project_path,
+                    "current_project": new_project_name,
+                    "current_project_path": project_path
+                })
+                
+                if success:
+                    ui.notify(f"Project '{new_project_name}' created successfully", type="positive")
+                else:
+                    ui.notify(f"Project '{new_project_name}' created but settings could not be saved", type="warning")
+                    
+                dialog.close()
+                result_future.set_result((new_project_name, project_path))
+                
+            except Exception as e:
+                ui.notify(f"Error creating project: {str(e)}", type="negative")
+    
+    # Show the dialog and wait for it to be resolved
+    dialog.open()
+    return await result_future
+
+###############################################################################
 # Configuration Dialog
 ###############################################################################
 
@@ -1421,6 +1667,24 @@ async def show_config_dialog():
             ui.button('Close', on_click=dialog.close).props('flat no-caps').classes('text-primary')
         
         with ui.column().classes('w-full gap-4'):
+            ### claude code ###
+            # Project selection section
+            with ui.card().classes('w-full p-3'):
+                ui.label('Current Project').classes('text-bold')
+                ui.label(f"Project: {CURRENT_PROJECT or 'None'}").classes('text-caption text-grey-7')
+                ui.label(f"Path: {CURRENT_PROJECT_PATH or 'None'}").classes('text-caption text-grey-7')
+                
+                # Button to change project
+                ui.button('Change Project', 
+                         on_click=lambda: [dialog.close(), change_project()]).props('no-caps').classes('bg-blue-600 text-white mt-2')
+                
+                async def change_project():
+                    # Show the project selection dialog
+                    await select_project_dialog()
+                    # Refresh the configuration dialog
+                    await show_config_dialog()
+            ### end claude code ###
+            
             # Default save directory setting - the only section we're keeping
             with ui.card().classes('w-full p-3'):
                 ui.label('Default Save Directory').classes('text-bold')
@@ -1479,10 +1743,35 @@ async def show_config_dialog():
 ###############################################################################
 
 @ui.page('/')
-def main():
-    check_config_file()
-    
+async def main():
     darkness = ui.dark_mode(True)
+
+    # Check for config file first
+    if not check_config_file():
+        ui.label("Configuration file not found. Please ensure tools_config.json exists.").classes('text-negative')
+        return
+    
+    # Ensure we have a current project before showing the main interface
+    if not CURRENT_PROJECT or not CURRENT_PROJECT_PATH:
+        # Show project selection dialog
+        try:
+            project_name, project_path = await select_project_dialog()
+            
+            # User opted to exit without selecting
+            if project_name is None:
+                ui.label("Application requires a project to be selected. Please restart and select a project.").classes('text-negative')
+                return
+                
+        except Exception as e:
+            ui.notify(f"Error selecting project: {str(e)}", type="negative")
+            ui.label("Encountered an error during project selection. Please restart the application.").classes('text-negative')
+            return
+        
+        # If still no project, show error and quit
+        if not CURRENT_PROJECT:
+            ui.notify("Project selection is required to use the toolkit.", type="negative")
+            ui.label("Please restart the application and select a project.")
+            return
     
     with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
         # Header row with dark mode toggle, title, and buttons
@@ -1503,6 +1792,23 @@ def main():
                 ui.button("Quit", 
                     on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
                     ).props('no-caps flat').classes('text-red-600')
+        
+        # Project information card
+        with ui.card().classes('w-full mb-4 p-3'):
+            with ui.row().classes('w-full items-center justify-between'):
+                with ui.column().classes('gap-1'):
+                    ui.label('Current Project').classes('text-h6')
+                    ui.label(f"{CURRENT_PROJECT}").classes('text-subtitle1')
+                    ui.label(f"Project Path: {CURRENT_PROJECT_PATH}").classes('text-caption text-grey-7')
+                
+                # Button to change project
+                ui.button('Change Project', on_click=lambda: change_project()).props('no-caps').classes('bg-blue-600 text-white')
+                
+                async def change_project():
+                    # Show the project selection dialog
+                    await select_project_dialog()
+                    # Refresh the page
+                    ui.navigate.reload()
         
         # Combined main card for tool selection and action buttons
         with ui.card().classes('w-full mb-4 p-4'):
@@ -1543,16 +1849,6 @@ def main():
             # Display the description of the selected tool
             tool_description = ui.label(default_description).classes('text-caption text-grey-7 mt-2')
             
-            # # Update the description when the tool selection changes
-            # def update_description(e):
-            #     selected_value = selected_tool.value
-            #     if selected_value:
-            #         for tool in tool_options:
-            #             if tool['title'] == selected_value:
-            #                 tool_description.set_text(tool.get('description', ''))
-            #                 break
-            #     else:
-            #         tool_description.set_text('')
             def update_description(e):
                 selected_value = selected_tool.value  # This is the tool name
                 if selected_value:
@@ -1625,8 +1921,17 @@ def main():
                 ui.button('Setup then Run', on_click=configure_and_run_tool) \
                     .props('no-caps').classes('bg-green-600 text-white') \
                     .tooltip('Setup settings for a tool run')
+### end claude code ###
 
 if __name__ == "__main__":
+    ### claude code ###
+    # Load configuration before starting the app to initialize settings
+    load_tools_config(force_reload=True)
+    
+    # Make sure the projects directory exists
+    os.makedirs(PROJECTS_DIR, exist_ok=True)
+    ### end claude code ###
+    
     ui.run(
         host=HOST,
         port=PORT,
