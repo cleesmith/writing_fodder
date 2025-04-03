@@ -89,26 +89,21 @@ def load_tools_config(force_reload=False):
             # Load project settings
             if "current_project" in global_settings:
                 CURRENT_PROJECT = global_settings["current_project"]
-                print(f"From config: CURRENT_PROJECT = {CURRENT_PROJECT}")
             
             if "current_project_path" in global_settings:
                 CURRENT_PROJECT_PATH = os.path.expanduser(global_settings["current_project_path"])
-                print(f"From config: CURRENT_PROJECT_PATH = {CURRENT_PROJECT_PATH}")
                 
             # Prefer to use project path for save dir if available
             if "default_save_dir" in global_settings:
                 saved_dir = global_settings["default_save_dir"]
                 # Expand user path if needed (convert ~ to actual home directory)
                 DEFAULT_SAVE_DIR = os.path.expanduser(saved_dir)
-                print(f"From config: DEFAULT_SAVE_DIR = {DEFAULT_SAVE_DIR}")
             elif CURRENT_PROJECT_PATH:
                 # If no save dir but we have a project path, use that
                 DEFAULT_SAVE_DIR = CURRENT_PROJECT_PATH
-                print(f"Using project path: DEFAULT_SAVE_DIR = {DEFAULT_SAVE_DIR}")
             else:
                 # Fallback to projects directory
                 DEFAULT_SAVE_DIR = PROJECTS_DIR
-                print(f"Using default: DEFAULT_SAVE_DIR = {DEFAULT_SAVE_DIR}")
         
         return config
     except Exception as e:
@@ -443,16 +438,7 @@ def run_tool(script_name, args_dict, log_output=None):
     # Create a path for the output tracking file with absolute path
     current_dir = os.path.abspath('.')
     tracking_file = os.path.join(current_dir, f"{run_uuid}.txt")
-    print(f"\ntracking_file={tracking_file}")
     tracking_file = os.path.abspath(tracking_file)
-    print(f"tracking_file={tracking_file}\n")
-    
-    # Debug: Print tracking file details
-    print(f">>> Generated run_uuid={run_uuid}")
-    print(f">>> Tracking file path: {tracking_file}")
-    print(f">>> Absolute path: {os.path.abspath(tracking_file)}")
-    print(f">>> Directory exists: {os.path.exists(os.path.dirname(tracking_file))}")
-    print(f">>> Directory writable: {os.access(os.path.dirname(tracking_file), os.W_OK)}")
     
     if log_output:
         log_output.push(f"DEBUG: Creating tracking file: {tracking_file}")
@@ -461,7 +447,6 @@ def run_tool(script_name, args_dict, log_output=None):
     
     # Add the tracking file parameter to the tool arguments
     args_dict["--output_tracking"] = tracking_file
-    print(f">>> --output_tracking={tracking_file}")
     
     # Convert the arguments dictionary into a command-line argument list
     args_list = []
@@ -498,11 +483,9 @@ def run_tool(script_name, args_dict, log_output=None):
         log_output.push("Working...")
     
     # Run the command and capture output
-    print(f"\n??? subprocess.run({cmd})\n")
     result = subprocess.run(cmd, capture_output=True, text=True)
     
     if log_output:
-        # Log the output
         if result.stdout:
             log_output.push(result.stdout)
         if result.stderr:
@@ -510,33 +493,18 @@ def run_tool(script_name, args_dict, log_output=None):
         log_output.push(f"\nProcess finished with return code {result.returncode}")
         log_output.push("Done!")
     
-    # Debug: Check tracking file after tool execution
-    print(f">>> Checking tracking file after tool execution")
-    print(f">>> Tracking file exists: {os.path.exists(tracking_file)}")
-    
-    if log_output:
-        log_output.push(f"DEBUG: Checking if tracking file exists after tool run")
-        log_output.push(f"DEBUG: File exists: {os.path.exists(tracking_file)}")
-    
     # Check for the output tracking file
     created_files = []
     created_files = ['Terminal Saved Output.txt', 'manuscript.txt', 'outline_XXX.txt']
     if os.path.exists(tracking_file):
         try:
-            print(f">>> Reading tracking file: {tracking_file}")
-            
             with open(tracking_file, 'r', encoding='utf-8') as f:
                 file_content = f.read()
-                print(f">>> Tracking file content: {file_content}")
                 
             with open(tracking_file, 'r', encoding='utf-8') as f:
                 for line in f:
                     file_path = line.strip()
                     abs_file_path = os.path.abspath(file_path)
-                    
-                    print(f">>> Found file in tracking: {file_path}")
-                    print(f">>> Absolute path: {abs_file_path}")
-                    print(f">>> File exists: {os.path.exists(abs_file_path)}")
                     
                     if abs_file_path and os.path.exists(abs_file_path):
                         if log_output:
@@ -545,15 +513,10 @@ def run_tool(script_name, args_dict, log_output=None):
                     elif abs_file_path:
                         if log_output:
                             log_output.push(f"DEBUG: Listed file doesn't exist: {abs_file_path}")
-                        print(f">>> WARNING: File in tracking doesn't exist: {abs_file_path}")
-            
-            print(f">>> Total valid files found: {len(created_files)}")
         except Exception as e:
-            print(f">>> ERROR reading tracking file: {str(e)}")
             if log_output:
                 log_output.push(f"Error reading output files list: {e}")
     else:
-        print(f">>> ERROR: Tracking file doesn't exist after tool execution")
         if log_output:
             log_output.push(f"DEBUG ERROR: Tracking file not found after tool execution")
     
@@ -670,7 +633,6 @@ async def browse_files_handler(input_element, start_path, option_name, option_ty
             return False
     except Exception as e:
         ui.notify(f"Error: {str(e)}", type="negative")
-        print(f"File browser error: {e}")
         return False
 
 async def build_options_dialog(script_name, options):
@@ -1426,10 +1388,6 @@ async def select_project_dialog():
             CURRENT_PROJECT_PATH = project_path
             DEFAULT_SAVE_DIR = project_path
             
-            print(f"Selected project: {CURRENT_PROJECT}")
-            print(f"Project path: {CURRENT_PROJECT_PATH}")
-            print(f"Default save dir: {DEFAULT_SAVE_DIR}")
-            
             # Be careful with config saving - make sure we have tools first
             config = load_tools_config(force_reload=True)
             has_tools = False
@@ -1486,10 +1444,6 @@ async def select_project_dialog():
                 CURRENT_PROJECT = new_project_name
                 CURRENT_PROJECT_PATH = project_path
                 DEFAULT_SAVE_DIR = project_path
-                
-                print(f"Created project: {CURRENT_PROJECT}")
-                print(f"Project path: {CURRENT_PROJECT_PATH}")
-                print(f"Default save dir: {DEFAULT_SAVE_DIR}")
                 
                 # Be careful with config saving - make sure we have tools first
                 config = load_tools_config(force_reload=True)
@@ -1650,11 +1604,6 @@ async def main():
             ui.notify(f"Error selecting project: {str(e)}", type="negative")
             ui.label("Encountered an error during project selection. Please restart the application.").classes('text-negative')
             return
-    
-    # Debug output to verify values are set
-    print(f"DEBUG: CURRENT_PROJECT={CURRENT_PROJECT}")
-    print(f"DEBUG: CURRENT_PROJECT_PATH={CURRENT_PROJECT_PATH}")
-    print(f"DEBUG: DEFAULT_SAVE_DIR={DEFAULT_SAVE_DIR}")
     
     # Re-check that we now have a project set
     if not CURRENT_PROJECT or not CURRENT_PROJECT_PATH:
