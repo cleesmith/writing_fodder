@@ -21,7 +21,6 @@ import editor_module
 HOST = "127.0.0.1"
 PORT = 8081
 
-### claude code ###
 # Default projects directory - all projects must be in this folder
 PROJECTS_DIR = os.path.expanduser("~/writing")
 # Ensure the projects directory exists
@@ -31,7 +30,6 @@ DEFAULT_SAVE_DIR = PROJECTS_DIR
 # Current project name and path
 CURRENT_PROJECT = None
 CURRENT_PROJECT_PATH = None
-### end claude code ###
 
 # Original:
 # Default save directory
@@ -1497,7 +1495,6 @@ async def show_config_dialog():
             ui.button('Close', on_click=dialog.close).props('flat no-caps').classes('text-primary')
         
         with ui.column().classes('w-full gap-4'):
-            ### claude code ###
             # Project selection section
             with ui.card().classes('w-full p-3'):
                 ui.label('Current Project').classes('text-bold')
@@ -1513,7 +1510,6 @@ async def show_config_dialog():
                     await select_project_dialog()
                     # Refresh the configuration dialog
                     await show_config_dialog()
-            ### end claude code ###
             
             # Default save directory setting - the only section we're keeping
             with ui.card().classes('w-full p-3'):
@@ -1572,7 +1568,6 @@ async def show_config_dialog():
 # Main UI and Workflow
 ###############################################################################
 
-### claude code ###
 @ui.page('/')
 async def main():
     darkness = ui.dark_mode(True)
@@ -1766,16 +1761,13 @@ async def main():
                 ui.button('Setup then Run', on_click=configure_and_run_tool) \
                     .props('no-caps').classes('bg-green-600 text-white') \
                     .tooltip('Setup settings for a tool run')
-### end claude code ###
 
 if __name__ == "__main__":
-    ### claude code ###
     # Load configuration before starting the app to initialize settings
     load_tools_config(force_reload=True)
     
     # Make sure the projects directory exists
     os.makedirs(PROJECTS_DIR, exist_ok=True)
-    ### end claude code ###
     
     ui.run(
         host=HOST,
