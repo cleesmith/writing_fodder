@@ -128,15 +128,12 @@ def write_output_file(args, word_count, prompt_tokens, words_per_token, availabl
 
 def write_output_tracking(tracking_file, created_files):
     """Write a list of created files to the specified tracking file."""
-
     print(f">>> tracking_file={tracking_file}")
     print(f"*** created_files={created_files}")
-
     if tracking_file:
         # try:
         # Ensure directory exists
         # os.makedirs(os.path.dirname(os.path.abspath(tracking_file)), exist_ok=True)
-        
         # Write each file path on a separate line
         with open(tracking_file, 'w', encoding='utf-8') as file:
             for file_path in created_files:
@@ -148,19 +145,14 @@ def write_output_tracking(tracking_file, created_files):
 def main():
     args = parse_arguments()
     
-    # Initialize Anthropic client
     client = anthropic.Anthropic(
         timeout=args.request_timeout,
         max_retries=0
     )
     
-    # Read text file
     text = read_text_file(args.text_file)
-    
-    # Count words
     word_count = count_words(text)
     
-    # Count tokens
     print(f"Counting tokens for text file: {args.text_file}")
     prompt_token_count = count_tokens(client, text)
     
@@ -195,11 +187,10 @@ def main():
         print(f"✓ Thinking budget is sufficient!")
         print(f"✓ Text is ready for use with requested thinking budget of {args.thinking_budget_tokens} tokens")
         
-    # Words per token ratio
+    # words per token ratio
     words_per_token = word_count / prompt_tokens if prompt_tokens > 0 else 0
     print(f"Words per token ratio: {words_per_token:.2f}\n")
     
-    # Simple summary output at the end
     print(f"\n***************************************************************************")
     print(f"Counts for text file: {args.text_file}")
     print(f"\n{word_count} words\n")
@@ -209,7 +200,7 @@ def main():
     # Write output file with the results
     created_files = []
     output_file = write_output_file(args, word_count, prompt_tokens, words_per_token, 
-                                  available_tokens, thinking_budget)
+                                    available_tokens, thinking_budget)
     created_files.append(output_file)
     
     # Write output tracking file if requested
@@ -219,3 +210,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -17,7 +17,6 @@ editor = None
 file_info = None
 
 def add_static_files():
-    """Add static files to the application"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.join(current_dir, 'static')
     app.add_static_files('/static', static_dir)
@@ -129,11 +128,6 @@ def show_help():
                 <span>Show this help</span>
             </div>
 
-            <div style="display: flex; align-items: center; margin-bottom: 12px;">
-                6. &nbsp;&nbsp;
-                <i class="fas fa-arrow-left help-dialog-icon" style="margin-right: 12px;"></i>
-                <span>Return to Writer's Toolkit</span>
-            </div>
         </div>
         """)
         
@@ -249,7 +243,7 @@ def add_editor_css():
     </style>
     """)
 
-    # Include FontAwesome for icons
+    # include FontAwesome for icons
     ui.add_head_html("""
     <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
     """)
@@ -295,10 +289,6 @@ async def editor_page(file: str = None):
             ui.button(icon='fas fa-folder-open', on_click=pick_file).props('flat fab-mini').tooltip('Open File')
             ui.button(icon='fas fa-save', on_click=lambda: save_text_file(editor.value, FILENAME)).props('flat fab-mini').tooltip('Save File')
             ui.button(icon='fas fa-question-circle', on_click=show_help).props('flat fab-mini').tooltip('Help')
-            ui.button(
-                icon='fas fa-arrow-left',
-                on_click=lambda: ui.navigate.to('/')
-            ).props('flat fab-mini').tooltip('Return to Writer\'s Toolkit')
     
     with ui.column().classes('w-full h-full'):
         default_content = "No file selected. Use the folder icon to select a file."

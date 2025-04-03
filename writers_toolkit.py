@@ -18,9 +18,8 @@ from file_folder_local_picker import local_file_picker
 
 import editor_module
 
-# Define host and port for the application
 HOST = "127.0.0.1"
-PORT = 8081  # Using 8081 to avoid conflict with the main toolkit
+PORT = 8081
 
 # Default save directory
 DEFAULT_SAVE_DIR = os.path.expanduser("~")
@@ -351,85 +350,13 @@ def create_parser_for_tool(script_name, options):
     
     return parser
 
-# def run_tool(script_name, args_dict, log_output=None):
-#     """
-#     Run a tool script with the provided arguments.
-
-#     Args:
-#         script_name: The script filename to run
-#         args_dict: Dictionary of argument name-value pairs
-#         log_output: A ui.log component to output to in real-time
-
-#     Returns:
-#         Tuple of (stdout, stderr) from the subprocess
-#     """
-#     # Get the tool configuration to determine types
-#     config = load_tools_config()
-#     options = config.get(script_name, {}).get("options", [])
-    
-#     # Create a mapping of option names to their types
-#     option_types = {opt["name"]: opt.get("type", "str") for opt in options}
-    
-#     # Convert the arguments dictionary into a command-line argument list
-#     args_list = []
-#     for name, value in args_dict.items():
-#         # Get the option type, default to "str"
-#         option_type = option_types.get(name, "str")
-        
-#         # Handle different types
-#         if option_type == "int" and isinstance(value, float):
-#             value = int(value)
-#         elif option_type == "bool":
-#             if value:
-#                 # Just add the flag for boolean options
-#                 args_list.append(name)
-#             continue  # Skip adding value for boolean options
-        
-#         # For all non-boolean options, add the name and value
-#         if value is not None:
-#             args_list.append(name)
-#             args_list.append(str(value))
-    
-#     # If --save_dir isn't specified, add the default
-#     # if not any(arg.startswith('--save_dir') for arg in args_list):
-#     #     args_list.extend(['--save_dir', DEFAULT_SAVE_DIR])
-    
-#     # Determine the Python executable based on platform
-#     if platform.system() == 'Windows':
-#         python_exe = 'python'  # Using python directly; change to 'py' if needed
-#     else:
-#         python_exe = 'python'
-    
-#     # Construct the full command: python script_name [args]
-#     cmd = [python_exe, "-u", script_name] + args_list
-    
-#     if log_output:
-#         # Log the command
-#         log_output.push(f"Running command: {' '.join(cmd)}")
-#         log_output.push("Working...")
-    
-#     # Run the command and capture output
-#     result = subprocess.run(cmd, capture_output=True, text=True)
-    
-#     if log_output:
-#         # Log the output
-#         if result.stdout:
-#             log_output.push(result.stdout)
-#         if result.stderr:
-#             log_output.push(f"ERROR: {result.stderr}")
-#         log_output.push(f"\nProcess finished with return code {result.returncode}")
-#         log_output.push("Done!")
-    
-#     return result.stdout, result.stderr
 def run_tool(script_name, args_dict, log_output=None):
     """
     Run a tool script with the provided arguments and track output files.
-
     Args:
         script_name: The script filename to run
         args_dict: Dictionary of argument name-value pairs
         log_output: A ui.log component to output to in real-time
-
     Returns:
         Tuple of (stdout, stderr, created_files) from the subprocess
     """
@@ -442,16 +369,29 @@ def run_tool(script_name, args_dict, log_output=None):
     
     # Generate a unique ID for this tool run
     run_uuid = str(uuid.uuid4())
-    print(f"run_uuid={run_uuid}")
     
-    # Create a path for the output tracking file
-    # save_dir = args_dict.get('--save_dir', DEFAULT_SAVE_DIR) 
-    # tracking_file = os.path.join('.', f"{run_uuid}.txt")
-    tracking_file = "sadie_smuffin.txt"
+    # Create a path for the output tracking file with absolute path
+    current_dir = os.path.abspath('.')
+    tracking_file = os.path.join(current_dir, f"{run_uuid}.txt")
+    print(f"\ntracking_file={tracking_file}")
+    tracking_file = os.path.abspath(tracking_file)
+    print(f"tracking_file={tracking_file}\n")
+    
+    # Debug: Print tracking file details
+    print(f">>> Generated run_uuid={run_uuid}")
+    print(f">>> Tracking file path: {tracking_file}")
+    print(f">>> Absolute path: {os.path.abspath(tracking_file)}")
+    print(f">>> Directory exists: {os.path.exists(os.path.dirname(tracking_file))}")
+    print(f">>> Directory writable: {os.access(os.path.dirname(tracking_file), os.W_OK)}")
+    
+    if log_output:
+        log_output.push(f"DEBUG: Creating tracking file: {tracking_file}")
+        log_output.push(f"DEBUG: Directory exists: {os.path.exists(os.path.dirname(tracking_file))}")
+        log_output.push(f"DEBUG: Directory is writable: {os.access(os.path.dirname(tracking_file), os.W_OK)}")
     
     # Add the tracking file parameter to the tool arguments
     args_dict["--output_tracking"] = tracking_file
-    print(f"args_dict:\n{args_dict}")
+    print(f">>> --output_tracking={tracking_file}")
     
     # Convert the arguments dictionary into a command-line argument list
     args_list = []
@@ -488,6 +428,7 @@ def run_tool(script_name, args_dict, log_output=None):
         log_output.push("Working...")
     
     # Run the command and capture output
+    print(f"\n??? subprocess.run({cmd})\n")
     result = subprocess.run(cmd, capture_output=True, text=True)
     
     if log_output:
@@ -499,24 +440,52 @@ def run_tool(script_name, args_dict, log_output=None):
         log_output.push(f"\nProcess finished with return code {result.returncode}")
         log_output.push("Done!")
     
+    # Debug: Check tracking file after tool execution
+    print(f">>> Checking tracking file after tool execution")
+    print(f">>> Tracking file exists: {os.path.exists(tracking_file)}")
+    
+    if log_output:
+        log_output.push(f"DEBUG: Checking if tracking file exists after tool run")
+        log_output.push(f"DEBUG: File exists: {os.path.exists(tracking_file)}")
+    
     # Check for the output tracking file
     created_files = []
+    created_files = ['Terminal Saved Output.txt', 'manuscript.txt', 'outline_XXX.txt']
     if os.path.exists(tracking_file):
         try:
+            print(f">>> Reading tracking file: {tracking_file}")
+            
+            with open(tracking_file, 'r', encoding='utf-8') as f:
+                file_content = f.read()
+                print(f">>> Tracking file content: {file_content}")
+                
             with open(tracking_file, 'r', encoding='utf-8') as f:
                 for line in f:
                     file_path = line.strip()
-                    if file_path and os.path.exists(file_path):
-                        created_files.append(file_path)
+                    abs_file_path = os.path.abspath(file_path)
+                    
+                    print(f">>> Found file in tracking: {file_path}")
+                    print(f">>> Absolute path: {abs_file_path}")
+                    print(f">>> File exists: {os.path.exists(abs_file_path)}")
+                    
+                    if abs_file_path and os.path.exists(abs_file_path):
+                        if log_output:
+                            log_output.push(f"DEBUG: Valid file found: {abs_file_path}")
+                        created_files.append(abs_file_path)
+                    elif abs_file_path:
+                        if log_output:
+                            log_output.push(f"DEBUG: Listed file doesn't exist: {abs_file_path}")
+                        print(f">>> WARNING: File in tracking doesn't exist: {abs_file_path}")
             
-            # Clean up the tracking file
-            try:
-                os.remove(tracking_file)
-            except:
-                pass  # Ignore if we can't remove the file
+            print(f">>> Total valid files found: {len(created_files)}")
         except Exception as e:
+            print(f">>> ERROR reading tracking file: {str(e)}")
             if log_output:
                 log_output.push(f"Error reading output files list: {e}")
+    else:
+        print(f">>> ERROR: Tracking file doesn't exist after tool execution")
+        if log_output:
+            log_output.push(f"DEBUG ERROR: Tracking file not found after tool execution")
     
     return result.stdout, result.stderr, created_files
 
@@ -1032,6 +1001,147 @@ def clear_output(log_output, timer_label=None):
 # FUNCTION: Tool Runner UI
 ###############################################################################
 
+# async def run_tool_ui(script_name, args_dict=None):
+#     """
+#     Create a dialog to run a tool and show its output
+    
+#     Args:
+#         script_name: The script to run
+#         args_dict: Dictionary of argument name-value pairs
+#     """
+#     global tool_in_progress, timer_task
+    
+#     if args_dict is None:
+#         args_dict = {}
+    
+#     # Generate command and args list for display
+#     full_command, args_list = build_command_string(script_name, args_dict)
+
+#     # Create a readable version of args for display
+#     args_display = []
+#     i = 0
+#     while i < len(args_list):
+#         if i+1 < len(args_list) and args_list[i].startswith('--'):
+#             # Combine option and value
+#             args_display.append(f"{args_list[i]} {args_list[i+1]}")
+#             i += 2
+#         else:
+#             # Just a flag
+#             args_display.append(args_list[i])
+#             i += 1
+    
+#     args_str = " ".join(args_display)
+    
+#     dialog = ui.dialog().props('maximized')
+    
+#     with dialog, ui.card().classes('w-full h-full'):
+#         with ui.column().classes('w-full h-full'):
+#             # Header with title and close button
+#             with ui.row().classes('w-full justify-between items-center q-pa-md'):
+#                 ui.label(f'Running Tool: {script_name}').classes('text-h6')
+#                 ui.button(icon='close', on_click=dialog.close).props('flat round no-caps')
+            
+#             # Add row for run button and timer
+#             with ui.row().classes('w-full items-center justify-between mt-2 mb-0 q-px-md'):
+#                 # Left side - Run button (primary action) and timer label
+#                 with ui.row().classes('items-center gap-2'):
+#                     run_btn = ui.button(
+#                         f"Run {script_name}:",
+#                         on_click=lambda: run_tool_execution()
+#                     ).classes('bg-green-600 text-white').props('no-caps flat dense')
+                    
+#                     # Add timer label next to the run button
+#                     timer_label = ui.label("elapsed time: 0m 0s").classes('text-italic').style('margin-left: 10px; min-width: 120px;')
+                
+#                 # Right side - utility buttons
+#                 with ui.row().classes('items-center gap-2'):
+#                     # Clear button with blue styling
+#                     clear_btn = ui.button(
+#                         "Clear", icon="cleaning_services",
+#                         on_click=lambda: clear_output(log_output, timer_label)
+#                     ).props('no-caps flat dense').classes('bg-blue-600 text-white')
+                    
+#                     # Force Quit button
+#                     force_quit_btn = ui.button(
+#                         "Force Quit", icon="power_settings_new",
+#                         on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
+#                     ).props('no-caps flat dense').classes('bg-red-600 text-white')
+            
+#             # Output area using a terminal-like log component
+#             log_output = ui.log().classes('w-full flex-grow') \
+#                 .style('min-height: 60vh; background-color: #0f1222; color: #b2f2bb; font-family: monospace; padding: 1rem; border-radius: 4px; margin: 1rem;')
+#             log_output.push("Tool output will appear here...")
+
+#             async def run_tool_execution():
+#                 global tool_in_progress, timer_task
+                
+#                 # If another tool is running, don't start a new one
+#                 if tool_in_progress is not None:
+#                     ui.notify(f"Cannot run '{script_name}' because '{tool_in_progress}' is already in progress.")
+#                     return
+                
+#                 # Mark this script as running
+#                 tool_in_progress = script_name
+                
+#                 # Clear output and show starting message
+#                 log_output.clear()
+#                 log_output.push(f"Running {script_name} with args: {args_str}")
+                
+#                 # Initialize the timer
+#                 start_time = time.time()
+                
+#                 # Update timer function
+#                 async def update_timer():
+#                     while tool_in_progress:
+#                         elapsed = time.time() - start_time
+#                         minutes = int(elapsed // 60)
+#                         seconds = int(elapsed % 60)
+#                         timer_label.text = f"elapsed time: {minutes}m {seconds}s"
+#                         await asyncio.sleep(1)
+                
+#                 # Start the timer
+#                 if timer_task:
+#                     timer_task.cancel()
+#                 timer_task = asyncio.create_task(update_timer())
+                
+#                 try:
+#                     # Run the tool and display output
+#                     print(f"\n??? await run.io_bound({run_tool}\nscript_name={script_name}\nargs_dict={args_dict}\nlog_output={log_output})\n")
+#                     stdout, stderr, created_files = await run.io_bound(run_tool, script_name, args_dict, log_output)
+                    
+#                     # If files were created, add links to open them in the editor
+#                     if created_files:
+#                         log_output.push("\n\n--- Text Files Created ---")
+#                         for file_path in created_files:
+#                             if file_path.endswith('.txt'):
+#                                 file_name = os.path.basename(file_path)
+#                                 log_output.push(f"• {file_path}")
+                                
+#                                 # Add a button to open the file in the text editor
+#                                 # No bind_to() method - removed to fix the error
+#                                 with ui.row().classes('ml-4 mt-1 mb-2'):
+#                                     ui.button(
+#                                         f"Open {file_name}", 
+#                                         on_click=lambda p=file_path: open_file_in_editor(p)
+#                                     ).props('small flat dense no-caps').classes('text-blue')
+                    
+#                     ui.notify(f"Finished running {script_name}", type="positive")
+                
+#                 except Exception as e:
+#                     log_output.push(f"Error running {script_name}: {e}")
+#                     ui.notify(f"Error: {e}")
+                
+#                 finally:
+#                     # Reset the tool in progress
+#                     tool_in_progress = None
+                    
+#                     # Stop the timer
+#                     if timer_task:
+#                         timer_task.cancel()
+    
+#     # Open the dialog
+#     dialog.open()
+
 async def run_tool_ui(script_name, args_dict=None):
     """
     Create a dialog to run a tool and show its output
@@ -1063,6 +1173,9 @@ async def run_tool_ui(script_name, args_dict=None):
     
     args_str = " ".join(args_display)
     
+    # Dictionary to store file paths and display names
+    file_options = {}
+    
     dialog = ui.dialog().props('maximized')
     
     with dialog, ui.card().classes('w-full h-full'):
@@ -1072,8 +1185,8 @@ async def run_tool_ui(script_name, args_dict=None):
                 ui.label(f'Running Tool: {script_name}').classes('text-h6')
                 ui.button(icon='close', on_click=dialog.close).props('flat round no-caps')
             
-            # Add row for run button and timer
-            with ui.row().classes('w-full items-center justify-between mt-2 mb-0 q-px-md'):
+            # Create the toolbar with run button, timer, and file selection
+            with ui.row().classes('w-full items-center justify-between mt-0 mb-0 q-px-md'):
                 # Left side - Run button (primary action) and timer label
                 with ui.row().classes('items-center gap-2'):
                     run_btn = ui.button(
@@ -1082,8 +1195,41 @@ async def run_tool_ui(script_name, args_dict=None):
                     ).classes('bg-green-600 text-white').props('no-caps flat dense')
                     
                     # Add timer label next to the run button
-                    timer_label = ui.label("elapsed time: 0m 0s").classes('text-italic').style('margin-left: 10px; min-width: 120px;')
+                    timer_label = ui.label("elapsed time: 0m 0s").classes('text-italic mr-12').style('margin-left: 10px; min-width: 120px;')
                 
+                # Center - file selection elements (initially hidden)
+                file_selector_row = ui.row().classes('items-center gap-2 flex-grow').style('display: none;')
+                
+                with file_selector_row:
+                    # Icon-only button with icon on the left
+                    open_btn = ui.button(
+                        icon="edit",
+                        on_click=lambda: open_selected_file()
+                    ).props('no-caps flat dense round').classes('bg-blue-600 text-white')
+                    
+                    # Add dropdown for file selection with more readable text size
+                    file_select = ui.select(
+                        options=[],
+                        label="Edit/View:"
+                    ).classes(f'flex-grow').style('min-width: 300px; max-width: 600px;')
+                    file_select.style('font-size: 12px;')
+                    file_select.props('popupContentClass="small-text"')
+
+                    css_string = f"""
+                    <style>
+                        .small-text {{
+                            font-size: 12px;
+                        }}
+                    </style>
+                    """
+                    ui.add_head_html(css_string)
+                    
+                    # Function to handle file selection
+                    def open_selected_file():
+                        selected_file = file_select.value
+                        if selected_file and selected_file in file_options:
+                            open_file_in_editor(file_options[selected_file])
+                    
                 # Right side - utility buttons
                 with ui.row().classes('items-center gap-2'):
                     # Clear button with blue styling
@@ -1102,56 +1248,7 @@ async def run_tool_ui(script_name, args_dict=None):
             log_output = ui.log().classes('w-full flex-grow') \
                 .style('min-height: 60vh; background-color: #0f1222; color: #b2f2bb; font-family: monospace; padding: 1rem; border-radius: 4px; margin: 1rem;')
             log_output.push("Tool output will appear here...")
-            
-            # Define the function to run the tool with timer updates - inside the dialog scope
-            # async def run_tool_execution():
-            #     global tool_in_progress, timer_task
-                
-            #     # If another tool is running, don't start a new one
-            #     if tool_in_progress is not None:
-            #         ui.notify(f"Cannot run '{script_name}' because '{tool_in_progress}' is already in progress.")
-            #         return
-                
-            #     # Mark this script as running
-            #     tool_in_progress = script_name
-                
-            #     # Clear output and show starting message
-            #     log_output.clear()
-            #     log_output.push(f"Running {script_name} with args: {args_str}")
-                
-            #     # Initialize the timer
-            #     start_time = time.time()
-                
-            #     # Update timer function
-            #     async def update_timer():
-            #         while tool_in_progress:
-            #             elapsed = time.time() - start_time
-            #             minutes = int(elapsed // 60)
-            #             seconds = int(elapsed % 60)
-            #             timer_label.text = f"elapsed time: {minutes}m {seconds}s"
-            #             await asyncio.sleep(1)
-                
-            #     # Start the timer
-            #     if timer_task:
-            #         timer_task.cancel()
-            #     timer_task = asyncio.create_task(update_timer())
-                
-            #     try:
-            #         # Run the tool and display output
-            #         stdout, stderr = await run.io_bound(run_tool, script_name, args_dict, log_output)
-            #         ui.notify(f"Finished running {script_name}", type="positive")
-                
-            #     except Exception as e:
-            #         log_output.push(f"Error running {script_name}: {e}")
-            #         ui.notify(f"Error: {e}")
-                
-            #     finally:
-            #         # Reset the tool in progress
-            #         tool_in_progress = None
-                    
-            #         # Stop the timer
-            #         if timer_task:
-            #             timer_task.cancel()
+
             async def run_tool_execution():
                 global tool_in_progress, timer_task
                 
@@ -1166,6 +1263,11 @@ async def run_tool_ui(script_name, args_dict=None):
                 # Clear output and show starting message
                 log_output.clear()
                 log_output.push(f"Running {script_name} with args: {args_str}")
+                
+                # Reset file selection and hide the selector
+                file_options.clear()
+                file_select.set_options([])
+                file_selector_row.style('display: none;')
                 
                 # Initialize the timer
                 start_time = time.time()
@@ -1188,21 +1290,29 @@ async def run_tool_ui(script_name, args_dict=None):
                     # Run the tool and display output
                     stdout, stderr, created_files = await run.io_bound(run_tool, script_name, args_dict, log_output)
                     
-                    # If files were created, add links to open them in the editor
+                    # If files were created, update the file selection dropdown
                     if created_files:
                         log_output.push("\n\n--- Text Files Created ---")
-                        for file_path in created_files:
-                            if file_path.endswith('.txt'):
+                        
+                        # Collect text files for the dropdown
+                        text_files = [f for f in created_files if f.endswith('.txt')]
+                        
+                        if text_files:
+                            # Create a mapping of display names to file paths and log the files
+                            file_options.clear()
+                            file_names = []
+                            
+                            for file_path in text_files:
                                 file_name = os.path.basename(file_path)
+                                file_options[file_name] = file_path
+                                file_names.append(file_name)
                                 log_output.push(f"• {file_path}")
-                                
-                                # Add a button to open the file in the text editor
-                                # No bind_to() method - removed to fix the error
-                                with ui.row().classes('ml-4 mt-1 mb-2'):
-                                    ui.button(
-                                        f"Open {file_name}", 
-                                        on_click=lambda p=file_path: open_file_in_editor(p)
-                                    ).props('small flat dense no-caps').classes('text-blue')
+                            
+                            # Update the dropdown options and show the selector row
+                            file_select.set_options(file_names)
+                            if file_names:
+                                file_select.set_value(file_names[0])  # Select first file by default
+                                file_selector_row.style('display: flex;')  # Show the file selector
                     
                     ui.notify(f"Finished running {script_name}", type="positive")
                 
