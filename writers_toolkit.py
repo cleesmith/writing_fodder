@@ -1210,10 +1210,12 @@ async def run_tool_ui(script_name, args_dict=None):
                     # Add dropdown for file selection with more readable text size
                     file_select = ui.select(
                         options=[],
+                        multiple=True,
                         label="Edit/View:"
                     ).classes(f'flex-grow').style('min-width: 300px; max-width: 600px;')
                     file_select.style('font-size: 12px;')
                     file_select.props('popupContentClass="small-text"')
+                    file_select.props('use-chips')
 
                     css_string = f"""
                     <style>
@@ -1225,10 +1227,16 @@ async def run_tool_ui(script_name, args_dict=None):
                     ui.add_head_html(css_string)
                     
                     # Function to handle file selection
+                    # def open_selected_file():
+                    #     selected_file = file_select.value
+                    #     if selected_file and selected_file in file_options:
+                    #         open_file_in_editor(file_options[selected_file])
                     def open_selected_file():
-                        selected_file = file_select.value
-                        if selected_file and selected_file in file_options:
-                            open_file_in_editor(file_options[selected_file])
+                        selected_files = file_select.value
+                        if selected_files:
+                            for file_id in selected_files:
+                                if file_id in file_options:
+                                    open_file_in_editor(file_options[file_id])
                     
                 # Right side - utility buttons
                 with ui.row().classes('items-center gap-2'):
