@@ -3,6 +3,7 @@
 import subprocess
 import argparse
 import os
+import sys
 import re
 import json
 import asyncio
@@ -1313,9 +1314,16 @@ async def select_project_dialog():
     try:
         # List all directories in the projects folder
         for item in os.listdir(PROJECTS_DIR):
+            # Skip hidden directories (starting with dot)
+            if item.startswith('.'):
+                continue
+                
             item_path = os.path.join(PROJECTS_DIR, item)
             if os.path.isdir(item_path):
                 existing_projects.append(item)
+                
+        # Sort the projects alphabetically
+        existing_projects.sort()
     except Exception as e:
         print(f"Error listing projects: {e}")
     
@@ -1328,8 +1336,8 @@ async def select_project_dialog():
         with ui.row().classes('w-full justify-between items-center mb-4'):
             ui.label('Select or Create a Project').classes('text-h6')
             # Close button in the header
-            ui.button(icon='close', on_click=lambda: [dialog.close(), result_future.set_result((None, None))]) \
-                .props('flat round dense').tooltip('Close without selecting')
+            ui.button('Close', on_click=lambda: [dialog.close(), result_future.set_result((None, None))]) \
+                .props('flat no-caps').classes('text-primary').tooltip('Close without selecting')
         
         with ui.column().classes('w-full gap-4'):
             # Project selection section
@@ -1368,10 +1376,10 @@ async def select_project_dialog():
             ui.label(f"All projects are stored in: {PROJECTS_DIR}").classes('text-caption text-grey-7 mt-2')
             ui.label("You must select or create a project to continue.").classes('text-caption text-grey-7')
             
-            # Bottom buttons including Cancel/Close
+            # Bottom buttons including Close
             with ui.row().classes('w-full justify-end gap-2 mt-4'):
-                ui.button('Cancel', on_click=lambda: [dialog.close(), result_future.set_result((None, None))]) \
-                   .props('no-caps').classes('text-grey-8')
+                ui.button('Close', on_click=lambda: [dialog.close(), result_future.set_result((None, None))]) \
+                   .props('flat no-caps').classes('text-primary')
         
         def use_selected_project():
             selected_project = project_select.value
@@ -1498,7 +1506,7 @@ async def show_config_dialog():
             # Project selection section
             with ui.card().classes('w-full p-3'):
                 ui.label('Current Project').classes('text-bold')
-                ui.label(f"Project: {CURRENT_PROJECT or 'None'}").classes('text-caption text-grey-7')
+                ui.label(f"Project: {CURRENT_PROJECT or 'None'}").classes('text-subtitle1')
                 ui.label(f"Path: {CURRENT_PROJECT_PATH or 'None'}").classes('text-caption text-grey-7')
                 
                 # Button to change project
@@ -1570,42 +1578,13 @@ async def show_config_dialog():
 
 @ui.page('/')
 async def main():
+    """Main page and UI setup function."""
     darkness = ui.dark_mode(True)
     
-    global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
-
-    # Check for config file first
-    if not check_config_file():
-        ui.label("Configuration file not found. Please ensure tools_config.json exists.").classes('text-negative')
-        return
+    # Load configuration to initialize settings
+    load_tools_config(force_reload=True)
     
-    # Ensure we have a current project before showing the main interface
-    if not CURRENT_PROJECT or not CURRENT_PROJECT_PATH:
-        # Show project selection dialog
-        try:
-            project_name, project_path = await select_project_dialog()
-            
-            # User opted to exit without selecting
-            if project_name is None:
-                ui.label("Application requires a project to be selected. Please restart and select a project.").classes('text-negative')
-                return
-            
-            # Explicitly update global variables again to ensure they're set in this scope
-            CURRENT_PROJECT = project_name
-            CURRENT_PROJECT_PATH = project_path
-            DEFAULT_SAVE_DIR = project_path
-                
-        except Exception as e:
-            ui.notify(f"Error selecting project: {str(e)}", type="negative")
-            ui.label("Encountered an error during project selection. Please restart the application.").classes('text-negative')
-            return
-    
-    # Re-check that we now have a project set
-    if not CURRENT_PROJECT or not CURRENT_PROJECT_PATH:
-        ui.notify("Project selection is required to use the toolkit.", type="negative")
-        ui.label("Please restart the application and select a project.")
-        return
-    
+    # Create the main UI components
     with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
         # Header row with dark mode toggle, title, and buttons
         with ui.row().classes('w-full items-center justify-between mb-4'):
@@ -1631,19 +1610,25 @@ async def main():
             with ui.row().classes('w-full items-center justify-between'):
                 with ui.column().classes('gap-1'):
                     ui.label('Current Project').classes('text-h6')
-                    ui.label(f"{CURRENT_PROJECT}").classes('text-subtitle1')
-                    ui.label(f"Project Path: {CURRENT_PROJECT_PATH}").classes('text-caption text-grey-7')
+                    
+                    # Display project info or select project message
+                    if CURRENT_PROJECT:
+                        ui.label(f"{CURRENT_PROJECT}").classes('text-subtitle1')
+                        ui.label(f"Project Path: {CURRENT_PROJECT_PATH}").classes('text-caption text-grey-7')
+                    else:
+                        ui.label("No project selected").classes('text-subtitle1 text-orange-600 font-bold')
+                        ui.label("You must create or select a project before using any tools").classes('text-caption text-orange-400')
                 
                 # Button to change project
-                ui.button('Change Project', on_click=lambda: change_project()).props('no-caps').classes('bg-blue-600 text-white')
+                ui.button('Select Project', on_click=lambda: change_project()).props('no-caps').classes('bg-blue-600 text-white')
                 
                 async def change_project():
+                    global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
                     # Show the project selection dialog
                     project_name, project_path = await select_project_dialog()
                     
                     # If a new project was selected, update globals and refresh
                     if project_name and project_path:
-                        global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
                         CURRENT_PROJECT = project_name
                         CURRENT_PROJECT_PATH = project_path
                         DEFAULT_SAVE_DIR = project_path
@@ -1705,12 +1690,34 @@ async def main():
             # Spacer to create vertical space where the status message used to be
             ui.space().classes('h-4')
             
-            # Action buttons row
+                            # Action buttons row
             with ui.row().classes('w-full justify-center gap-4 mt-3'):
                 async def configure_and_run_tool():
+                    global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
                     script_name = selected_tool.value
                     if not script_name:
                         ui.notify('Please select a tool first', type='warning')
+                        return
+                    
+                    # First check if we have a project selected
+                    if not CURRENT_PROJECT or not CURRENT_PROJECT_PATH:
+                        ui.notify('You must create or select a project before using tools', type='warning')
+                        
+                        # Show project selection dialog
+                        project_name, project_path = await select_project_dialog()
+                        
+                        # If still no project after dialog, abort
+                        if not project_name or not project_path:
+                            ui.notify('Project selection is required to use tools', type='negative')
+                            return
+                        
+                        # Update globals with new project
+                        CURRENT_PROJECT = project_name
+                        CURRENT_PROJECT_PATH = project_path
+                        DEFAULT_SAVE_DIR = project_path
+                        
+                        # Refresh the page to show new project
+                        ui.navigate.reload()
                         return
                     
                     # Create a log dialog for displaying JSON information
@@ -1758,11 +1765,23 @@ async def main():
                             # User cancelled - don't show any status message
                             break
                 
-                ui.button('Setup then Run', on_click=configure_and_run_tool) \
-                    .props('no-caps').classes('bg-green-600 text-white') \
-                    .tooltip('Setup settings for a tool run')
+                # Create a container for the button to apply the disabled state conditionally
+                with ui.element('div').classes('text-center'):
+                    run_button = ui.button('Setup then Run', on_click=configure_and_run_tool) \
+                        .props('no-caps').classes('bg-green-600 text-white') \
+                        .tooltip('Setup settings for a tool run')
+                    
+                    # Disable the button if no project is selected
+                    if not CURRENT_PROJECT or not CURRENT_PROJECT_PATH:
+                        run_button.props('disabled')
+                        run_button.tooltip('Create or select a project first')
 
 if __name__ == "__main__":
+    # Check for config file first
+    if not check_config_file():
+        print("Configuration file not found. Please ensure tools_config.json exists.")
+        sys.exit(1)
+
     # Load configuration before starting the app to initialize settings
     load_tools_config(force_reload=True)
     

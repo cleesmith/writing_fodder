@@ -1,9 +1,7 @@
 {
     "_global_settings": {
-        "default_save_dir": "/Users/cleesmith/writing/Spud",
-        "tools_config_json_dir": ".",
-        "current_project": "Spud",
-        "current_project_path": "/Users/cleesmith/writing/Spud"
+        "default_save_dir": "/Users/cleesmith/writing/",
+        "tools_config_json_dir": "."
     },
     "brainstorm.py": {
         "title": "Brainstorm",
