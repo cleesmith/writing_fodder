@@ -521,7 +521,6 @@ def run_tool(script_name, args_dict, log_output=None):
     
     # Check for the output tracking file
     created_files = []
-    created_files = ['Terminal Saved Output.txt', 'manuscript.txt', 'outline_XXX.txt']
     if os.path.exists(tracking_file):
         try:
             with open(tracking_file, 'r', encoding='utf-8') as f:
@@ -1529,23 +1528,6 @@ async def show_config_dialog():
         with ui.row().classes('w-full justify-between items-center mb-4'):
             ui.label('Configuration Settings').classes('text-h6')
             ui.button('Close', on_click=dialog.close).props('flat no-caps').classes('text-primary')
-        
-        with ui.column().classes('w-full gap-4'):
-            # Project selection section
-            with ui.card().classes('w-full p-3'):
-                ui.label('Current Project').classes('text-bold')
-                ui.label(f"Project: {CURRENT_PROJECT or 'None'}").classes('text-subtitle1')
-                ui.label(f"Path: {CURRENT_PROJECT_PATH or 'None'}").classes('text-caption text-grey-7')
-                
-                # Button to change project
-                ui.button('Change Project', 
-                         on_click=lambda: [dialog.close(), change_project()]).props('no-caps').classes('bg-blue-600 text-white mt-2')
-                
-                async def change_project():
-                    # Show the project selection dialog
-                    await select_project_dialog()
-                    # Refresh the configuration dialog
-                    await show_config_dialog()
             
             # Default save directory setting - the only section we're keeping
             with ui.card().classes('w-full p-3'):

@@ -574,7 +574,7 @@
                 "arg_name": "TEXT_FILE",
                 "description": "File containing the text to count (required)",
                 "type": "str",
-                "default": "/Users/cleesmith/writing/A_Darker_Roast/characters.txt",
+                "default": "/Users/cleesmith/writing/Spud/Building with extended thinking - Anthropic.txt",
                 "required": true,
                 "group": "Input Files"
             },
