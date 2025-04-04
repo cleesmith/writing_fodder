@@ -90,13 +90,28 @@ def load_tools_config(force_reload=False):
                 CURRENT_PROJECT = global_settings["current_project"]
             
             if "current_project_path" in global_settings:
-                CURRENT_PROJECT_PATH = os.path.expanduser(global_settings["current_project_path"])
+                loaded_path = os.path.expanduser(global_settings["current_project_path"])
+                
+                # Validate the path is within PROJECTS_DIR
+                if os.path.exists(loaded_path) and os.path.commonpath([loaded_path, PROJECTS_DIR]) == PROJECTS_DIR:
+                    CURRENT_PROJECT_PATH = loaded_path
+                else:
+                    # Path is invalid or outside PROJECTS_DIR
+                    ui.notify(f"Warning: Saved project path is not within {PROJECTS_DIR}", type="warning")
+                    CURRENT_PROJECT = None
+                    CURRENT_PROJECT_PATH = None
                 
             # Prefer to use project path for save dir if available
             if "default_save_dir" in global_settings:
-                saved_dir = global_settings["default_save_dir"]
-                # Expand user path if needed (convert ~ to actual home directory)
-                DEFAULT_SAVE_DIR = os.path.expanduser(saved_dir)
+                saved_dir = os.path.expanduser(global_settings["default_save_dir"])
+                
+                # Validate the save directory is within PROJECTS_DIR
+                if os.path.exists(saved_dir) and os.path.commonpath([saved_dir, PROJECTS_DIR]) == PROJECTS_DIR:
+                    DEFAULT_SAVE_DIR = saved_dir
+                else:
+                    # Path is outside PROJECTS_DIR, fallback to PROJECTS_DIR
+                    ui.notify(f"Warning: Saved directory is not within {PROJECTS_DIR}", type="warning")
+                    DEFAULT_SAVE_DIR = PROJECTS_DIR
             elif CURRENT_PROJECT_PATH:
                 # If no save dir but we have a project path, use that
                 DEFAULT_SAVE_DIR = CURRENT_PROJECT_PATH
@@ -307,6 +322,18 @@ def update_tool_preferences(script_name, new_preferences):
 ###############################################################################
 
 async def select_file_or_folder(start_dir=None, multiple=False, dialog_title="Select Files or Folders", folders_only=False):
+    """
+    Display a file/folder picker dialog.
+    
+    Args:
+        start_dir: Initial directory to display
+        multiple: Allow multiple selections
+        dialog_title: Title for the dialog
+        folders_only: Only allow folder selection
+        
+    Returns:
+        Selected file/folder path(s) or None/[] if cancelled
+    """
     if start_dir is None:
         start_dir = DEFAULT_SAVE_DIR
     
@@ -1374,6 +1401,7 @@ async def select_project_dialog():
             
             # Project path information
             ui.label(f"All projects are stored in: {PROJECTS_DIR}").classes('text-caption text-grey-7 mt-2')
+            ui.label("Projects can only be created within this directory.").classes('text-caption text-grey-7')
             ui.label("You must select or create a project to continue.").classes('text-caption text-grey-7')
             
             # Bottom buttons including Close
@@ -1532,14 +1560,29 @@ async def show_config_dialog():
                     def update_save_dir():
                         global DEFAULT_SAVE_DIR
                         new_dir = save_dir_input.value
-                        DEFAULT_SAVE_DIR = new_dir
-                        save_global_settings({"default_save_dir": new_dir})
-                        ui.notify(f"Updated save directory.", type="positive", timeout=2000)
+                        
+                        # Validate the directory is within PROJECTS_DIR
+                        try:
+                            expanded_path = os.path.expanduser(new_dir)
+                            # Check if path exists and is within PROJECTS_DIR
+                            if os.path.exists(expanded_path) and os.path.commonpath([expanded_path, PROJECTS_DIR]) == PROJECTS_DIR:
+                                DEFAULT_SAVE_DIR = expanded_path
+                                save_global_settings({"default_save_dir": expanded_path})
+                                ui.notify(f"Updated save directory.", type="positive", timeout=2000)
+                            else:
+                                ui.notify(f"Save directory must be within {PROJECTS_DIR}", type="negative")
+                        except Exception as e:
+                            ui.notify(f"Error: {str(e)}", type="negative")
                     
                     async def browse_save_dir():
                         try:
-                            # Get starting directory from current input value or default to home
-                            start_dir = save_dir_input.value if save_dir_input.value else "~"
+                            # Get starting directory from current input value or default to projects dir
+                            start_dir = save_dir_input.value if save_dir_input.value else PROJECTS_DIR
+                            
+                            # Ensure start dir is within PROJECTS_DIR
+                            if not (os.path.exists(start_dir) and 
+                                   os.path.commonpath([os.path.expanduser(start_dir), PROJECTS_DIR]) == PROJECTS_DIR):
+                                start_dir = PROJECTS_DIR
                             
                             # Use the file picker to select a directory
                             selected = await select_file_or_folder(
@@ -1551,9 +1594,13 @@ async def show_config_dialog():
                             
                             # Update the input field with the selection if we got one
                             if selected:
-                                # Use normalized path
-                                normalized_path = os.path.normpath(os.path.expanduser(selected))
-                                save_dir_input.set_value(normalized_path)
+                                # Verify the selected path is within PROJECTS_DIR
+                                selected_path = os.path.normpath(os.path.expanduser(selected))
+                                
+                                if os.path.commonpath([selected_path, PROJECTS_DIR]) == PROJECTS_DIR:
+                                    save_dir_input.set_value(selected_path)
+                                else:
+                                    ui.notify(f"Selected directory must be within {PROJECTS_DIR}", type="negative")
                             else:
                                 ui.notify("No directory selected", type="warning", timeout=2000)
                         except Exception as e:

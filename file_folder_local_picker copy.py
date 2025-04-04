@@ -22,32 +22,23 @@ class local_file_picker(ui.dialog):
         :param folders_only: Whether to only show folders (no files).
         """
         super().__init__()
-        
-        # Always force upper_limit to be ~/writing
-        writing_dir = os.path.realpath(os.path.expanduser("~/writing"))
-        
-        # Always use the writing directory as the upper limit
-        upper_limit = writing_dir
-        
-        # Use consistent path handling with realpath for security
+
+        # Ensure directory exists and is expanded
         try:
-            expanded_dir = os.path.realpath(os.path.abspath(os.path.expanduser(directory)))
-            if not os.path.exists(expanded_dir):
-                expanded_dir = writing_dir
+            directory = os.path.expanduser(directory)
+            if not os.path.exists(directory):
+                directory = os.path.expanduser("~")
         except Exception:
-            expanded_dir = writing_dir
-        
-        # Force starting directory to be within writing directory
-        if not os.path.samefile(expanded_dir, writing_dir) and not expanded_dir.startswith(writing_dir):
-            # Reset to writing directory if outside of it
-            expanded_dir = writing_dir
+            directory = os.path.expanduser("~")
         
         # Store original parameters
-        self.start_directory = Path(expanded_dir)
-        self.upper_limit = Path(writing_dir)
+        self.start_directory = Path(directory)
+        
+        # No upper limit by default (free navigation)
+        self.upper_limit = None if upper_limit is None else Path(upper_limit).expanduser()
         
         # Set current path to starting directory
-        self.path = Path(expanded_dir)
+        self.path = Path(directory)
         
         # Store other parameters
         self.show_hidden_files = show_hidden_files
@@ -70,14 +61,22 @@ class local_file_picker(ui.dialog):
             self.drives_toggle = None
             self.add_drives_toggle()
             
+            # Add navigation buttons row
+            with ui.row().classes('w-full justify-start gap-2'):
+                self.up_button = ui.button('↑ UP', on_click=self.navigate_up).props('outline')
+                ui.button('↻ REFRESH', on_click=self.refresh).props('outline')
+                
+                # Add home button for quick navigation
+                ui.button('🏠 HOME', on_click=lambda: self.navigate_to(Path.home())).props('outline')
+
             # Grid for displaying files and folders
             self.grid = ui.aggrid({
                 'columnDefs': [{'field': 'name', 'headerName': 'File or Folder'}],
                 'rowSelection': 'multiple' if multiple else 'single',
             }, html_columns=[0]).classes('w-full').on('cellDoubleClicked', self.handle_double_click)
             
-            # Status message for feedback (only used for errors and important info)
-            self.status_msg = ui.label("").classes('text-caption text-grey w-full my-1')
+            # Status message for feedback
+            self.status_msg = ui.label("Ready").classes('text-caption text-grey w-full my-1')
             
             # Button row
             with ui.row().classes('w-full justify-end'):
@@ -104,82 +103,46 @@ class local_file_picker(ui.dialog):
             return
             
         try:
-            # Don't allow drive changes if it would escape the writing directory
-            new_drive_path = Path(self.drives_toggle.value)
-            
-            # Only allow drive change if it's within writing directory
-            new_drive_real = os.path.realpath(str(new_drive_path))
-            writing_real = os.path.realpath(str(self.upper_limit))
-            
-            if not new_drive_real.startswith(writing_real):
-                self.status_msg.text = f"Cannot navigate outside projects directory"
-                return
-                
-            self.path = new_drive_path
+            self.path = Path(self.drives_toggle.value)
             self.update_grid()
+            self.status_msg.text = f"Switched to drive: {self.drives_toggle.value}"
         except Exception as e:
             self.status_msg.text = f"Error changing drive: {str(e)}"
 
     def navigate_to(self, new_path):
         """Navigate to a specific directory"""
         try:
-            # Get the writing directory (our security boundary)
-            writing_dir = os.path.realpath(os.path.expanduser("~/writing"))
-            
             # Ensure the path exists and is a directory
             if not os.path.exists(new_path) or not os.path.isdir(new_path):
                 self.status_msg.text = f"Invalid directory: {new_path}"
                 return
                 
-            # Security checks
-            try:
-                # First check: Is new_path exactly the writing directory? (allowed)
-                is_at_writing_dir = os.path.samefile(new_path, writing_dir)
-                
-                # Second check: Is new_path within writing directory?
-                is_within_writing = os.path.realpath(new_path).startswith(writing_dir)
-                
-                # Decide whether to allow navigation
-                if is_at_writing_dir:
-                    # Allow navigation to the boundary itself
-                    pass
-                elif not is_within_writing:
-                    self.status_msg.text = f"Cannot navigate outside projects directory"
+            # Check if new path is above upper_limit (if set)
+            if self.upper_limit is not None:
+                # Check if new path is not within upper_limit
+                if not str(new_path).startswith(str(self.upper_limit)):
+                    self.status_msg.text = f"Cannot navigate above {self.upper_limit}"
                     return
-            except Exception as e:
-                # If path comparison fails, assume it's unsafe
-                self.status_msg.text = f"Path validation error"
-                return
             
-            # If we get here, navigation is allowed
+            # Set the new path
             self.path = Path(new_path)
             self.update_grid()
+            self.status_msg.text = f"Navigated to: {self.path}"
         except Exception as e:
             self.status_msg.text = f"Navigation error: {str(e)}"
 
     def navigate_up(self):
         """Navigate to parent directory"""
-        # Get the writing directory (our security boundary)
-        writing_dir = os.path.realpath(os.path.expanduser("~/writing"))
-        parent = self.path.parent
-        
         try:
+            # Get the parent path
+            parent = self.path.parent
+            
             # Check if we're at the root directory
-            if os.path.samefile(str(parent), str(self.path)):
+            if str(parent) == str(self.path):
                 self.status_msg.text = "Already at root directory"
                 return
-            
-            # Check if we're already at the writing directory
-            if os.path.samefile(str(self.path), writing_dir):
-                self.status_msg.text = "Already at projects root directory"
-                return
                 
-            # Check if parent would be outside the writing directory
-            if not os.path.realpath(str(parent)).startswith(writing_dir):
-                self.status_msg.text = "Cannot navigate outside projects directory"
-                return
-                
-            # Navigate to parent if allowed
+            # Navigate to parent
             self.navigate_to(parent)
         except Exception as e:
             self.status_msg.text = f"Error navigating up: {str(e)}"
@@ -188,52 +151,29 @@ class local_file_picker(ui.dialog):
         """Refresh the current directory listing"""
         try:
             self.update_grid()
+            self.status_msg.text = f"Refreshed: {self.path}"
         except Exception as e:
             self.status_msg.text = f"Error refreshing: {str(e)}"
 
     def update_grid(self) -> None:
         """Update the file/folder grid with current directory contents"""
         try:
-            # Get the writing directory (our security boundary)
-            writing_dir = os.path.realpath(os.path.expanduser("~/writing"))
-            
-            # Force reset if outside writing directory
-            try:
-                is_at_writing_dir = os.path.samefile(str(self.path), writing_dir)
-                is_within_writing = os.path.realpath(str(self.path)).startswith(writing_dir)
-                
-                if not (is_at_writing_dir or is_within_writing):
-                    self.path = Path(writing_dir)
-                    self.status_msg.text = "Path has been reset to projects directory"
-            except Exception:
-                # If comparison fails, force reset to writing directory
-                self.path = Path(writing_dir)
-                self.status_msg.text = "Path has been reset due to error"
-            
             # Update path display
             self.path_display.text = f"Current directory: {self.path}"
             
             # Check if at navigation limit
-            at_writing_dir = False
-            
-            try:
-                # Check if exactly at writing directory
-                if os.path.samefile(str(self.path), writing_dir):
-                    at_writing_dir = True
+            at_upper_limit = False
+            if self.upper_limit is not None and str(self.path) == str(self.upper_limit):
+                at_upper_limit = True
                 
-                # Check if parent would be outside writing directory
-                parent_real = os.path.realpath(str(self.path.parent))
-                
-                if not parent_real.startswith(writing_dir):
-                    at_writing_dir = True
-            except Exception:
-                # If comparison fails, assume we're at the limit for safety
-                at_writing_dir = True
+            # Update up button state
+            at_root = str(self.path) == str(self.path.parent)
+            self.up_button.props(f'outline {"disabled" if at_root or at_upper_limit else ""}')
             
             # Get paths in current directory
             try:
                 paths = list(self.path.glob('*'))
-            except Exception as e:
+            except Exception:
                 paths = []
                 self.status_msg.text = f"Error reading directory: {self.path}"
             
@@ -263,21 +203,20 @@ class local_file_picker(ui.dialog):
                 for p in paths
             ]
             
-            # Only add parent directory option if NOT at the writing directory
-            if not at_writing_dir:
-                parent_dir = {
-                    'name': '📁 <strong>..</strong> (Parent Directory)',
-                    'path': self.PARENT_NAV_ID,  # Special ID to identify parent navigation
-                    'is_dir': True,
-                }
-                self.grid.options['rowData'].insert(0, parent_dir)
+            # Always add parent directory option at the top
+            parent_dir = {
+                'name': '📁 <strong>..</strong> (Parent Directory)',
+                'path': self.PARENT_NAV_ID,  # Special ID to identify parent navigation
+                'is_dir': True,
+            }
+            self.grid.options['rowData'].insert(0, parent_dir)
             
             # Update the grid
             self.grid.update()
             
-            # Clear status message on successful updates
-            if not self.status_msg.text or self.status_msg.text.startswith("Navigated to"):
-                self.status_msg.text = ""
+            # Show limit message if applicable
+            if at_upper_limit:
+                self.status_msg.text = f"At navigation limit: {self.path}"
             
         except Exception as e:
             self.status_msg.text = f"Error updating grid: {str(e)}"
@@ -289,31 +228,6 @@ class local_file_picker(ui.dialog):
             
             # Special case for parent directory navigation
             if data['path'] == self.PARENT_NAV_ID:
-                # Get the writing directory (our security boundary)
-                writing_dir = os.path.realpath(os.path.expanduser("~/writing"))
-                
-                # Get the parent path
-                parent = self.path.parent
-                
-                # Security checks for parent directory navigation
-                try:
-                    # Check if at writing directory
-                    if os.path.samefile(str(self.path), writing_dir):
-                        self.status_msg.text = "Already at projects root directory"
-                        return
-                        
-                    # Check if parent would be outside writing directory
-                    parent_real = os.path.realpath(str(parent))
-                    
-                    if not parent_real.startswith(writing_dir):
-                        self.status_msg.text = "Cannot navigate outside projects directory"
-                        return
-                except Exception:
-                    # If comparison fails, block for safety
-                    self.status_msg.text = "Path validation error"
-                    return
-                
-                # If we passed all checks, navigate up
                 self.navigate_up()
                 return
                 
@@ -358,22 +272,18 @@ class local_file_picker(ui.dialog):
                     if is_dir or path.endswith('.txt'):
                         valid_paths.append(path)
             
-            # Final security check: ensure all selections are within writing directory
-            writing_dir = os.path.realpath(os.path.expanduser("~/writing"))
-            secure_paths = []
-            
-            for path in valid_paths:
-                path_real = os.path.realpath(path)
-                if path_real.startswith(writing_dir):
-                    secure_paths.append(path)
+            # Log what we're about to submit
+            self.status_msg.text = f"Submitting selection: {valid_paths}"
+            # ui.notify(f"Selection: {valid_paths}", timeout=2000)
             
             # Submit the results and explicitly close the dialog
-            self.submit(secure_paths)
+            self.submit(valid_paths)
             
         except Exception as e:
             # Handle errors gracefully
             error_msg = f"Error processing selection: {str(e)}"
             self.status_msg.text = error_msg
+            ui.notify(error_msg, type="negative", timeout=3000)
             
             # Submit empty list to avoid hanging
             self.submit([])
@@ -393,53 +303,28 @@ async def select_file_or_folder(start_dir=None, multiple=False, dialog_title="Se
     Returns:
         List of selected file/folder paths, or single path if multiple=False
     """
-    # Get absolute path to the writing directory (~/writing)
-    writing_dir = os.path.realpath(os.path.abspath(os.path.expanduser("~/writing")))
+    if start_dir is None:
+        start_dir = os.path.expanduser("~/writing")  # Default to ~/writing
     
-    # Create the writing directory if it doesn't exist
+    # Ensure the directory exists
     try:
-        os.makedirs(writing_dir, exist_ok=True)
-    except Exception as e:
-        ui.notify(f"Error creating writing directory: {str(e)}", type="negative")
-        return [] if multiple else None
-    
-    # Force start directory to be exactly the writing directory
-    start_dir = writing_dir
+        os.makedirs(os.path.expanduser(start_dir), exist_ok=True)
+    except Exception:
+        # If we can't create the directory, fall back to home
+        start_dir = "~"
     
     try:
-        # Create the file picker
-        picker = local_file_picker(
-            directory=start_dir,
-            upper_limit=writing_dir,
+        result = await local_file_picker(
+            start_dir, 
+            upper_limit=None,  # No upper limit by default - free navigation
             multiple=multiple,
             folders_only=folders_only
         )
         
-        # Wait for the file picker result
-        result = await picker
-        
-        if not result:
-            return [] if multiple else None
-            
-        # Final validation: ensure all results are within the writing directory
-        valid_results = []
-        for path in result:
-            # Use realpath for reliable path comparison
-            path_real = os.path.realpath(path)
-            
-            if path_real.startswith(writing_dir):
-                valid_results.append(path)
-            else:
-                ui.notify(f"Invalid selection outside writing directory: {path}", type="negative")
-        
-        if not valid_results:
-            ui.notify("No valid selections within writing directory", type="negative")
-            return [] if multiple else None
-            
-        if not multiple:
-            # Return first item for single selection mode
-            return valid_results[0]
-        return valid_results
+        if result and not multiple:
+            # If we're not allowing multiple selections, return the first item
+            return result[0]
+        return result
     except Exception as e:
-        ui.notify(f"Error in file selection: {str(e)}", type="negative")
+        ui.notify(f"Error selecting files: {str(e)}", type="negative")
         return [] if multiple else None
