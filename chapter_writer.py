@@ -78,17 +78,17 @@ def clean_forbidden_punctuation(text):
     # dictionary of patterns and their replacements
     replacements = {
         r'-,': ',',              # Replace -, with just a comma
-        # r'\.\.\. ': ' ',         # Replace ellipsis with a space
-        # r'\.\.\.': ' ',          # Replace ellipsis with a space
-        # r'… ': ' ',              # Unicode ellipsis character
-        # r'…': '',                # Unicode ellipsis character
+        # r'\.\.\. ': ' ',       # Replace ellipsis with a space
+        # r'\.\.\.': ' ',        # Replace ellipsis with a space
+        # r'… ': ' ',            # Unicode ellipsis character
+        # r'…': '',              # Unicode ellipsis character
         r'—': ', ',              # Replace em dash with a space
         r'–': ' ',               # En dash as well (often confused with em dash)
         r'\.,-': '.',            # Replace .,- with just a period
         r'\.-': '.',             # Replace ., with just a period
         r'\.,': '.',             # Replace ., with just a period
         r',-': ',',              # Replace ,- with just a comma
-        # r'-,': '-',              # Replace -, with just a hyphen
+        # r'-,': '-',            # Replace -, with just a hyphen
         r'--': ' ',              # Replace double hyphen with a space
         r'\*': '',               # Remove asterisks completely
     }
