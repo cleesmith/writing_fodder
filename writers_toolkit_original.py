@@ -1,5 +1,5 @@
 # python -B writers_toolkit.json
-# TinyDB will be used for configuration storage
+# tools_config.json file must exist
 import subprocess
 import argparse
 import os
@@ -11,11 +11,9 @@ import platform
 import time
 import uuid
 import urllib.parse
-import shutil
 from copy import deepcopy
 
 from nicegui import ui, run, app
-from tinydb import TinyDB, Query, where
 
 from file_folder_local_picker import local_file_picker
 
@@ -34,11 +32,12 @@ DEFAULT_SAVE_DIR = PROJECTS_DIR
 CURRENT_PROJECT = None
 CURRENT_PROJECT_PATH = None
 
-# TinyDB database connection
-DB_PATH = "writers_toolkit.json"
-db = TinyDB(DB_PATH)
-tools_table = db.table('tools')
-settings_table = db.table('settings')
+# Original:
+# Default save directory
+# DEFAULT_SAVE_DIR = os.path.expanduser("~")
+
+# Default JSON file path for tool configurations
+TOOLS_JSON_PATH = "tools_config.json"
 
 # Add a global variable for the timer task
 timer_task = None
@@ -58,79 +57,77 @@ def open_file_in_editor(file_path):
         ui.notify(f"Error opening file: {str(e)}", type="negative")
 
 ###############################################################################
-# FUNCTION: TinyDB Config handling with Integer Enforcement
+# FUNCTION: Simplified JSON Config handling with Integer Enforcement
 ###############################################################################
 
 def load_tools_config(force_reload=False):
     """
-    Load tool configurations from the TinyDB database.
+    Load tool configurations from the JSON file.
     Also loads global settings if available.
     
     Args:
-        force_reload: If True, bypasses any caching (not needed with TinyDB)
+        force_reload: If True, bypasses any caching and reloads directly from disk
     
     Returns:
-        Dictionary of tool configurations or empty dict if no tools found
+        Dictionary of tool configurations or empty dict if file not found/invalid
     """
-    global DEFAULT_SAVE_DIR, CURRENT_PROJECT, CURRENT_PROJECT_PATH
+    global DEFAULT_SAVE_DIR, CURRENT_PROJECT, CURRENT_PROJECT_PATH  # Ensure we can modify the global variables
     
-    # Create a dictionary with all tools
-    config = {}
+    if not os.path.exists(TOOLS_JSON_PATH):
+        ui.notify(f"Error: Configuration file not found at {TOOLS_JSON_PATH}", type="negative")
+        return {}
     
-    # Get all tools from the tools table
-    all_tools = tools_table.all()
-    for tool in all_tools:
-        tool_name = tool.get('name')
-        if tool_name:
-            # Remove the 'name' key as it's not part of the original structure
-            tool_data = dict(tool)
-            del tool_data['name']
-            config[tool_name] = tool_data
-    
-    # Get global settings
-    global_settings = settings_table.get(doc_id=1)
-    if global_settings:
-        config['_global_settings'] = global_settings
+    try:
+        with open(TOOLS_JSON_PATH, 'r') as f:
+            config = json.load(f)
         
-        # Update global variables based on settings
-        if "current_project" in global_settings:
-            CURRENT_PROJECT = global_settings["current_project"]
-        
-        if "current_project_path" in global_settings:
-            loaded_path = os.path.expanduser(global_settings["current_project_path"])
+        # Check for global settings and update DEFAULT_SAVE_DIR if available
+        if "_global_settings" in config:
+            global_settings = config["_global_settings"]
             
-            # Validate the path is within PROJECTS_DIR
-            if os.path.exists(loaded_path) and os.path.commonpath([loaded_path, PROJECTS_DIR]) == PROJECTS_DIR:
-                CURRENT_PROJECT_PATH = loaded_path
+            # Load project settings
+            if "current_project" in global_settings:
+                CURRENT_PROJECT = global_settings["current_project"]
+            
+            if "current_project_path" in global_settings:
+                loaded_path = os.path.expanduser(global_settings["current_project_path"])
+                
+                # Validate the path is within PROJECTS_DIR
+                if os.path.exists(loaded_path) and os.path.commonpath([loaded_path, PROJECTS_DIR]) == PROJECTS_DIR:
+                    CURRENT_PROJECT_PATH = loaded_path
+                else:
+                    # Path is invalid or outside PROJECTS_DIR
+                    ui.notify(f"Warning: Saved project path is not within {PROJECTS_DIR}", type="warning")
+                    CURRENT_PROJECT = None
+                    CURRENT_PROJECT_PATH = None
+                
+            # Prefer to use project path for save dir if available
+            if "default_save_dir" in global_settings:
+                saved_dir = os.path.expanduser(global_settings["default_save_dir"])
+                
+                # Validate the save directory is within PROJECTS_DIR
+                if os.path.exists(saved_dir) and os.path.commonpath([saved_dir, PROJECTS_DIR]) == PROJECTS_DIR:
+                    DEFAULT_SAVE_DIR = saved_dir
+                else:
+                    # Path is outside PROJECTS_DIR, fallback to PROJECTS_DIR
+                    ui.notify(f"Warning: Saved directory is not within {PROJECTS_DIR}", type="warning")
+                    DEFAULT_SAVE_DIR = PROJECTS_DIR
+            elif CURRENT_PROJECT_PATH:
+                # If no save dir but we have a project path, use that
+                DEFAULT_SAVE_DIR = CURRENT_PROJECT_PATH
             else:
-                # Path is invalid or outside PROJECTS_DIR
-                ui.notify(f"Warning: Saved project path is not within {PROJECTS_DIR}", type="warning")
-                CURRENT_PROJECT = None
-                CURRENT_PROJECT_PATH = None
-            
-        # Prefer to use project path for save dir if available
-        if "default_save_dir" in global_settings:
-            saved_dir = os.path.expanduser(global_settings["default_save_dir"])
-            
-            # Validate the save directory is within PROJECTS_DIR
-            if os.path.exists(saved_dir) and os.path.commonpath([saved_dir, PROJECTS_DIR]) == PROJECTS_DIR:
-                DEFAULT_SAVE_DIR = saved_dir
-            else:
-                # Path is outside PROJECTS_DIR, fallback to PROJECTS_DIR
-                ui.notify(f"Warning: Saved directory is not within {PROJECTS_DIR}", type="warning")
+                # Fallback to projects directory
                 DEFAULT_SAVE_DIR = PROJECTS_DIR
-        elif CURRENT_PROJECT_PATH:
-            # If no save dir but we have a project path, use that
-            DEFAULT_SAVE_DIR = CURRENT_PROJECT_PATH
-        else:
-            # Fallback to projects directory
-            DEFAULT_SAVE_DIR = PROJECTS_DIR
-    
-    return config
+        
+        return config
+    except Exception as e:
+        print(f"\nError loading JSON config:\n{str(e)}\n")
+        ui.notify(f"Error loading JSON config: {str(e)}", type="negative")
+        return {}
 
 def save_global_settings(settings_dict):
     """
-    Save global application settings to the database.
+    Save global application settings to the config file.
     
     Args:
         settings_dict: Dictionary of global settings to save
@@ -139,18 +136,36 @@ def save_global_settings(settings_dict):
         Boolean indicating success or failure
     """
     try:
-        # Get current settings or create new if none exist
-        current_settings = settings_table.get(doc_id=1)
-        if current_settings:
-            # Update existing settings
-            updated_settings = {**current_settings, **settings_dict}
-            settings_table.update(updated_settings, doc_ids=[1])
-        else:
-            # Insert new settings with doc_id=1
-            settings_table.insert(settings_dict)
-            settings_table.update(lambda _: True, doc_ids=[1])
+        # Read the current config - FORCE RELOAD to get the latest version
+        config = load_tools_config(force_reload=True)
         
-        return True
+        # If we got an empty config, something went wrong - don't save it
+        if not config:
+            ui.notify("Error: Cannot save settings because config file couldn't be loaded", type="negative")
+            return False
+        
+        # Create _global_settings section if it doesn't exist
+        if "_global_settings" not in config:
+            config["_global_settings"] = {}
+        
+        # Update the global settings with the provided values
+        config["_global_settings"].update(settings_dict)
+        
+        # Sanity check: make sure we're not overwriting with just global settings
+        # This ensures we're not accidentally removing tool configurations
+        if len(config.keys()) <= 1:  # Only _global_settings or empty
+            backup_path = f"{TOOLS_JSON_PATH}.before_error"
+            try:
+                with open(TOOLS_JSON_PATH, 'r') as src, open(backup_path, 'w') as dst:
+                    dst.write(src.read())
+                ui.notify(f"Error: Configuration would be invalid. Created safety backup at {backup_path}", 
+                         type="negative")
+            except Exception:
+                pass
+            return False
+        
+        result = save_tools_config(config)
+        return result
     except Exception as e:
         ui.notify(f"Error saving global settings: {str(e)}", type="negative")
         return False
@@ -177,7 +192,7 @@ def ensure_integer_values(obj):
 
 def save_tools_config(config):
     """
-    Save tool configurations to the database.
+    Save tool configurations to the JSON file.
     Converts all numeric values to integers before saving.
     
     Args:
@@ -203,30 +218,21 @@ def save_tools_config(config):
             ui.notify("Error: Configuration contains no tool definitions", type="negative")
             return False
         
-        # Create a backup of the current database
-        backup_db_path = f"{DB_PATH}.bak"
-        try:
-            shutil.copy2(DB_PATH, backup_db_path)
-        except Exception as e:
-            ui.notify(f"Warning: Failed to create backup file: {str(e)}", type="warning")
+        # Create a backup of the current file if it exists
+        if os.path.exists(TOOLS_JSON_PATH):
+            backup_path = f"{TOOLS_JSON_PATH}.bak"
+            try:
+                with open(TOOLS_JSON_PATH, 'r') as src, open(backup_path, 'w') as dst:
+                    dst.write(src.read())
+            except Exception as e:
+                ui.notify(f"Warning: Failed to create backup file: {str(e)}", type="warning")
         
         # Convert all floats to integers
         integer_config = ensure_integer_values(config)
         
-        # Clear the tools table
-        tools_table.truncate()
-        
-        # Insert tool configurations
-        for tool_name, tool_data in integer_config.items():
-            if not tool_name.startswith('_'):  # Skip _global_settings
-                # Add the tool name to the document
-                tool_doc = {'name': tool_name, **tool_data}
-                tools_table.insert(tool_doc)
-        
-        # Save global settings separately if they exist
-        if '_global_settings' in integer_config:
-            save_global_settings(integer_config['_global_settings'])
-        
+        # Write the entire configuration to the file
+        with open(TOOLS_JSON_PATH, 'w') as f:
+            json.dump(integer_config, f, indent=4)
         return True
     except Exception as e:
         ui.notify(f"Error saving configuration: {str(e)}", type="negative")
@@ -234,7 +240,7 @@ def save_tools_config(config):
 
 def update_tool_preferences(script_name, new_preferences):
     """
-    Update tool preferences using TinyDB operations.
+    Update tool preferences using a simple load-modify-save approach.
     Ensures all numeric values are integers.
     
     Args:
@@ -245,11 +251,11 @@ def update_tool_preferences(script_name, new_preferences):
         Boolean indicating success or failure
     """
     try:
-        # Query to find the tool
-        Tool = Query()
-        tool = tools_table.get(Tool.name == script_name)
+        # LOAD: Read the entire configuration - force reload to get latest version
+        config = load_tools_config(force_reload=True)
         
-        if not tool:
+        # Check if the script exists in the configuration
+        if script_name not in config:
             ui.notify(f"Tool {script_name} not found in configuration", type="negative")
             return False
         
@@ -257,14 +263,11 @@ def update_tool_preferences(script_name, new_preferences):
         changes_made = False
         processed_preferences = {}
         
-        # Get the tool options
-        options = tool.get('options', [])
-        
         # First process all preferences, converting floats to ints where needed
         for name, value in new_preferences.items():
             # Convert all floating-point values to integers if option type is int
             option_found = False
-            for option in options:
+            for option in config[script_name]["options"]:
                 if option["name"] == name:
                     option_found = True
                     option_type = option.get("type", "str")
@@ -279,10 +282,10 @@ def update_tool_preferences(script_name, new_preferences):
                 # If option not found, just pass the value as is
                 processed_preferences[name] = value
         
-        # Now update the options with the processed values
+        # Now update the configuration with the processed values
         for name, new_value in processed_preferences.items():
-            # Find and update the option
-            for option in options:
+            # Find and update the option in the configuration
+            for option in config[script_name]["options"]:
                 if option["name"] == name:
                     # Ensure there's a default property
                     if "default" not in option:
@@ -294,19 +297,21 @@ def update_tool_preferences(script_name, new_preferences):
                     break
         
         # Remove any legacy user_preferences section if it exists
-        if "user_preferences" in tool:
-            del tool["user_preferences"]
+        if "user_preferences" in config[script_name]:
+            del config[script_name]["user_preferences"]
             changes_made = True
         
         if not changes_made:
+            # ui.notify("No changes were made to the configuration", type="info")
             return True  # Not an error, just no changes
         
-        # Update the tool in the database
-        tools_table.update({'options': options}, Tool.name == script_name)
+        # SAVE: Write the entire configuration back to the file
+        result = save_tools_config(config)
         
-        ui.notify(f"Default values updated for {script_name}", type="positive")
+        if result:
+            ui.notify(f"Default values updated for {script_name}", type="positive")
         
-        return True
+        return result
         
     except Exception as e:
         ui.notify(f"Error updating preferences: {str(e)}", type="negative")
@@ -548,7 +553,8 @@ def run_tool(script_name, args_dict, log_output=None):
 
 async def get_tool_options(script_name, log_output=None):
     """
-    Get options for a script from the database.
+    Get options for a script from the JSON configuration.
+    Always loads directly from the file to get the latest version.
     
     Args:
         script_name: The script filename
@@ -557,27 +563,28 @@ async def get_tool_options(script_name, log_output=None):
     Returns:
         List of option dictionaries with name, arg_name, description, required, default, type
     """
-    # Query the database for the tool
-    Tool = Query()
-    tool = tools_table.get(Tool.name == script_name)
+    # Always load the tool configurations fresh from disk
+    config = load_tools_config(force_reload=True)
 
-    if not tool:
+    if script_name not in config:
         if log_output:
-            log_output.push(f"Error: Configuration for {script_name} not found in database")
+            log_output.push(f"Error: Configuration for {script_name} not found in JSON config")
         ui.notify(f"Configuration for {script_name} not found", type="negative")
         return []
     
+    tool_config = config[script_name]
+    
     # Display the help information in the log if provided
     if log_output:
-        log_output.push("Tool information from database:")
-        log_output.push(f"Name: {tool['title']}")
-        log_output.push(f"Description: {tool['description']}")
-        log_output.push(f"Help text: {tool['help_text']}")
-        log_output.push(f"Options: {len(tool['options'])} found")
+        log_output.push("Tool information from JSON config:")
+        log_output.push(f"Name: {tool_config['title']}")
+        log_output.push(f"Description: {tool_config['description']}")
+        log_output.push(f"Help text: {tool_config['help_text']}")
+        log_output.push(f"Options: {len(tool_config['options'])} found")
         
         # Display options by group for better organization
         groups = {}
-        for option in tool['options']:
+        for option in tool_config['options']:
             group = option.get('group', 'Other')
             if group not in groups:
                 groups[group] = []
@@ -594,7 +601,7 @@ async def get_tool_options(script_name, log_output=None):
                 if option.get('choices'):
                     log_output.push(f"    Choices: {', '.join(str(c) for c in option['choices'])}")
     
-    return tool['options']
+    return tool_config['options']
 
 ###############################################################################
 # FUNCTION: Options Dialog
@@ -889,10 +896,10 @@ def build_command_string(script_name, option_values):
     Returns:
         Tuple of (full command string, args_list) for display and execution
     """
-    # Get the tool configuration to check for required parameters
-    Tool = Query()
-    tool = tools_table.get(Tool.name == script_name)
-    options = tool.get('options', []) if tool else []
+    # Load the tool configurations to check for required parameters - always force reload
+    config = load_tools_config(force_reload=True)
+    tool_config = config.get(script_name, {})
+    options = tool_config.get('options', [])
 
     # Get all required option names
     required_options = [opt['name'] for opt in options if opt.get('required', False)]
@@ -933,6 +940,10 @@ def build_command_string(script_name, option_values):
             if not is_empty_string or is_required:
                 args_list.append(name)
                 args_list.append(str(value))
+    
+    # Add default save_dir if not specified
+    # if not any(arg.startswith('--save_dir') for arg in args_list):
+    #     args_list.extend(['--save_dir', DEFAULT_SAVE_DIR])
     
     # Determine the Python executable based on platform
     python_exe = 'python'  # Using python directly for all platforms
@@ -1241,41 +1252,23 @@ async def run_tool_ui(script_name, args_dict=None):
     dialog.open()
 
 ###############################################################################
-# Check for database initialization
+# Check for JSON config file existence
 ###############################################################################
 
 def check_config_file():
     """
-    Check if the database exists and has been initialized with tools.
+    Check if the JSON configuration file exists.
     Display an error message if it doesn't.
     
     Returns:
-        Boolean indicating whether the database is properly set up
+        Boolean indicating whether the configuration file exists
     """
-    global DB_PATH, db
-    try:
-        # Check if the DB file exists
-        if not os.path.exists(DB_PATH):
-            # Create the DB file
-            db = TinyDB(DB_PATH)
-            ui.notify(f"New database created at {DB_PATH}. Please add tools configuration.", 
-                     type="negative", 
-                     timeout=0)  # Set timeout to 0 to make the notification persistent
-            return False
-        
-        # Check if any tools exist
-        if len(tools_table.all()) == 0:
-            ui.notify(f"No tools configured in the database at {DB_PATH}. Please add tools configuration.", 
-                     type="negative", 
-                     timeout=0)
-            return False
-            
-        return True
-    except Exception as e:
-        ui.notify(f"Error checking database: {str(e)}", 
+    if not os.path.exists(TOOLS_JSON_PATH):
+        ui.notify(f"Error: Configuration file not found at {TOOLS_JSON_PATH}. Please ensure it exists.", 
                  type="negative", 
-                 timeout=0)
+                 timeout=0)  # Set timeout to 0 to make the notification persistent
         return False
+    return True
 
 ###############################################################################
 # Functions for managing preferences
@@ -1283,50 +1276,39 @@ def check_config_file():
 
 def backup_config_file():
     """
-    Create a backup of the database file.
+    Create a backup of the configuration file.
     
     Returns:
         Boolean indicating success or failure
     """
     try:
-        if os.path.exists(DB_PATH):
-            backup_path = f"{DB_PATH}.bak"
-            shutil.copy2(DB_PATH, backup_path)
-            ui.notify(f"Database backup created at {backup_path}", type="positive")
+        if os.path.exists(TOOLS_JSON_PATH):
+            backup_path = f"{TOOLS_JSON_PATH}.bak"
+            with open(TOOLS_JSON_PATH, 'r') as src, open(backup_path, 'w') as dst:
+                dst.write(src.read())
             return True
         else:
-            ui.notify(f"Cannot create backup - database file does not exist", type="negative")
+            ui.notify(f"Cannot create backup - file does not exist", type="negative")
     except Exception as e:
         ui.notify(f"Error creating backup: {str(e)}", type="negative")
     return False
 
 def restore_config_from_backup():
     """
-    Restore the database from a backup.
+    Restore the configuration file from a backup.
     
     Returns:
         Boolean indicating success or failure
     """
-    global db, tools_table, settings_table
-
-    backup_path = f"{DB_PATH}.bak"
+    backup_path = f"{TOOLS_JSON_PATH}.bak"
     if not os.path.exists(backup_path):
         ui.notify(f"No backup file found", type="negative")
         return False
     
     try:
-        # Close current DB connection
-        db.close()
-        
-        # Copy backup to main DB file
-        shutil.copy2(backup_path, DB_PATH)
-        
-        # Reopen the DB
-        db = TinyDB(DB_PATH)
-        tools_table = db.table('tools')
-        settings_table = db.table('settings')
-        
-        ui.notify(f"Database restored from backup", type="positive")
+        with open(backup_path, 'r') as src, open(TOOLS_JSON_PATH, 'w') as dst:
+            dst.write(src.read())
+        ui.notify(f"Configuration restored from backup", type="positive")
         return True
     except Exception as e:
         ui.notify(f"Error restoring from backup: {str(e)}", type="negative")
@@ -1439,8 +1421,13 @@ async def select_project_dialog():
             CURRENT_PROJECT_PATH = project_path
             DEFAULT_SAVE_DIR = project_path
             
-            # Check if tools exist in the database
-            has_tools = len(tools_table.all()) > 0
+            # Be careful with config saving - make sure we have tools first
+            config = load_tools_config(force_reload=True)
+            has_tools = False
+            for key in config.keys():
+                if not key.startswith('_'):
+                    has_tools = True
+                    break
             
             if has_tools:
                 # Only save settings if we have valid tools in the config
@@ -1491,8 +1478,13 @@ async def select_project_dialog():
                 CURRENT_PROJECT_PATH = project_path
                 DEFAULT_SAVE_DIR = project_path
                 
-                # Check if tools exist in the database
-                has_tools = len(tools_table.all()) > 0
+                # Be careful with config saving - make sure we have tools first
+                config = load_tools_config(force_reload=True)
+                has_tools = False
+                for key in config.keys():
+                    if not key.startswith('_'):
+                        has_tools = True
+                        break
                 
                 if has_tools:
                     # Only save settings if we have valid tools in the config
@@ -1522,6 +1514,7 @@ async def select_project_dialog():
 ###############################################################################
 # Configuration Dialog
 ###############################################################################
+
 
 async def show_config_dialog():
     """
@@ -1596,6 +1589,7 @@ async def show_config_dialog():
                             # Handle any errors
                             error_msg = f"Error selecting directory: {str(e)}"
                             ui.notify(error_msg, type="negative", timeout=3000)
+
                     
                     # Add browse button for directory selection
                     ui.button('Browse', icon='folder_open', on_click=browse_save_dir).props('flat dense no-caps')
@@ -1674,7 +1668,7 @@ async def main():
         with ui.card().classes('w-full mb-4 p-4'):
             ui.label('Select a tool to run:').classes('text-h6')
             
-            # Load tool options from database
+            # Load tool options from JSON file
             config = load_tools_config()
 
             tool_options = []
@@ -1690,7 +1684,7 @@ async def main():
                         })
             
             if not tool_options:
-                ui.label("No tools found in database. Please add tools configurations.").classes('text-negative')
+                ui.label("No tools found in configuration file. Please check the JSON file.").classes('text-negative')
                 default_tool_name = ""
                 default_description = ""
             else:
@@ -1722,10 +1716,10 @@ async def main():
             # Attach the update function to the select element's change event
             selected_tool.on('update:model-value', update_description)
             
-            # Spacer to create vertical space
+            # Spacer to create vertical space where the status message used to be
             ui.space().classes('h-4')
             
-            # Action buttons row
+                            # Action buttons row
             with ui.row().classes('w-full justify-center gap-4 mt-3'):
                 async def configure_and_run_tool():
                     global CURRENT_PROJECT, CURRENT_PROJECT_PATH, DEFAULT_SAVE_DIR
@@ -1755,26 +1749,26 @@ async def main():
                         ui.navigate.reload()
                         return
                     
-                    # Create a log dialog for displaying tool information
+                    # Create a log dialog for displaying JSON information
                     json_dialog = ui.dialog().props('maximized')
                     
                     with json_dialog, ui.card().classes('w-full'):
                         with ui.column().classes('w-full p-4'):
-                            ui.label(f'Loading options for {script_name} from database').classes('text-h6')
+                            ui.label(f'Loading options for {script_name} from JSON').classes('text-h6')
                             json_log = ui.log().classes('w-full') \
                                 .style('height: 300px; background-color: #0f1222; color: #b2f2bb; font-family: monospace; padding: 1rem; border-radius: 4px;')
                             ui.button('Close', on_click=json_dialog.close).props('no-caps').classes('self-end')
                     
                     json_dialog.open()
                     
-                    # Always get fresh options directly from the database
+                    # Always get fresh options directly from the file - this is critical!
                     options = await get_tool_options(script_name, json_log)
                     
                     # Close the JSON dialog
                     json_dialog.close()
                     
                     if not options:
-                        ui.notify('Failed to load options from database. Check if the tool configuration exists.', type="negative")
+                        ui.notify('Failed to load options from JSON. Check if the configuration exists.', type="negative")
                         return
                     
                     while True:
@@ -1811,12 +1805,11 @@ async def main():
                         run_button.props('disabled')
                         run_button.tooltip('Create or select a project first')
 
-
 if __name__ == "__main__":
-    # Check for database initialization
+    # Check for config file first
     if not check_config_file():
-        print("Database not properly initialized. Please add tool configurations.")
-        # Don't exit, let the app start to show UI notifications
+        print("Configuration file not found. Please ensure tools_config.json exists.")
+        sys.exit(1)
 
     # Load configuration before starting the app to initialize settings
     load_tools_config(force_reload=True)

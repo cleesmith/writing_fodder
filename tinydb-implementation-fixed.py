@@ -39,6 +39,8 @@ DB_PATH = "writers_toolkit.json"
 db = TinyDB(DB_PATH)
 tools_table = db.table('tools')
 settings_table = db.table('settings')
+# New table for Claude API settings
+claude_api_table = db.table('claude_api')
 
 # Add a global variable for the timer task
 timer_task = None
@@ -48,6 +50,16 @@ tool_in_progress = None
 
 # We'll collect references to all "Run" buttons here so we can disable/enable them.
 run_buttons = []
+
+# Default Claude API settings
+DEFAULT_CLAUDE_API_SETTINGS = {
+    "request_timeout": 300,         # Maximum timeout for each streamed chunk of output (in seconds)
+    "max_retries": 1,               # Maximum times to retry request
+    "context_window": 200000,       # Context window for Claude model
+    "betas_max_tokens": 128000,     # Maximum tokens for AI output
+    "thinking_budget_tokens": 32000,# Maximum tokens for AI thinking
+    "desired_output_tokens": 8000   # User desired number of tokens to generate
+}
 
 def open_file_in_editor(file_path):
     """Open a file in the integrated text editor in a new tab."""
@@ -60,6 +72,68 @@ def open_file_in_editor(file_path):
 ###############################################################################
 # FUNCTION: TinyDB Config handling with Integer Enforcement
 ###############################################################################
+
+def initialize_claude_api_settings():
+    """
+    Initialize the Claude API settings table if it doesn't exist or is empty.
+    """
+    if len(claude_api_table.all()) == 0:
+        claude_api_table.insert(DEFAULT_CLAUDE_API_SETTINGS)
+
+def get_claude_api_settings():
+    """
+    Get the Claude API settings from the database.
+    
+    Returns:
+        Dictionary of Claude API settings
+    """
+    # Ensure settings exist
+    initialize_claude_api_settings()
+    
+    # Get the settings (should be just one document)
+    settings = claude_api_table.get(doc_id=1)
+    if not settings:
+        # If settings still don't exist, return defaults
+        return DEFAULT_CLAUDE_API_SETTINGS
+    
+    return settings
+
+def save_claude_api_settings(settings_dict):
+    """
+    Save Claude API settings to the database.
+    
+    Args:
+        settings_dict: Dictionary of settings to save
+        
+    Returns:
+        Boolean indicating success or failure
+    """
+    try:
+        # Ensure all values are integers
+        integer_settings = {}
+        for key, value in settings_dict.items():
+            if isinstance(value, float):
+                integer_settings[key] = int(value)
+            else:
+                integer_settings[key] = value
+        
+        # Get current settings
+        current_settings = claude_api_table.get(doc_id=1)
+        
+        if current_settings:
+            # Update existing settings
+            updated_settings = {**current_settings, **integer_settings}
+            claude_api_table.update(updated_settings, doc_ids=[1])
+        else:
+            # Insert new settings
+            claude_api_table.insert(integer_settings)
+            # Force doc_id to be 1
+            claude_api_table.update(lambda _: True, doc_ids=[1])
+        
+        return True
+    except Exception as e:
+        ui.notify(f"Error saving Claude API settings: {str(e)}", type="negative")
+        return False
 
 def load_tools_config(force_reload=False):
     """
@@ -85,9 +159,36 @@ def load_tools_config(force_reload=False):
             # Remove the 'name' key as it's not part of the original structure
             tool_data = dict(tool)
             del tool_data['name']
+            
+            # Apply Claude API global settings to each tool
+            claude_api_settings = get_claude_api_settings()
+            
+            # Update Claude API related options for each tool
+            if 'options' in tool_data:
+                for option in tool_data['options']:
+                    option_name = option.get('name')
+                    if option_name:
+                        # Update default value for Claude API specific options
+                        if option_name == '--request_timeout' and 'request_timeout' in claude_api_settings:
+                            option['default'] = claude_api_settings['request_timeout']
+                        elif option_name == '--max_retries' and 'max_retries' in claude_api_settings:
+                            option['default'] = claude_api_settings['max_retries']
+                        elif option_name == '--context_window' and 'context_window' in claude_api_settings:
+                            option['default'] = claude_api_settings['context_window']
+                        elif option_name == '--betas_max_tokens' and 'betas_max_tokens' in claude_api_settings:
+                            option['default'] = claude_api_settings['betas_max_tokens']
+                        elif option_name == '--thinking_budget_tokens' and 'thinking_budget_tokens' in claude_api_settings:
+                            option['default'] = claude_api_settings['thinking_budget_tokens']
+                        elif option_name == '--thinking_budget' and 'thinking_budget_tokens' in claude_api_settings:
+                            option['default'] = claude_api_settings['thinking_budget_tokens']
+                        elif option_name == '--desired_output_tokens' and 'desired_output_tokens' in claude_api_settings:
+                            option['default'] = claude_api_settings['desired_output_tokens']
+                        elif option_name == '--max_tokens' and 'desired_output_tokens' in claude_api_settings:
+                            option['default'] = claude_api_settings['desired_output_tokens']
+            
             config[tool_name] = tool_data
     
-    # Get global settings
+    # Load global settings
     global_settings = settings_table.get(doc_id=1)
     if global_settings:
         config['_global_settings'] = global_settings
@@ -125,6 +226,9 @@ def load_tools_config(force_reload=False):
         else:
             # Fallback to projects directory
             DEFAULT_SAVE_DIR = PROJECTS_DIR
+    
+    # Add Claude API settings to the config
+    config['_claude_api_settings'] = get_claude_api_settings()
     
     return config
 
@@ -192,7 +296,7 @@ def save_tools_config(config):
             ui.notify("Error: Refusing to save empty configuration", type="negative")
             return False
             
-        # Ensure we're not just saving _global_settings
+        # Ensure we're not just saving _global_settings or _claude_api_settings
         has_real_tools = False
         for key in config.keys():
             if not key.startswith('_'):
@@ -218,7 +322,7 @@ def save_tools_config(config):
         
         # Insert tool configurations
         for tool_name, tool_data in integer_config.items():
-            if not tool_name.startswith('_'):  # Skip _global_settings
+            if not tool_name.startswith('_'):  # Skip _global_settings and _claude_api_settings
                 # Add the tool name to the document
                 tool_doc = {'name': tool_name, **tool_data}
                 tools_table.insert(tool_doc)
@@ -226,6 +330,10 @@ def save_tools_config(config):
         # Save global settings separately if they exist
         if '_global_settings' in integer_config:
             save_global_settings(integer_config['_global_settings'])
+        
+        # Save Claude API settings separately if they exist
+        if '_claude_api_settings' in integer_config:
+            save_claude_api_settings(integer_config['_claude_api_settings'])
         
         return True
     except Exception as e:
@@ -281,7 +389,32 @@ def update_tool_preferences(script_name, new_preferences):
         
         # Now update the options with the processed values
         for name, new_value in processed_preferences.items():
-            # Find and update the option
+            # Check if this is a Claude API setting
+            is_claude_api_setting = False
+            claude_api_settings = get_claude_api_settings()
+            
+            # Map option names to Claude API setting keys
+            claude_api_mapping = {
+                '--request_timeout': 'request_timeout',
+                '--max_retries': 'max_retries',
+                '--context_window': 'context_window',
+                '--betas_max_tokens': 'betas_max_tokens',
+                '--thinking_budget_tokens': 'thinking_budget_tokens',
+                '--thinking_budget': 'thinking_budget_tokens',
+                '--desired_output_tokens': 'desired_output_tokens',
+                '--max_tokens': 'desired_output_tokens'
+            }
+            
+            api_setting_key = claude_api_mapping.get(name)
+            if api_setting_key and api_setting_key in claude_api_settings:
+                # This is a Claude API setting
+                is_claude_api_setting = True
+                
+                # Update it in the global Claude API settings
+                claude_api_settings[api_setting_key] = new_value
+            
+            # Always update the local tool option regardless
+            # Find and update the option in the tool
             for option in options:
                 if option["name"] == name:
                     # Ensure there's a default property
@@ -303,6 +436,9 @@ def update_tool_preferences(script_name, new_preferences):
         
         # Update the tool in the database
         tools_table.update({'options': options}, Tool.name == script_name)
+        
+        # Save any updated Claude API settings
+        save_claude_api_settings(claude_api_settings)
         
         ui.notify(f"Default values updated for {script_name}", type="positive")
         
@@ -1241,6 +1377,124 @@ async def run_tool_ui(script_name, args_dict=None):
     dialog.open()
 
 ###############################################################################
+# Claude API Settings Dialog
+###############################################################################
+
+async def show_claude_api_settings_dialog():
+    """
+    Show a dialog to configure Claude API settings globally.
+    These settings will be applied to all tools.
+    """
+    # Get current Claude API settings
+    claude_api_settings = get_claude_api_settings()
+    
+    # Create the dialog
+    dialog = ui.dialog()
+    dialog.props('persistent')
+    
+    # Create input elements dictionary to store references
+    input_elements = {}
+    
+    with dialog, ui.card().classes('w-full max-w-3xl p-4'):
+        ui.label('Claude API Global Settings').classes('text-h6 mb-4')
+        
+        # Description text
+        ui.label('These settings will be applied to all tools that use the Claude API.').classes('text-caption text-grey-7 mb-4')
+        
+        # Create settings form
+        with ui.column().classes('w-full gap-3'):
+            # Request timeout
+            with ui.card().classes('w-full q-pa-sm q-mb-sm'):
+                ui.label('--request_timeout').classes('text-bold')
+                ui.label('Maximum timeout for each streamed chunk of output (in seconds)').classes('text-caption text-grey-7')
+                input_elements['request_timeout'] = ui.number(
+                    value=claude_api_settings.get('request_timeout', 300),
+                    precision=0
+                )
+            
+            # Max retries
+            with ui.card().classes('w-full q-pa-sm q-mb-sm'):
+                ui.label('--max_retries').classes('text-bold')
+                ui.label('Maximum times to retry request').classes('text-caption text-grey-7')
+                input_elements['max_retries'] = ui.number(
+                    value=claude_api_settings.get('max_retries', 1),
+                    precision=0
+                )
+            
+            # Context window
+            with ui.card().classes('w-full q-pa-sm q-mb-sm'):
+                ui.label('--context_window').classes('text-bold')
+                ui.label('Context window for Claude model').classes('text-caption text-grey-7')
+                input_elements['context_window'] = ui.number(
+                    value=claude_api_settings.get('context_window', 200000),
+                    precision=0
+                )
+            
+            # Betas max tokens
+            with ui.card().classes('w-full q-pa-sm q-mb-sm'):
+                ui.label('--betas_max_tokens').classes('text-bold')
+                ui.label('Maximum tokens for AI output').classes('text-caption text-grey-7')
+                input_elements['betas_max_tokens'] = ui.number(
+                    value=claude_api_settings.get('betas_max_tokens', 128000),
+                    precision=0
+                )
+            
+            # Thinking budget tokens
+            with ui.card().classes('w-full q-pa-sm q-mb-sm'):
+                ui.label('--thinking_budget_tokens (also used for --thinking_budget)').classes('text-bold')
+                ui.label('Maximum tokens for AI thinking').classes('text-caption text-grey-7')
+                input_elements['thinking_budget_tokens'] = ui.number(
+                    value=claude_api_settings.get('thinking_budget_tokens', 32000),
+                    precision=0
+                )
+            
+            # Desired output tokens
+            with ui.card().classes('w-full q-pa-sm q-mb-sm'):
+                ui.label('--desired_output_tokens (also used for --max_tokens)').classes('text-bold')
+                ui.label('User desired number of tokens to generate').classes('text-caption text-grey-7')
+                input_elements['desired_output_tokens'] = ui.number(
+                    value=claude_api_settings.get('desired_output_tokens', 8000),
+                    precision=0
+                )
+        
+        # Button row
+        with ui.row().classes('w-full justify-end gap-2 mt-4'):
+            # Cancel button
+            ui.button('Cancel', on_click=dialog.close).props('flat no-caps').classes('text-grey')
+            
+            # Reset to defaults button
+            def reset_to_defaults():
+                for name, default_value in DEFAULT_CLAUDE_API_SETTINGS.items():
+                    if name in input_elements:
+                        input_elements[name].set_value(default_value)
+            
+            ui.button('Reset to Defaults', on_click=reset_to_defaults).props('flat no-caps').classes('text-orange')
+            
+            # Save button
+            def save_settings():
+                # Collect values from input elements
+                new_settings = {}
+                for name, input_element in input_elements.items():
+                    if hasattr(input_element, 'value'):
+                        # Convert floats to integers
+                        value = input_element.value
+                        if isinstance(value, float):
+                            value = int(value)
+                        new_settings[name] = value
+                
+                # Save the settings
+                if save_claude_api_settings(new_settings):
+                    ui.notify("Claude API settings saved successfully", type="positive")
+                    dialog.close()
+                else:
+                    ui.notify("Error saving Claude API settings", type="negative")
+            
+            ui.button('Save', on_click=save_settings).props('color=primary no-caps').classes('text-white')
+    
+    # Show the dialog
+    dialog.open()
+
+###############################################################################
 # Check for database initialization
 ###############################################################################
 
@@ -1269,6 +1523,9 @@ def check_config_file():
                      type="negative", 
                      timeout=0)
             return False
+            
+        # Initialize Claude API settings if they don't exist
+        initialize_claude_api_settings()
             
         return True
     except Exception as e:
@@ -1325,6 +1582,7 @@ def restore_config_from_backup():
         db = TinyDB(DB_PATH)
         tools_table = db.table('tools')
         settings_table = db.table('settings')
+        claude_api_table = db.table('claude_api')
         
         ui.notify(f"Database restored from backup", type="positive")
         return True
@@ -1535,7 +1793,8 @@ async def show_config_dialog():
         with ui.row().classes('w-full justify-between items-center mb-4'):
             ui.label('Configuration Settings').classes('text-h6')
             ui.button('Close', on_click=dialog.close).props('flat no-caps').classes('text-primary')
-            
+        
+        with ui.column().classes('w-full gap-4'):
             # Default save directory setting - the only section we're keeping
             with ui.card().classes('w-full p-3'):
                 ui.label('Default Save Directory').classes('text-bold')
@@ -1597,9 +1856,22 @@ async def show_config_dialog():
                             error_msg = f"Error selecting directory: {str(e)}"
                             ui.notify(error_msg, type="negative", timeout=3000)
                     
-                    # Add browse button for directory selection
-                    ui.button('Browse', icon='folder_open', on_click=browse_save_dir).props('flat dense no-caps')
+                    # Add browse button for directory selection - FIX: Properly handle async function
+                    ui.button('Browse', icon='folder_open', 
+                             on_click=lambda: asyncio.create_task(browse_save_dir())
+                             ).props('flat dense no-caps')
+                    
                     ui.button('Update', on_click=update_save_dir).props('no-caps')
+            
+            # Claude API Settings button
+            with ui.card().classes('w-full p-3'):
+                ui.label('Claude API Settings').classes('text-bold')
+                ui.label("Configure global settings for all Claude API interactions.").classes('text-caption text-grey-7')
+                
+                # FIX: Properly handle async function call
+                ui.button('Edit Claude API Settings', 
+                         on_click=lambda: [dialog.close(), asyncio.create_task(show_claude_api_settings_dialog())]) \
+                         .props('no-caps').classes('bg-blue-600 text-white')
             
             # Bottom close button - styled like the top one
             with ui.row().classes('w-full justify-end mt-4'):
