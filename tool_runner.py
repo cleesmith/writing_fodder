@@ -1005,7 +1005,9 @@ async def handle_setup(script_name, setup_completed, run_btn, log_output):
     if True: #setup_result:
         # Now generate command and args list for display
         # full_command, args_list = build_command_string(script_name, args_dict)
+
         full_command, args_list = build_command_string(script_name, TOOL_OPTION_VALUES)
+        print(f"handle_setup:\nfull_command={full_command}\nargs_list={args_list}\nTOOL_OPTION_VALUES={TOOL_OPTION_VALUES}\n")
 
         # Create a readable version of args for display
         args_display = []
@@ -1150,31 +1152,31 @@ async def start_runner_ui(script_name, args_dict):
                     def clear_output_handler():
                         clear_output(log_output, timer_label, file_selector_row)
                         # If setup was completed before, show that info again
-                        if setup_completed:
-                            # Regenerate the command display
-                            # full_command, args_list = build_command_string(script_name, args_dict)
-                            full_command, args_list = build_command_string(script_name, TOOL_OPTION_VALUES)
+                        # if setup_completed:
+                        #     # Regenerate the command display
+                        #     # full_command, args_list = build_command_string(script_name, args_dict)
+                        #     full_command, args_list = build_command_string(script_name, TOOL_OPTION_VALUES)
                             
-                            # Create a readable version of args for display
-                            args_display = []
-                            i = 0
-                            while i < len(args_list):
-                                if i+1 < len(args_list) and args_list[i].startswith('--'):
-                                    # Combine option and value
-                                    args_display.append(f"{args_list[i]} {args_list[i+1]}")
-                                    i += 2
-                                else:
-                                    # Just a flag
-                                    args_display.append(args_list[i])
-                                    i += 1
+                        #     # Create a readable version of args for display
+                        #     args_display = []
+                        #     i = 0
+                        #     while i < len(args_list):
+                        #         if i+1 < len(args_list) and args_list[i].startswith('--'):
+                        #             # Combine option and value
+                        #             args_display.append(f"{args_list[i]} {args_list[i+1]}")
+                        #             i += 2
+                        #         else:
+                        #             # Just a flag
+                        #             args_display.append(args_list[i])
+                        #             i += 1
                             
-                            args_str = " ".join(args_display)
+                        #     args_str = " ".join(args_display)
                             
-                            log_output.push(f"Setup completed. Ready to run with options:")
-                            log_output.push(f"Command: {script_name}")
-                            log_output.push(f"Arguments: {args_str}")
-                            for key, value in args_dict.items():
-                                log_output.push(f"  {key}: {value}")
+                        #     log_output.push(f"Setup completed. Ready to run with options:")
+                        #     log_output.push(f"Command: {script_name}")
+                        #     log_output.push(f"Arguments: {args_str}")
+                        #     for key, value in args_dict.items():
+                        #         log_output.push(f"  {key}: {value}")
                     
                     # Clear button with blue styling
                     clear_btn = ui.button(
