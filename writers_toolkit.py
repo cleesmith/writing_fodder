@@ -519,6 +519,7 @@ def run_tool(script_name, args_dict, log_output=None):
 	
 	# Run the command and capture output
 	result = subprocess.run(cmd, capture_output=True, text=True)
+	#        **********.***
 	
 	if log_output:
 		if result.stdout:

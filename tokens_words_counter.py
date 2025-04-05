@@ -79,6 +79,7 @@ def read_text_file(file_path):
 
 def count_tokens(client, text):
     """Count tokens in text using Anthropic API."""
+    time.sleep(3)
     try:
         response = client.beta.messages.count_tokens(
             model="claude-3-7-sonnet-20250219",
