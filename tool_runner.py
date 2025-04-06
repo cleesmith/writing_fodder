@@ -49,6 +49,7 @@ timer_task = None
 # A simple global to mark which tool is running (or None if none).
 tool_in_progress = None
 
+# note: not used in this app, but only for testing popup dialogs:
 async def pick_file() -> None:
     result = await local_file_picker('~/writing', multiple=True)
     ui.notify(f'Result: {result}')
@@ -599,6 +600,7 @@ def build_command_string(script_name, option_values):
     Returns:
         Tuple of (full command string, args_list) for display and execution
     """
+    global TOOL_OPTION_VALUES
 
     # print(f"\nbuild_command_string: \noption_values:\n{option_values}")
     # # Get the tool configuration to check for required parameters
@@ -653,7 +655,7 @@ def build_command_string(script_name, option_values):
 
     print(f"build_command_string:\nscript_name={script_name}\noption_values={option_values}\n")
     args_list = []
-    print(f"TOOL_OPTION_VALUES={TOOL_OPTION_VALUES}\n")
+    print(f"build_command_string: TOOL_OPTION_VALUES={TOOL_OPTION_VALUES}\n")
     for key, value in TOOL_OPTION_VALUES.items():
         if isinstance(value, bool):
             if value:  # Only include flag if True
@@ -884,121 +886,9 @@ async def run_tool_execution(script_name, args_str, args_dict, file_options, log
     on_tool_completion(result)
     log_output.push(result)
 
-'''
-async def start_runner_ui(script_name, args_dict):
-    if not args_dict:
-        args_dict = {}
-    
-    # Generate command and args list for display
-    full_command, args_list = build_command_string(script_name, args_dict)
-
-    # Create a readable version of args for display
-    args_display = []
-    i = 0
-    while i < len(args_list):
-        if i+1 < len(args_list) and args_list[i].startswith('--'):
-            # Combine option and value
-            args_display.append(f"{args_list[i]} {args_list[i+1]}")
-            i += 2
-        else:
-            # Just a flag
-            args_display.append(args_list[i])
-            i += 1
-    
-    args_str = " ".join(args_display)
-    
-    # Dictionary to store file paths and display names
-    file_options = {}
-    
-    # Create the runner dialog
-    runner_dialog = ui.dialog().props('maximized')
-    
-    with runner_dialog, ui.card().classes('w-full h-full'):
-        with ui.column().classes('w-full h-full'):
-            # Header with title and close button
-            with ui.row().classes('w-full justify-between items-center q-pa-md'):
-                ui.label(f'Writing Tool: {script_name}').classes('text-h6')
-                ui.button(icon='close', on_click=runner_dialog.close).props('flat round no-caps')
-            
-            # Create the toolbar with run button, timer, and file selection
-            with ui.row().classes('w-full items-center justify-between mt-0 mb-0 q-px-md'):
-
-                # Left side: Setup and Run buttons (primary actions) and timer label
-                with ui.row().classes('items-center gap-2'):
-                    run_btn = ui.button(
-                        f"Setup",
-                        on_click=lambda: build_options_dialog(script_name)
-                    ).classes('bg-blue-600 text-white').props('no-caps flat dense')
-
-                    run_btn = ui.button(
-                        f"Run",
-                        on_click=lambda: run_tool_execution(script_name, args_str, args_dict, file_options, log_output, timer_label, file_select, file_selector_row)
-                    ).classes('bg-green-600 text-white').props('no-caps flat dense')
-                    
-                    # Add timer label next to the run button
-                    timer_label = ui.label("elapsed time: 0m 0s").classes('text-italic mr-12').style('margin-left: 10px; min-width: 120px;')
-                
-                # Center - file selection elements (initially hidden)
-                file_selector_row = ui.row().classes('items-center gap-2 flex-grow').style('display: none;')
-                
-                with file_selector_row:
-                    # Icon-only button with icon on the left
-                    open_btn = ui.button(
-                        icon="edit",
-                        on_click=lambda: open_selected_file()
-                    ).props('no-caps flat dense round').classes('bg-blue-600 text-white')
-                    
-                    # Add dropdown for file selection with more readable text size
-                    file_select = ui.select(
-                        options=[],
-                        multiple=True,
-                        label="Edit:"
-                    ).classes(f'flex-grow').style('min-width: 300px; max-width: 600px;')
-                    file_select.style('font-size: 12px;')
-                    file_select.props('popupContentClass="small-text"')
-                    file_select.props('use-chips')
-
-                    css_string = f"""
-                    <style>
-                        .small-text {{
-                            font-size: 12px;
-                        }}
-                    </style>
-                    """
-                    ui.add_head_html(css_string)
-                    
-                    # Function to handle file selection
-                    def open_selected_file():
-                        selected_files = file_select.value
-                        if selected_files:
-                            for file_id in selected_files:
-                                if file_id in file_options:
-                                    open_file_in_editor(file_options[file_id])
-                    
-                # Right side - utility buttons
-                with ui.row().classes('items-center gap-2'):
-                    # Clear button with blue styling
-                    clear_btn = ui.button(
-                        "Clear", icon="cleaning_services",
-                        on_click=lambda: clear_output(log_output, timer_label, file_selector_row)
-                    ).props('no-caps flat dense').classes('bg-blue-600 text-white')
-                    
-                    # Force Quit button
-                    force_quit_btn = ui.button(
-                        "Force Quit", icon="power_settings_new",
-                        on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
-                    ).props('no-caps flat dense').classes('bg-red-600 text-white')
-            
-            # Output area using a terminal-like log component
-            log_output = ui.log().classes('w-full flex-grow') \
-                .style('min-height: 60vh; background-color: #0f1222; color: #b2f2bb; font-family: monospace; padding: 1rem; border-radius: 4px; margin-right: 20px;')
-            log_output.push("Tool output will appear here...")
-    
-    # Show the runner dialog
-    runner_dialog.open()
-'''
 async def handle_setup(script_name, setup_completed, run_btn, log_output):
     # handle Setup before Run
+    global TOOL_OPTION_VALUES
 
     await build_options_dialog(script_name)
 
@@ -1037,6 +927,7 @@ async def handle_setup(script_name, setup_completed, run_btn, log_output):
         #     log_output.push(f"  {key}: {value}")
 
 async def start_runner_ui(script_name, args_dict):
+    global TOOL_OPTION_VALUES
     if not args_dict:
         args_dict = {}
     
@@ -1068,24 +959,25 @@ async def start_runner_ui(script_name, args_dict):
 
                     # Function to handle tool execution
                     async def handle_run():
+                        global TOOL_OPTION_VALUES
                         # Regenerate the command string to ensure it's current
                         # full_command, args_list = build_command_string(script_name, args_dict)
                         full_command, args_list = build_command_string(script_name, TOOL_OPTION_VALUES)
 
-                        # Create a readable version of args for display
-                        args_display = []
-                        i = 0
-                        while i < len(args_list):
-                            if i+1 < len(args_list) and args_list[i].startswith('--'):
-                                # Combine option and value
-                                args_display.append(f"{args_list[i]} {args_list[i+1]}")
-                                i += 2
-                            else:
-                                # Just a flag
-                                args_display.append(args_list[i])
-                                i += 1
+                        # # Create a readable version of args for display
+                        # args_display = []
+                        # i = 0
+                        # while i < len(args_list):
+                        #     if i+1 < len(args_list) and args_list[i].startswith('--'):
+                        #         # Combine option and value
+                        #         args_display.append(f"{args_list[i]} {args_list[i+1]}")
+                        #         i += 2
+                        #     else:
+                        #         # Just a flag
+                        #         args_display.append(args_list[i])
+                        #         i += 1
                         
-                        args_str = " ".join(args_display)
+                        # args_str = " ".join(args_display)
                         
                         # Disable both buttons during run
                         setup_btn.disable()
