@@ -150,14 +150,14 @@ def clear_output(log_output, timer_label=None, file_selector_row=None):
 def get_tool_options():
     # Query the database for the tool
     # # diagnostic information
-    # print(f"Checking options for tool: {ToolState.IN_PROGRESS}")
+    # print(f"Checking options for tool: {ToolState.SELECTED_TOOL}")
     # print(f"Database connection exists: {ToolState.db is not None}")
     # print(f"Tools table exists: {ToolState.tools_table is not None}")
     # print(f"Number of tools in database: {len(ToolState.tools_table.all()) if ToolState.tools_table else 0}")
     Tool = Query()
-    tool = ToolState.tools_table.get(Tool.name == ToolState.IN_PROGRESS)
+    tool = ToolState.tools_table.get(Tool.name == ToolState.SELECTED_TOOL)
     if not tool:
-        ui.notify(f"Configuration for {ToolState.IN_PROGRESS} not found", type="negative")
+        ui.notify(f"Configuration for {ToolState.SELECTED_TOOL} not found", type="negative")
         return
     return tool['options']
 
@@ -391,7 +391,7 @@ def build_command_string():
     #         if not is_empty_string or is_required:
     #             args_list.append(name)
     #             args_list.append(str(value))
-    print(f"build_command_string:\n\tbcs: ToolState.IN_PROGRESS={ToolState.IN_PROGRESS}")
+    print(f"build_command_string:\n\tbcs: ToolState.SELECTED_TOOL={ToolState.SELECTED_TOOL}")
     args_list = []
     print(f"\tbcs: ToolState.OPTION_VALUES={ToolState.OPTION_VALUES}\n\n")
     for key, value in ToolState.OPTION_VALUES.items():
@@ -420,7 +420,7 @@ def build_command_string():
             else:
                 quoted_args.append(arg)
     
-    ToolState.FULL_COMMAND = f"python -u {ToolState.IN_PROGRESS} {' '.join(quoted_args)}"
+    ToolState.FULL_COMMAND = f"python -u {ToolState.SELECTED_TOOL} {' '.join(quoted_args)}"
     print(f"\tbcs: ToolState.FULL_COMMAND={ToolState.FULL_COMMAND}\n\n")
     return
 
@@ -434,6 +434,8 @@ def run_tool(script_name, args_dict, log_output=None):
     Returns:
         Tuple of (stdout, stderr, created_files) from the subprocess
     """
+
+    print(f"\n>>> run_tool: {script_name}\n{args_dict}\n")
 
     # Get the tool configuration to determine types
     config = load_tools_config()
@@ -532,19 +534,39 @@ def run_tool(script_name, args_dict, log_output=None):
     
     return result.stdout, result.stderr, created_files
 
-
 async def run_tool_execution(file_options, log_output, timer_label, file_select, file_selector_row):
-    # if another tool is running, don't start a new one
-    if ToolState.IN_PROGRESS is not None:
-        ui.notify(f"Cannot run '{script_name}' because '{ToolState.IN_PROGRESS}' is already in progress.")
+    """
+    Execute a tool script with user-selected options.
+    
+    Args:
+        file_options: Dictionary to store output file paths and display names
+        log_output: UI component for displaying log messages
+        timer_label: UI component for displaying elapsed time
+        file_select: UI dropdown for selecting created files
+        file_selector_row: UI row containing file selection controls
+    """
+    
+    # If another tool is running, don't start a new one
+    if ToolState.IS_RUNNING:
+        ui.notify(f"Cannot run '{ToolState.SELECTED_TOOL}' because a is already in progress.")
         return
     
+    # Check if we have options and a command string
+    if not ToolState.OPTION_VALUES or not ToolState.FULL_COMMAND:
+        ui.notify(f"Please set up options for {ToolState.SELECTED_TOOL} before running.")
+        return
+    
+    # Get the command string for display
+    args_str = ToolState.FULL_COMMAND.replace(f"python -u {ToolState.SELECTED_TOOL} ", "")
+    
     # Mark this script as running
-    ToolState.IN_PROGRESS = script_name
+    ToolState.IS_RUNNING = True
+
+    print(f"Running {ToolState.SELECTED_TOOL} = {ToolState.IS_RUNNING}")
     
     # Clear output and show starting message
     log_output.clear()
-    log_output.push(f"Running {script_name} with args: {args_str}")
+    log_output.push(f"Running {ToolState.SELECTED_TOOL} with args: {args_str}")
     
     # Reset file selection and hide the selector
     file_options.clear()
@@ -553,22 +575,30 @@ async def run_tool_execution(file_options, log_output, timer_label, file_select,
     
     # Initialize the timer
     start_time = time.time()
+    timer_task = None
                 
-    # update the displayed elapsed time:
+    # Update the displayed elapsed time
     async def update_timer(timer_label):
-        while ToolState.IN_PROGRESS:
-            elapsed = time.time() - start_time
-            minutes = int(elapsed // 60)
-            seconds = int(elapsed % 60)
-            timer_label.text = f"elapsed time: {minutes}m {seconds}s"
-            await asyncio.sleep(1)
+        try:
+            while ToolState.IS_RUNNING:
+                elapsed = time.time() - start_time
+                minutes = int(elapsed // 60)
+                seconds = int(elapsed % 60)
+                timer_label.text = f"elapsed time: {minutes}m {seconds}s"
+                await asyncio.sleep(1)
+        except Exception as e:
+            print(f"Timer error: {str(e)}")
     
-    # start the timer
-    if TIMER_TASK:
-        TIMER_TASK.cancel()
-    TIMER_TASK = asyncio.create_task(update_timer(timer_label))
+    # Start the timer
+    try:
+        if ToolState.TIMER_TASK:
+            ToolState.TIMER_TASK.cancel()
+        timer_task = asyncio.create_task(update_timer(timer_label))
+        ToolState.TIMER_TASK = timer_task
+    except Exception as e:
+        log_output.push(f"Timer setup error: {str(e)}")
     
-    # define a function to handle the tool execution completion
+    # Define a function to handle the tool execution completion
     def on_tool_completion(result):
         stdout, stderr, created_files = result
         
@@ -596,287 +626,45 @@ async def run_tool_execution(file_options, log_output, timer_label, file_select,
                     file_select.set_value(file_names[0])  # Select first file by default
                     file_selector_row.style('display: flex;')  # Show the file selector
         
-        ui.notify(f"Finished running {script_name}", type="positive")
+        ui.notify(f"Finished running {ToolState.SELECTED_TOOL}", type="positive")
     
-    # Run the tool in a background task
-    result = await run.io_bound(
-        run_tool, 
-        script_name, 
-        args_dict, 
-        log_output
-    )
-
-    # await asyncio.sleep(10) # for testing, coz time.sleep blocks thread
+    try:
+        # Run the tool in a background task
+        print(f"io_bound: {ToolState.SELECTED_TOOL}")
+        result = await run.io_bound(
+            run_tool, 
+            ToolState.SELECTED_TOOL, 
+            ToolState.OPTION_VALUES, 
+            log_output
+        )
         
-    # reset the tool in progress
-    ToolState.IN_PROGRESS = None
-
-    # stop the timer
-    if TIMER_TASK:
-        TIMER_TASK.cancel()
-
-    on_tool_completion(result)
-    log_output.push(result)
-
-# async def build_options_dialog():
-#     """
-#     Create a dialog to collect options for a script.
-#     Uses explicit type information from the JSON config.
-#     """
-#     options = get_tool_options()
-#     print(f"build_options_dialog:\n\tbod: options={options}\n")
-
-#     # dictionary to store the input elements and their values
-#     input_elements = {}
+        # Process results
+        on_tool_completion(result)
     
-#     # create the dialog
-#     dialog = ui.dialog()
-#     dialog.props('persistent')
-    
-#     with dialog, ui.card().classes('w-full max-w-3xl p-4'):
-#         ui.label(f'Options for {ToolState.IN_PROGRESS}').classes('text-h6 mb-4')
-
-#         # Group options by their group
-#         grouped_options = {}
-#         for option in options:
-#             group = option.get('group', 'Other')
-#             # skip items where group is "Claude API Configuration"
-#             if group == "Claude API Configuration":
-#                 continue
-#             # add item to the appropriate group
-#             if group not in grouped_options:
-#                 grouped_options[group] = []
-#             grouped_options[group].append(option)
+        # Mark this script as not running = done!
+        ToolState.IS_RUNNING = False
         
-#         # Create the options container with sections by group
-#         with ui.column().classes('w-full gap-2'):
-#             # For each group, create a section
-#             for group_name, group_options in grouped_options.items():
-#                 with ui.expansion(group_name, value=True).classes('w-full q-mb-md'):
-#                     # For each option in this group, create an appropriate input field
-#                     for option in group_options:
-#                         name = option["name"]
-#                         description = option["description"]
-#                         required = option.get("required", False)
-#                         arg_name = option.get("arg_name", "")
-#                         default_value = option.get("default")
-#                         option_type = option.get("type", "str")  # Get the explicit type
-#                         choices = option.get("choices", None)
-                        
-#                         # Format the label
-#                         label = f"{name}"
-#                         if arg_name:
-#                             label += f" <{arg_name}>"
-#                         if required:
-#                             label += " *"
-                        
-#                         # Create a card for each option for better organization
-#                         with ui.card().classes('w-full q-pa-sm q-mb-sm'):
-#                             ui.label(label).classes('text-bold')
-#                             ui.label(description).classes('text-caption text-grey-7')
-                            
-#                             # Show current default value in the description
-#                             if default_value is not None:
-#                                 ui.label(f"Default: {default_value}").classes('text-caption text-grey-7')
-                            
-#                             # Create appropriate input fields based on the explicit type
-#                             if option_type == "bool":
-#                                 # Boolean options (checkboxes)
-#                                 value_to_use = default_value if default_value is not None else False
-#                                 checkbox = ui.checkbox("Enable this option", value=value_to_use)
-#                                 input_elements[name] = checkbox
-#                             elif option_type == "int":
-#                                 # Integer input fields
-#                                 value_to_use = default_value if default_value is not None else None
-                                
-#                                 # If the option has choices, create a dropdown
-#                                 if choices:
-#                                     dropdown = ui.select(
-#                                         options=choices,
-#                                         value=value_to_use,
-#                                         label=f"Select value for {name}"
-#                                     )
-#                                     input_elements[name] = dropdown
-#                                 else:
-#                                     # Regular number input for integers
-#                                     input_field = ui.number(
-#                                         placeholder="Enter number...", 
-#                                         value=value_to_use,
-#                                         precision=0  # Force integer values only
-#                                     )
-#                                     input_elements[name] = input_field
-#                             elif option_type == "float":
-#                                 # Float input fields
-#                                 value_to_use = default_value if default_value is not None else None
-                                
-#                                 # If the option has choices, create a dropdown
-#                                 if choices:
-#                                     dropdown = ui.select(
-#                                         options=choices,
-#                                         value=value_to_use,
-#                                         label=f"Select value for {name}"
-#                                     )
-#                                     input_elements[name] = dropdown
-#                                 else:
-#                                     # Regular number input for floats
-#                                     input_field = ui.number(
-#                                         placeholder="Enter number...", 
-#                                         value=value_to_use
-#                                     )
-#                                     input_elements[name] = input_field
-#                             elif option_type == "choices":
-#                                 # Dropdown for choices
-#                                 if choices:
-#                                     dropdown = ui.select(
-#                                         options=choices,
-#                                         value=default_value,
-#                                         label=f"Select value for {name}"
-#                                     )
-#                                     input_elements[name] = dropdown
-#                                 else:
-#                                     # Fallback to text input if no choices provided
-#                                     input_field = ui.input(
-#                                         placeholder="Enter value...",
-#                                         value=default_value
-#                                     )
-#                                     input_elements[name] = input_field
-#                             elif option_type == "file" or option_type == "path" or any(kw in name.lower() for kw in ["file", "path", "dir", "directory"]):
-#                                 # File/directory paths with integrated file picker
-#                                 with ui.row().classes('w-full items-center'):
-#                                     input_field = ui.input(
-#                                         placeholder="Enter path...",
-#                                         value=default_value
-#                                     ).classes('w-full')
-#                                     input_elements[name] = input_field
-                                    
-#                                     # Set a default path based on option name
-#                                     if "manuscript" in name.lower():
-#                                         default_path = os.path.join(ToolState.DEFAULT_SAVE_DIR, "manuscript.txt")
-#                                     elif "outline" in name.lower():
-#                                         default_path = os.path.join(ToolState.DEFAULT_SAVE_DIR, "outline.txt")
-#                                     elif "world" in name.lower():
-#                                         default_path = os.path.join(ToolState.DEFAULT_SAVE_DIR, "world.txt")
-#                                     elif "save_dir" in name.lower():
-#                                         default_path = ToolState.DEFAULT_SAVE_DIR
-#                                     else:
-#                                         default_path = ToolState.DEFAULT_SAVE_DIR
-                                    
-#                                     # Default button sets the default path without opening file picker
-#                                     ui.button("Default", icon='description').props('flat dense no-caps').on('click', 
-#                                         lambda i=input_field, p=default_path: i.set_value(p))
-
-#                                     # Store the needed variables for the current iteration in the closure
-#                                     current_name = name
-#                                     current_option_type = option_type
-#                                     current_default_path = default_path
-#                                     current_input = input_field  # Create a stable reference
-
-#                                     # Define the button click handler to explicitly pass the captured references
-#                                     ui.button("Browse", icon='folder_open').props('flat dense no-caps').on('click', 
-#                                         lambda e, input=current_input, path=current_default_path, n=current_name, t=current_option_type: 
-#                                             browse_files_handler(input, path, n, t))
-#                             else:
-#                                 # Default to text input for all other types
-#                                 input_field = ui.input(
-#                                     placeholder="Enter value...",
-#                                     value=default_value
-#                                 )
-#                                 input_elements[name] = input_field
+        # Log any additional output
+        if isinstance(result, tuple) and len(result) > 0:
+            log_output.push(f"\nTool output: {result[0]}")
+        else:
+            log_output.push("\nTool completed with no output.")
             
-#             # Add save preferences checkbox - always True for simplicity
-#             save_preferences = True
+    except Exception as e:
+        log_output.push(f"ERROR running tool: {str(e)}")
+        ui.notify(f"Error running {ToolState.SELECTED_TOOL}: {str(e)}", type="negative")
+    
+    finally:
+        # Always reset the tool state when done, regardless of success or failure
+        ToolState.IS_RUNNING = False
             
-#             # Button row
-#             with ui.row().classes('w-full justify-end gap-2 mt-4'):
-#                 # Cancel button
-#                 def on_cancel():
-#                     dialog.close()
-                    
-#                 ui.button('Cancel', on_click=on_cancel).props('flat no-caps').classes('text-grey')
-                
-#                 # Ok button
-#                 async def on_submit():
-#                     # Collect values from input elements
-#                     option_values = {}  # For running the tool
-#                     changed_options = {}  # For saving as preferences
-                    
-#                     for name, input_element in input_elements.items():
-#                         if hasattr(input_element, 'value'):
-#                             # Find the original option to get its default value and type
-#                             original_option = next((opt for opt in options if opt['name'] == name), None)
-#                             if original_option is None:
-#                                 continue
-                                
-#                             current_value = input_element.value
-#                             default_value = original_option.get('default')
-#                             option_type = original_option.get('type', 'str')
-#                             is_required = original_option.get('required', False)
-                            
-#                             # Convert values to correct type if needed
-#                             if option_type == "int" and isinstance(current_value, float):
-#                                 current_value = int(current_value)
-                            
-#                             # Add to the command execution values if it has a value
-#                             if current_value is not None:
-#                                 is_empty_string = isinstance(current_value, str) and current_value.strip() == ""
-#                                 if not is_empty_string or is_required:
-#                                     option_values[name] = current_value
-                            
-#                             # Track changed values for preference saving
-#                             if current_value != default_value:
-#                                 changed_options[name] = current_value
-                    
-#                     # get the save preferences checkbox value, always True for simplicity
-#                     should_save = True
-                    
-#                     # save preferences immediately if requested
-#                     if should_save and changed_options:
-#                         update_tool_preferences(ToolState.IN_PROGRESS, changed_options)
-
-#                     print(f"\tbod: options={options}\n")
-
-#                     await update_tool_setup(option_values)
-
-#                     print(f"\tbod: ToolState.OPTION_VALUES={ToolState.OPTION_VALUES}\n")
-                    
-#                     dialog.close()
-
-#                 ui.button('Ok', on_click=on_submit).props('color=primary no-caps').classes('text-white')
-    
-#     # Show the dialog
-#     dialog.open()
-
-# async def handle_setup(setup_completed, run_btn, log_output):
-#     print(f"handle_setup:")
-#     print(f"\ths: dialog popup for tool options")
-#     await build_options_dialog()
-#     build_command_string()
-#     print(f"\ths: ToolState.IN_PROGRESS={ToolState.IN_PROGRESS}\n\ths: ToolState.OPTION_VALUES={ToolState.OPTION_VALUES}\n\ths: ToolState.FULL_COMMAND={ToolState.FULL_COMMAND}\n\n")
-#     # # Create a readable version of args for display
-#     # args_display = []
-#     # i = 0
-#     # while i < len(args_list):
-#     #     if i+1 < len(args_list) and args_list[i].startswith('--'):
-#     #         # Combine option and value
-#     #         args_display.append(f"{args_list[i]} {args_list[i+1]}")
-#     #         i += 2
-#     #     else:
-#     #         # Just a flag
-#     #         args_display.append(args_list[i])
-#     #         i += 1
-    
-#     # args_str = " ".join(args_display)
-    
-#     setup_completed = True
-#     # enable run button
-#     run_btn.enable()
-#     # Show options in log output
-#     log_output.clear()
-#     log_output.push(f"Setup completed. Ready to run with options:")
-#     log_output.push(f"Command: {ToolState.FULL_COMMAND}")
-#     # log_output.push(f"Arguments: {args_list}")
-#     # for key, value in args_dict.items():
-#     #     log_output.push(f"  {key}: {value}")
+        # Always stop the timer
+        if timer_task and not timer_task.done():
+            timer_task.cancel()
+            
+        # Make sure global timer task is cleared if it's our timer
+        if ToolState.TIMER_TASK == timer_task:
+            ToolState.TIMER_TASK = None
 
 async def build_options_dialog():
     """
@@ -889,12 +677,12 @@ async def build_options_dialog():
     
     # Check if options were retrieved successfully
     if options is None:
-        ui.notify(f"Failed to retrieve options for {ToolState.IN_PROGRESS}", type="negative")
+        ui.notify(f"Failed to retrieve options for {ToolState.SELECTED_TOOL}", type="negative")
         return None
     
     # Create the dialog as an awaitable object
     with ui.dialog() as dialog, ui.card().classes('w-full max-w-3xl p-4'):
-        ui.label(f'Options for {ToolState.IN_PROGRESS}').classes('text-h6 mb-4')
+        ui.label(f'Options for {ToolState.SELECTED_TOOL}').classes('text-h6 mb-4')
         
         # Dictionary to store input elements
         input_elements = {}
@@ -1085,7 +873,7 @@ async def build_options_dialog():
                     
                     # Save preferences if there are changes
                     if changed_options:
-                        update_tool_preferences(ToolState.IN_PROGRESS, changed_options)
+                        update_tool_preferences(ToolState.SELECTED_TOOL, changed_options)
 
                     print(f"\tbod: options={options}\n")
                     
@@ -1108,10 +896,10 @@ async def handle_setup(setup_completed, run_btn, log_output):
         log_output: Reference to the log output UI element
     """
     print(f"handle_setup:")
-    print(f"\ths: dialog popup for tool options")
+    print(f"\ths: dialog popup for tool options ... {ToolState.SELECTED_TOOL}")
     
     # Ensure we have a valid tool selected
-    if not ToolState.IN_PROGRESS:
+    if not ToolState.SELECTED_TOOL:
         error_msg = "No tool is currently selected."
         print(error_msg)
         log_output.push(error_msg)
@@ -1148,7 +936,7 @@ async def handle_setup(setup_completed, run_btn, log_output):
         build_command_string()
         
         # Log the state for debugging
-        print(f"\ths: ToolState.IN_PROGRESS={ToolState.IN_PROGRESS}")
+        print(f"\ths: ToolState.SELECTED_TOOL={ToolState.SELECTED_TOOL}")
         print(f"\ths: ToolState.OPTION_VALUES={ToolState.OPTION_VALUES}")
         print(f"\ths: ToolState.FULL_COMMAND={ToolState.FULL_COMMAND}")
         
@@ -1168,7 +956,7 @@ async def handle_setup(setup_completed, run_btn, log_output):
         ui.notify(error_msg, type="negative")
 
 async def start_runner_ui(script_name):
-    ToolState.IN_PROGRESS = script_name
+    ToolState.SELECTED_TOOL = script_name
     
     # dictionary to store outputs(results) file paths and display names
     file_options = {}
@@ -1267,9 +1055,9 @@ async def start_runner_ui(script_name):
                     
                     # Function to handle force quit
                     def force_quit_handler():
-                        # Re-enable buttons when force quit is clicked
-                        setup_btn.enable()
-                        run_btn.enable() if setup_completed else run_btn.disable()
+                        # # Re-enable buttons when force quit is clicked
+                        # setup_btn.enable()
+                        # run_btn.enable() if setup_completed else run_btn.disable()
                         ui.notify("Standby shutting down...", type="warning")
                         app.shutdown()
                     
@@ -1289,24 +1077,291 @@ async def start_runner_ui(script_name):
     runner_dialog.open()
 
 
+def select_project_dialog(on_project_selected=None):
+    """
+    Display a dialog for selecting or creating a project.
+    All projects must be within the ~/writing directory.
+    This dialog is shown on startup and is required before using the toolkit.
+    
+    Args:
+        on_project_selected: Callback function that receives (project_name, project_path)
+    """
+    
+    # Ensure the projects directory exists
+    os.makedirs(ToolState.PROJECTS_DIR, exist_ok=True)
+    
+    # Get list of existing projects (folders in ~/writing)
+    existing_projects = []
+    try:
+        # List all directories in the projects folder
+        for item in os.listdir(ToolState.PROJECTS_DIR):
+            # Skip hidden directories (starting with dot)
+            if item.startswith('.'):
+                continue
+                
+            item_path = os.path.join(ToolState.PROJECTS_DIR, item)
+            if os.path.isdir(item_path):
+                existing_projects.append(item)
+                
+        # Sort the projects alphabetically
+        existing_projects.sort()
+    except Exception as e:
+        print(f"Error listing projects: {e}")
+    
+    # Create the project_dialog
+    project_dialog = ui.dialog()
+    project_dialog.props('persistent')
+    
+    with project_dialog, ui.card().classes('w-full max-w-3xl p-4'):
+        # Header with title and close button
+        with ui.row().classes('w-full justify-between items-center mb-4'):
+            ui.label('Select or Create a Project').classes('text-h6')
+            # Close button in the header
+            # ui.button('Close', on_click=lambda: process_dialog_close(None, None)).props('flat no-caps').classes('text-primary').tooltip('Close without selecting')
+            ui.button(icon='close', on_click=project_dialog.close).props('flat round no-caps')
+        
+        with ui.column().classes('w-full gap-4'):
+            # Project selection section
+            with ui.card().classes('w-full p-3'):
+                ui.label('Select Existing Project').classes('text-bold')
+                
+                if existing_projects:
+                    # Create a select dropdown with existing projects
+                    project_select = ui.select(
+                        options=existing_projects,
+                        label='Project',
+                        value=None
+                    ).classes('w-full')
+                    
+                    # Open selected project button
+                    def use_selected_project():
+                        selected_project = project_select.value
+                        if not selected_project:
+                            ui.notify("Please select a project first", type="warning")
+                            return
+                        
+                        project_path = os.path.join(ToolState.PROJECTS_DIR, selected_project)
+                        
+                        # Set the global variables
+                        ToolState.CURRENT_PROJECT = selected_project
+                        ToolState.CURRENT_PROJECT_PATH = project_path
+                        ToolState.DEFAULT_SAVE_DIR = project_path
+                        
+                        # Check if tools exist in the database
+                        has_tools = len(ToolState.tools_table) > 0
+
+                        if has_tools:
+                            # only save settings if we have valid tools in the config
+                            ToolState.set_current_project(selected_project, project_path)
+                        else:
+                            ui.notify(f"Project '{selected_project}' set (no settings saved)", type="info")
+                        
+                        # process_dialog_close(selected_project, project_path)
+                    
+                    ui.button('Open Selected Project', on_click=use_selected_project).props('no-caps').classes('bg-blue-600 text-white')
+                else:
+                    ui.label("No existing projects found in ~/writing").classes('text-italic')
+            
+            # Project creation section
+            with ui.card().classes('w-full p-3'):
+                ui.label('Create New Project').classes('text-bold')
+                
+                with ui.row().classes('w-full items-center'):
+                    new_project_input = ui.input(
+                        placeholder="Enter new project name...",
+                        value=""
+                    ).classes('w-full')
+                    
+                    # Create project button
+                    def create_new_project():
+                        new_project_name = new_project_input.value.strip()
+                        
+                        # Validate project name
+                        if not new_project_name:
+                            ui.notify("Please enter a project name", type="warning")
+                            return
+                        
+                        # Ensure the name is valid for a directory
+                        invalid_chars = r'[<>:"/\\|?*]'
+                        if re.search(invalid_chars, new_project_name):
+                            ui.notify("Project name contains invalid characters", type="negative")
+                            return
+                        
+                        # Create the project directory
+                        project_path = os.path.join(PROJECTS_DIR, new_project_name)
+                        
+                        try:
+                            # Check if project already exists
+                            if os.path.exists(project_path):
+                                ui.notify(f"Project '{new_project_name}' already exists", type="warning")
+                                return
+                            
+                            # Create the directory
+                            os.makedirs(project_path, exist_ok=True)
+                            
+                            # Set the global variables
+                            ToolState.CURRENT_PROJECT = new_project_name
+                            ToolState.CURRENT_PROJECT_PATH = project_path
+                            ToolState.DEFAULT_SAVE_DIR = project_path
+                            
+                            # # Check if tools exist in the database
+                            # has_tools = len(tools_table.all()) > 0
+                            
+                            # if has_tools:
+                            #     # Only save settings if we have valid tools in the config
+                            #     success = save_global_settings({
+                            #         "default_save_dir": project_path,
+                            #         "current_project": new_project_name,
+                            #         "current_project_path": project_path
+                            #     })
+                                
+                            #     if success:
+                            #         ui.notify(f"Project '{new_project_name}' created successfully", type="positive")
+                            #     else:
+                            #         ui.notify(f"Project created but settings not saved to config", type="warning")
+                            # else:
+                            #     ui.notify(f"Project '{new_project_name}' created (no settings saved)", type="info")
+                            
+                            # process_dialog_close(new_project_name, project_path)
+                            
+                        except Exception as e:
+                            ui.notify(f"Error creating project: {str(e)}", type="negative")
+                    
+                    ui.button('Create Project', on_click=create_new_project).props('no-caps').classes('bg-green-600 text-white')
+            
+            # Project path information
+            ui.label(f"All projects are stored in: {ToolState.PROJECTS_DIR}").classes('text-caption text-grey-7 mt-2')
+            ui.label("Projects can only be created within this directory.").classes('text-caption text-grey-7')
+            ui.label("You must select or create a project to continue.").classes('text-caption text-grey-7')
+            
+            # Bottom buttons including Close
+            with ui.row().classes('w-full justify-end gap-2 mt-4'):
+                # ui.button('Close', on_click=lambda: process_dialog_close(None, None)).props('flat no-caps').classes('text-primary')
+                ui.button(icon='close', on_click=project_dialog.close).props('flat round no-caps')
+    
+    # Show the dialog
+    project_dialog.open()
+
+
 @ui.page('/', response_timeout=999)
 async def main():
-    ui.dark_mode(True)
+    darkness = ui.dark_mode(True)
+    # with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
+    #     with ui.row().classes('w-full items-center justify-between mb-4'):
+    #         ui.label("Run Tool").classes('text-h4 text-center')
+    #         with ui.row().classes('gap-2'):
+    #             ui.button("Quit", 
+    #                 on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
+    #                 ).props('no-caps flat').classes('text-red-600')
+
+    # Create the main UI components
     with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
+        # Header row with dark mode toggle, title, and buttons
         with ui.row().classes('w-full items-center justify-between mb-4'):
-            ui.label("Run Tool").classes('text-h4 text-center')
+            # Left side: Dark/light mode toggle
+            with ui.element():
+                dark_button = ui.button(icon='dark_mode', on_click=lambda: [darkness.set_value(True)]) \
+                    .props('flat fab-mini no-caps').tooltip('Dark Mode').bind_visibility_from(darkness, 'value', value=False)
+                light_button = ui.button(icon='light_mode', on_click=lambda: [darkness.set_value(False)]) \
+                    .props('flat fab-mini no-caps').tooltip('Light Mode').bind_visibility_from(darkness, 'value', value=True)
+            
+            # Center: Title
+            ui.label("Writer's Toolkit").classes('text-h4 text-center')
+            
+            # Right side: Config and Quit buttons
             with ui.row().classes('gap-2'):
+                # ui.button("Config", on_click=show_config_dialog).props('no-caps flat').classes('text-green-600')
                 ui.button("Quit", 
                     on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
                     ).props('no-caps flat').classes('text-red-600')
         
-        # Main content area
-        with ui.card().classes('w-full'):
-            # Description text
-            ui.label('Run a selected writing tool.').classes('text-body1 mb-4')
+        # Project information card
+        with ui.card().classes('w-full mb-4 p-3'):
+            with ui.row().classes('w-full items-center justify-between'):
+                with ui.column().classes('gap-1'):
+                    ui.label('Current Project').classes('text-h6')
+                    
+                    # Display project info or select project message
+                    if ToolState.CURRENT_PROJECT:
+                        ui.label(f"{ToolState.CURRENT_PROJECT}").classes('text-subtitle1')
+                        ui.label(f"Project Path: {ToolState.CURRENT_PROJECT_PATH}").classes('text-caption text-grey-7')
+                    else:
+                        ui.label("No project selected").classes('text-subtitle1 text-orange-600 font-bold')
+                        ui.label("You must create or select a project before using any tools").classes('text-caption text-orange-400')
+                
+                # Button to change project
+                def change_project():
+                    def handle_project_selection(project_name, project_path):
+                        # If a new project was selected, update globals and refresh
+                        if project_name and project_path:
+                            ToolState.CURRENT_PROJECT = project_name
+                            ToolState.CURRENT_PROJECT_PATH = project_path
+                            ToolState.DEFAULT_SAVE_DIR = project_path
+                            # Refresh the page
+                            ui.navigate.reload()
+                    
+                    # Show the project selection dialog
+                    select_project_dialog(on_project_selected=handle_project_selection)
+                
+                ui.button('Select Project', on_click=change_project).props('no-caps').classes('bg-blue-600 text-white')
+        
+        # Combined main card for tool selection and action buttons
+        with ui.card().classes('w-full mb-4 p-4'):
+            ui.label('Select a tool to run:').classes('text-h6')
+
+
+            tools = ToolState.get_tool_options()
+            if not tools:
+                ui.label("No tools found in database. Please add tools configurations.").classes('text-negative')
+                default_tool_name = ""
+                default_description = ""
+            else:
+                default_tool_name = tools[0]["name"]
+                default_description = tools[0]["description"]
+
+            # Create a dictionary mapping tool names to their titles
+            options_dict = {tool["name"]: tool["title"] for tool in tools} if tools else {}
+
+            selected_tool = ui.select(
+                options=options_dict,
+                label='Tool',
+                value=tools[0]["name"] if tools else None
+            ).classes('w-full')
+
+            # Display the description of the selected tool
+            tool_description = ui.label(default_description).classes('text-caption text-grey-7 mt-2')
             
-            # File chooser button
-            ui.button('Tool Runner', on_click=lambda: start_runner_ui('tokens_words_counter.py'), icon='folder').props('no-caps')
+            def update_description(e):
+                selected_value = selected_tool.value  # This is the tool name
+                if selected_value:
+                    for tool in tools:
+                        if tool['name'] == selected_value:  # Compare with name, not title
+                            tool_description.set_text(tool.get('description', ''))
+                            break
+                else:
+                    tool_description.set_text('')            
+
+            # Attach the update function to the select element's change event
+            selected_tool.on('update:model-value', update_description)
+            
+            # Spacer to create vertical space
+            ui.space().classes('h-4')
+
+            # Action buttons row
+            with ui.row().classes('w-full justify-center gap-4 mt-3'):
+
+                run_button = ui.button('Setup then Run', 
+                                      on_click=lambda: start_runner_ui(selected_tool.value)) \
+                    .props('no-caps').classes('bg-green-600 text-white') \
+                    .tooltip('Setup settings for a tool run')
+        
+        # # Main content area
+        # with ui.card().classes('w-full'):
+        #     # Description text
+        #     ui.label('Run a selected writing tool.').classes('text-body1 mb-4')
+            
+        #     # File chooser button
+        #     ui.button('Tool Runner', on_click=lambda: start_runner_ui('tokens_words_counter.py'), icon='folder').props('no-caps')
 
 
 if __name__ == "__main__":

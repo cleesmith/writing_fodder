@@ -30,11 +30,12 @@ class ToolState:
     tools_table = None
     settings_table = None
     
-    # Tool execution state
-    IN_PROGRESS = None
-    OPTION_VALUES = {}
-    FULL_COMMAND = None
-    TIMER_TASK = None
+    # Tool selection and execution state
+    SELECTED_TOOL = None     # Name of the currently selected tool (e.g., "brainstorm.py")
+    IS_RUNNING = False       # Flag indicating whether a tool is currently executing
+    OPTION_VALUES = {}       # Dictionary of tool option values
+    FULL_COMMAND = None      # Complete command string for display/execution
+    TIMER_TASK = None        # Reference to timer update task
     
     @classmethod
     def initialize(cls):
@@ -47,31 +48,93 @@ class ToolState:
         cls.tools_table = cls.db.table('tools')
         cls.settings_table = cls.db.table('settings')
         
+        # Reset any stale state
+        cls.reset()
+        
         return True
     
     @classmethod
     def update_tool_setup(cls, option_values):
-        """Update the tool options values."""
+        """
+        Update the tool options values.
+        
+        Args:
+            option_values: Dictionary mapping option names to their values
+        """
         cls.OPTION_VALUES = option_values
     
     @classmethod
-    def set_in_progress(cls, tool_name):
-        """Set the currently running tool name."""
-        cls.IN_PROGRESS = tool_name
+    def select_tool(cls, tool_name):
+        """
+        Set the currently selected tool.
+        
+        Args:
+            tool_name: Name of the tool to select (e.g., "brainstorm.py")
+        """
+        cls.SELECTED_TOOL = tool_name
         
     @classmethod
+    def start_tool_execution(cls):
+        """
+        Mark the selected tool as currently running.
+        
+        Returns:
+            Boolean indicating whether execution could be started
+        """
+        if cls.IS_RUNNING:
+            return False
+        
+        if not cls.SELECTED_TOOL:
+            return False
+            
+        cls.IS_RUNNING = True
+        return True
+        
+    @classmethod
+    def stop_tool_execution(cls):
+        """
+        Mark the tool execution as completed.
+        Also cancels any running timer task.
+        """
+        cls.IS_RUNNING = False
+        
+        # Cancel any running timer
+        if cls.TIMER_TASK:
+            try:
+                cls.TIMER_TASK.cancel()
+            except:
+                pass
+            cls.TIMER_TASK = None
+    
+    @classmethod
     def set_full_command(cls, command):
-        """Set the full command string for the current tool."""
+        """
+        Set the full command string for the current tool.
+        
+        Args:
+            command: Complete command string for display/execution
+        """
         cls.FULL_COMMAND = command
         
     @classmethod
     def set_timer_task(cls, task):
-        """Set the async timer task reference."""
+        """
+        Set the async timer task reference.
+        
+        Args:
+            task: Asyncio task for updating timer display
+        """
         cls.TIMER_TASK = task
     
     @classmethod
     def set_current_project(cls, project_name, project_path):
-        """Set the current project name and path."""
+        """
+        Set the current project name and path.
+        
+        Args:
+            project_name: Name of the current project
+            project_path: File system path to the project
+        """
         cls.CURRENT_PROJECT = project_name
         cls.CURRENT_PROJECT_PATH = project_path
         # Update the default save directory to the project path if available
@@ -80,18 +143,61 @@ class ToolState:
     
     @classmethod
     def set_port(cls, port):
-        """Set the server port."""
+        """
+        Set the server port.
+        
+        Args:
+            port: Port number for the server to listen on
+        """
         cls.PORT = port
     
     @classmethod
     def reset(cls):
         """Reset all state variables to their default values."""
-        cls.IN_PROGRESS = None
+        cls.SELECTED_TOOL = None
+        cls.IS_RUNNING = False
         cls.OPTION_VALUES = {}
         cls.FULL_COMMAND = None
+        
+        # Cancel any running timer task
         if cls.TIMER_TASK:
             try:
                 cls.TIMER_TASK.cancel()
             except:
                 pass
         cls.TIMER_TASK = None
+    
+    @classmethod
+    def get_in_progress(cls):
+        """
+        Get the currently selected tool name. (Legacy method)
+        
+        Returns:
+            Name of the currently selected tool, or None if no tool is selected
+        """
+        return cls.SELECTED_TOOL
+
+    @classmethod
+    def get_tool_options(cls):
+        """
+        Retrieve tool options from the TinyDB tools_table.
+
+        Returns:
+            list: A list of dictionaries, each containing 'name', 'title', and 'description'
+                  for each tool that does not have a name starting with an underscore.
+        """
+        # Ensure that the tools table is initialized
+        if cls.tools_table is None:
+            return []
+
+        tool_options = []
+        # Retrieve all records from the tools table
+        for tool in cls.tools_table.all():
+            tool_name = tool.get("name")
+            if tool_name and not tool_name.startswith('_'):
+                tool_options.append({
+                    "name": tool_name,
+                    "title": tool.get("title", tool_name),
+                    "description": tool.get("description", "No description available")
+                })
+        return tool_options
