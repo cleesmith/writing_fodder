@@ -333,67 +333,8 @@ async def update_tool_setup(option_values):
     ToolState.update_tool_setup(option_values)
 
 def build_command_string():
-    """
-    Build a command-line argument string from option values.
-    Include ALL parameters in the command string.
-    Args:
-        script_name: The script filename
-        option_values: Dictionary mapping option names to their values
-    Returns:
-        Tuple of (full command string, args_list) for display and execution
-    """
-    # print(f"\nbuild_command_string: \noption_values:\n{option_values}")
-    # # Get the tool configuration to check for required parameters
-    # Tool = Query()
-    # tool = tools_table.get(Tool.name == script_name)
-    # options = tool.get('options', []) if tool else []
-    # print(f"build_command_string:\noptions:\n{options}\n")
-    # # Get all required option names
-    # required_options = [opt['name'] for opt in options if opt.get('required', False)]
-    # print(f"required_options:\n{required_options}\n")
-    
-    # # Create a mapping of option names to their types
-    # option_types = {opt['name']: opt.get('type', 'str') for opt in options}
-    # print(f"option_types:\n{option_types}\n")
-    
-    # # Check if all required options are provided
-    # missing_required = [opt for opt in required_options if opt not in option_values]
-    # print(f"missing_required:\n{missing_required}\n")
-    # if missing_required:
-    #     ui.notify(f"Missing required options: {', '.join(missing_required)}", type="negative")
-    #     # Add the missing required options with empty values to prompt user to fix
-    #     for opt in missing_required:
-    #         option_values[opt] = "" # "outline_XXX.txt" #FIXME
-    
-    # # Create a properly formatted argument list
-    # args_list = []
-    
-    # # Simply include ALL parameters - don't check against defaults
-    # print(f"build_command_string:\noption_values:\n{option_values}\n")
-    # for name, value in option_values.items():
-    #     # Get the option type
-    #     option_type = option_types.get(name, 'str')
-        
-    #     # Convert values to correct type if needed
-    #     if option_type == "int" and isinstance(value, float):
-    #         value = int(value)
-        
-    #     if option_type == "bool":
-    #         if value:
-    #             # Just add the flag for boolean options
-    #             args_list.append(name)
-    #     else:
-    #         # Handle empty strings
-    #         is_empty_string = isinstance(value, str) and value.strip() == ""
-    #         is_required = name in required_options
-            
-    #         # Include the parameter if it's not an empty string or if it's required
-    #         if not is_empty_string or is_required:
-    #             args_list.append(name)
-    #             args_list.append(str(value))
-    print(f"build_command_string:\n\tbcs: ToolState.SELECTED_TOOL={ToolState.SELECTED_TOOL}")
     args_list = []
-    print(f"\tbcs: ToolState.OPTION_VALUES={ToolState.OPTION_VALUES}\n\n")
+
     for key, value in ToolState.OPTION_VALUES.items():
         if isinstance(value, bool):
             if value:  # only include flag if True
@@ -401,7 +342,6 @@ def build_command_string():
         else:
             args_list.append(key)
             args_list.append(str(value))
-    print(f"\tbcs: args_list={args_list}\n")
     
     # Build the full command for display
     # Use proper platform-specific quoting for display purposes
@@ -421,7 +361,6 @@ def build_command_string():
                 quoted_args.append(arg)
     
     ToolState.FULL_COMMAND = f"python -u {ToolState.SELECTED_TOOL} {' '.join(quoted_args)}"
-    print(f"\tbcs: ToolState.FULL_COMMAND={ToolState.FULL_COMMAND}\n\n")
     return
 
 def run_tool(script_name, args_dict, log_output=None):
@@ -434,8 +373,6 @@ def run_tool(script_name, args_dict, log_output=None):
     Returns:
         Tuple of (stdout, stderr, created_files) from the subprocess
     """
-
-    print(f"\n>>> run_tool: {script_name}\n{args_dict}\n")
 
     # Get the tool configuration to determine types
     config = load_tools_config()
@@ -561,8 +498,6 @@ async def run_tool_execution(file_options, log_output, timer_label, file_select,
     
     # Mark this script as running
     ToolState.IS_RUNNING = True
-
-    print(f"Running {ToolState.SELECTED_TOOL} = {ToolState.IS_RUNNING}")
     
     # Clear output and show starting message
     log_output.clear()
@@ -630,7 +565,6 @@ async def run_tool_execution(file_options, log_output, timer_label, file_select,
     
     try:
         # Run the tool in a background task
-        print(f"io_bound: {ToolState.SELECTED_TOOL}")
         result = await run.io_bound(
             run_tool, 
             ToolState.SELECTED_TOOL, 
@@ -673,7 +607,6 @@ async def build_options_dialog():
     Returns the dialog object which can be awaited.
     """
     options = get_tool_options()
-    print(f"build_options_dialog:\n\tbod: options={options}\n")
     
     # Check if options were retrieved successfully
     if options is None:
@@ -874,8 +807,6 @@ async def build_options_dialog():
                     # Save preferences if there are changes
                     if changed_options:
                         update_tool_preferences(ToolState.SELECTED_TOOL, changed_options)
-
-                    print(f"\tbod: options={options}\n")
                     
                     # Submit the collected values through the dialog
                     dialog.submit(option_values)
@@ -895,8 +826,6 @@ async def handle_setup(setup_completed, run_btn, log_output):
         run_btn: Reference to the run button UI element
         log_output: Reference to the log output UI element
     """
-    print(f"handle_setup:")
-    print(f"\ths: dialog popup for tool options ... {ToolState.SELECTED_TOOL}")
     
     # Ensure we have a valid tool selected
     if not ToolState.SELECTED_TOOL:
@@ -934,11 +863,6 @@ async def handle_setup(setup_completed, run_btn, log_output):
         
         # Now build the command string AFTER the state is updated
         build_command_string()
-        
-        # Log the state for debugging
-        print(f"\ths: ToolState.SELECTED_TOOL={ToolState.SELECTED_TOOL}")
-        print(f"\ths: ToolState.OPTION_VALUES={ToolState.OPTION_VALUES}")
-        print(f"\ths: ToolState.FULL_COMMAND={ToolState.FULL_COMMAND}")
         
         # Update UI state
         setup_completed = True
