@@ -201,3 +201,31 @@ class ToolState:
                     "description": tool.get("description", "No description available")
                 })
         return tool_options
+
+    @classmethod
+    def save_global_settings(cls, settings):
+        """
+        Save global settings to the TinyDB settings table.
+        
+        Args:
+            settings: Dictionary of settings to save
+            
+        Returns:
+            Boolean indicating success or failure
+        """
+        try:
+            # Make sure the settings table exists
+            if not cls.settings_table:
+                print("Warning: settings_table not initialized")
+                return False
+                
+            # Update or insert settings with doc_id=1
+            if cls.settings_table.contains(doc_id=1):
+                cls.settings_table.update(settings, doc_ids=[1])
+            else:
+                cls.settings_table.insert(settings, doc_id=1)
+                
+            return True
+        except Exception as e:
+            print(f"Error saving settings: {str(e)}")
+            return False

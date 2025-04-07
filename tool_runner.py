@@ -1001,7 +1001,7 @@ async def start_runner_ui(script_name):
     runner_dialog.open()
 
 
-def select_project_dialog(on_project_selected=None):
+# def select_project_dialog(on_project_selected=None):
     """
     Display a dialog for selecting or creating a project.
     All projects must be within the ~/writing directory.
@@ -1162,6 +1162,185 @@ def select_project_dialog(on_project_selected=None):
             with ui.row().classes('w-full justify-end gap-2 mt-4'):
                 # ui.button('Close', on_click=lambda: process_dialog_close(None, None)).props('flat no-caps').classes('text-primary')
                 ui.button(icon='close', on_click=project_dialog.close).props('flat round no-caps')
+    
+    # Show the dialog
+    project_dialog.open()
+
+def select_project_dialog(on_project_selected=None):
+    """
+    Display a dialog for selecting or creating a project.
+    All projects must be within the ~/writing directory.
+    This dialog is shown on startup and is required before using the toolkit.
+    
+    Args:
+        on_project_selected: Callback function that receives (project_name, project_path)
+    """
+    
+    # Ensure the projects directory exists
+    os.makedirs(ToolState.PROJECTS_DIR, exist_ok=True)
+    
+    # Get list of existing projects (folders in ~/writing)
+    existing_projects = []
+    try:
+        # List all directories in the projects folder
+        for item in os.listdir(ToolState.PROJECTS_DIR):
+            # Skip hidden directories (starting with dot)
+            if item.startswith('.'):
+                continue
+                
+            item_path = os.path.join(ToolState.PROJECTS_DIR, item)
+            if os.path.isdir(item_path):
+                existing_projects.append(item)
+                
+        # Sort the projects alphabetically
+        existing_projects.sort()
+    except Exception as e:
+        print(f"Error listing projects: {e}")
+    
+    # Create the project_dialog
+    project_dialog = ui.dialog()
+    project_dialog.props('persistent')
+    
+    # Helper function to process dialog closure
+    def process_dialog_close(project_name, project_path):
+        """
+        Handle the dialog closure and call the callback if provided.
+        
+        Args:
+            project_name: Selected project name
+            project_path: Selected project path
+        """
+        # Close the dialog
+        project_dialog.close()
+        
+        # Call the callback if provided
+        if on_project_selected and callable(on_project_selected):
+            on_project_selected(project_name, project_path)
+            
+        # Reload if needed to reflect changes
+        if project_name and project_path:
+            ui.navigate.reload()
+    
+    with project_dialog, ui.card().classes('w-full max-w-3xl p-4'):
+        # Header with title and close button
+        with ui.row().classes('w-full justify-between items-center mb-4'):
+            ui.label('Select or Create a Project').classes('text-h6')
+            ui.button(icon='close', on_click=lambda: process_dialog_close(None, None)).props('flat round no-caps')
+        
+        with ui.column().classes('w-full gap-4'):
+            # Project selection section
+            with ui.card().classes('w-full p-3'):
+                ui.label('Select Existing Project').classes('text-bold')
+                
+                if existing_projects:
+                    # Create a select dropdown with existing projects
+                    project_select = ui.select(
+                        options=existing_projects,
+                        label='Project',
+                        value=None
+                    ).classes('w-full')
+                    
+                    # Open selected project button
+                    def use_selected_project():
+                        selected_project = project_select.value
+                        if not selected_project:
+                            ui.notify("Please select a project first", type="warning")
+                            return
+                        
+                        project_path = os.path.join(ToolState.PROJECTS_DIR, selected_project)
+                        
+                        # Set the current project using ToolState method
+                        ToolState.set_current_project(selected_project, project_path)
+                        
+                        # Save to TinyDB regardless of tools existence
+                        # This ensures the project persists between sessions
+                        success = ToolState.save_global_settings({
+                            "default_save_dir": project_path,
+                            "current_project": selected_project,
+                            "current_project_path": project_path
+                        })
+                        
+                        if success:
+                            ui.notify(f"Project '{selected_project}' set successfully", type="positive")
+                        else:
+                            ui.notify(f"Project set but settings not saved to database", type="warning")
+                        
+                        # Close dialog and call callback
+                        process_dialog_close(selected_project, project_path)
+                    
+                    ui.button('Open Selected Project', on_click=use_selected_project).props('no-caps').classes('bg-blue-600 text-white')
+                else:
+                    ui.label("No existing projects found in ~/writing").classes('text-italic')
+            
+            # Project creation section
+            with ui.card().classes('w-full p-3'):
+                ui.label('Create New Project').classes('text-bold')
+                
+                with ui.row().classes('w-full items-center'):
+                    new_project_input = ui.input(
+                        placeholder="Enter new project name...",
+                        value=""
+                    ).classes('w-full')
+                    
+                    # Create project button
+                    def create_new_project():
+                        new_project_name = new_project_input.value.strip()
+                        
+                        # Validate project name
+                        if not new_project_name:
+                            ui.notify("Please enter a project name", type="warning")
+                            return
+                        
+                        # Ensure the name is valid for a directory
+                        invalid_chars = r'[<>:"/\\|?*]'
+                        if re.search(invalid_chars, new_project_name):
+                            ui.notify("Project name contains invalid characters", type="negative")
+                            return
+                        
+                        # Create the project directory
+                        project_path = os.path.join(ToolState.PROJECTS_DIR, new_project_name)
+                        
+                        try:
+                            # Check if project already exists
+                            if os.path.exists(project_path):
+                                ui.notify(f"Project '{new_project_name}' already exists", type="warning")
+                                return
+                            
+                            # Create the directory
+                            os.makedirs(project_path, exist_ok=True)
+                            
+                            # Set the current project using ToolState method
+                            ToolState.set_current_project(new_project_name, project_path)
+                            
+                            # Save to TinyDB regardless of tools existence
+                            # This ensures the project persists between sessions
+                            success = ToolState.save_global_settings({
+                                "default_save_dir": project_path,
+                                "current_project": new_project_name,
+                                "current_project_path": project_path
+                            })
+                            
+                            if success:
+                                ui.notify(f"Project '{new_project_name}' created successfully", type="positive")
+                            else:
+                                ui.notify(f"Project created but settings not saved to database", type="warning")
+                            
+                            # Close dialog and call callback
+                            process_dialog_close(new_project_name, project_path)
+                            
+                        except Exception as e:
+                            ui.notify(f"Error creating project: {str(e)}", type="negative")
+                    
+                    ui.button('Create Project', on_click=create_new_project).props('no-caps').classes('bg-green-600 text-white')
+            
+            # Project path information
+            ui.label(f"All projects are stored in: {ToolState.PROJECTS_DIR}").classes('text-caption text-grey-7 mt-2')
+            ui.label("Projects can only be created within this directory.").classes('text-caption text-grey-7')
+            ui.label("You must select or create a project to continue.").classes('text-caption text-grey-7')
+            
+            # Bottom buttons including Close
+            with ui.row().classes('w-full justify-end gap-2 mt-4'):
+                ui.button(icon='close', on_click=lambda: process_dialog_close(None, None)).props('flat round no-caps')
     
     # Show the dialog
     project_dialog.open()
