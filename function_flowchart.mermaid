@@ -1,0 +1,32 @@
+flowchart TD
+    main[main] --> check_config_file[check_config_file]
+    main --> load_tools_config[load_tools_config]
+    main --> start_runner_ui[start_runner_ui]
+    main --> select_project_dialog[select_project_dialog]
+    
+    start_runner_ui --> handle_setup[handle_setup]
+    start_runner_ui --> run_tool_execution[run_tool_execution]
+    
+    handle_setup --> build_options_dialog[build_options_dialog]
+    handle_setup --> update_tool_setup[update_tool_setup]
+    handle_setup --> build_command_string[build_command_string]
+    
+    build_options_dialog --> get_tool_options[get_tool_options]
+    build_options_dialog -->|Browse button| browse_files_handler[browse_files_handler]
+    build_options_dialog -->|OK button| update_tool_preferences[update_tool_preferences]
+    
+    browse_files_handler --> tool_select_file_or_folder[tool_select_file_or_folder]
+    
+    run_tool_execution --> run_tool[run_tool]
+    run_tool_execution --> clear_output[clear_output]
+    
+    select_project_dialog -->|creates/selects| ToolState[ToolState]
+    
+    run_tool -->|tracks| created_files[Created Files]
+    
+    clear_output -->|resets| log_output[Log Output]
+    clear_output -->|resets| timer_label[Timer]
+    
+    open_file_in_editor[open_file_in_editor] -.->|called from UI| created_files
+    
+    pick_file[pick_file] -.->|not used in app| tool_select_file_or_folder

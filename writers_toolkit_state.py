@@ -25,7 +25,7 @@ class ToolState:
     CURRENT_PROJECT_PATH = None
     
     # Database configuration
-    DB_PATH = "writers_toolkit.json"
+    DB_PATH = "writers_toolkit_tinydb.json"
     db = None
     tools_table = None
     settings_table = None
@@ -42,15 +42,20 @@ class ToolState:
         """Initialize the application state and create necessary directories/database."""
         # Ensure the projects directory exists
         os.makedirs(cls.PROJECTS_DIR, exist_ok=True)
-        
+
         # Initialize the database connection
         cls.db = TinyDB(cls.DB_PATH)
         cls.tools_table = cls.db.table('tools')
         cls.settings_table = cls.db.table('settings')
-        
+
+        # Load claude_api_configuration from settings (if available)
+        settings = cls.settings_table.get(doc_id=1) if cls.settings_table.contains(doc_id=1) else {}
+        print(f"settings={settings}")
+        cls.settings_claude_api_configuration = settings.get('claude_api_configuration', {})
+
         # Reset any stale state
         cls.reset()
-        
+
         return True
     
     @classmethod
@@ -209,7 +214,7 @@ class ToolState:
         
         Args:
             settings: Dictionary of settings to save
-            
+                
         Returns:
             Boolean indicating success or failure
         """
@@ -218,14 +223,18 @@ class ToolState:
             if not cls.settings_table:
                 print("Warning: settings_table not initialized")
                 return False
-                
-            # Update or insert settings with doc_id=1
+                    
+            # Update or insert settings
             if cls.settings_table.contains(doc_id=1):
+                # If the document exists, update it
                 cls.settings_table.update(settings, doc_ids=[1])
             else:
-                cls.settings_table.insert(settings, doc_id=1)
-                
+                # If document doesn't exist, insert it without specifying doc_id
+                # TinyDB doesn't accept doc_id as a parameter for insert()
+                cls.settings_table.insert(settings)
+                    
             return True
         except Exception as e:
             print(f"Error saving settings: {str(e)}")
             return False
+
