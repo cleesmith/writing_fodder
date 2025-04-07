@@ -646,7 +646,8 @@ async def build_options_dialog():
         return None
     
     # Create the dialog as an awaitable object
-    with ui.dialog() as dialog, ui.card().classes('w-full max-w-3xl p-4'):
+    with ui.dialog() as dialog, ui.card().classes('w-full p-4').style('max-width: 80vw;'):
+
         ui.label(f'Options for {ToolState.SELECTED_TOOL}').classes('text-h6 mb-4')
         
         # Dictionary to store input elements
@@ -762,7 +763,7 @@ async def build_options_dialog():
                                     input_field = ui.input(
                                         placeholder="Enter path...",
                                         value=default_value
-                                    ).classes('w-full')
+                                    ).classes('w-full').props('readonly')
                                     input_elements[name] = input_field
                                     
                                     # Set a default path based on option name
@@ -872,18 +873,18 @@ async def handle_setup(setup_completed, run_btn, log_output):
         ToolState.OPTION_VALUES = {}
         
         # Create the dialog on-demand
-        dialog = await build_options_dialog()
+        setup_dialog = await build_options_dialog()
         
         # Check if dialog creation was successful
-        if not dialog:
+        if not setup_dialog:
             log_output.push("Failed to create options dialog.")
             return
         
         # Open the dialog
-        dialog.open()
+        setup_dialog.open()
         
-        # Wait for the dialog result
-        option_values = await dialog
+        # Wait for the setup_dialog result
+        option_values = await setup_dialog
         
         # If dialog was cancelled (returned None)
         if option_values is None:
@@ -1223,8 +1224,8 @@ def show_api_settings_dialog():
 
     # Show a warning notification
     ui.notify(
-        "Warning: Changing API settings may affect cost and response quality.", 
-        type="warning",
+        "Warning: Changing API settings may affect cost and response quality; proceed with caution.", 
+        type="negative",
         position="top"
     )
 
