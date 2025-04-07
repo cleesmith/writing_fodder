@@ -335,6 +335,7 @@ async def update_tool_setup(option_values):
 def build_command_string():
     args_list = []
 
+    # Process regular tool options
     for key, value in ToolState.OPTION_VALUES.items():
         if isinstance(value, bool):
             if value:  # only include flag if True
@@ -360,7 +361,38 @@ def build_command_string():
             else:
                 quoted_args.append(arg)
     
+    # Start with the basic command
     ToolState.FULL_COMMAND = f"python -u {ToolState.SELECTED_TOOL} {' '.join(quoted_args)}"
+    
+    # Access the Claude API configuration
+    api_config = ToolState.settings_claude_api_configuration
+    
+    # Append Claude API configuration parameters if they exist
+    if api_config:
+        api_args = []
+        for key, value in api_config.items():
+            # Add with -- prefix (not --claude_)
+            param_name = f"--{key}"
+            api_args.append(param_name)
+            api_args.append(str(value))
+        
+        # Add the API parameters to the command with appropriate quoting
+        api_quoted_args = []
+        for arg in api_args:
+            if platform.system() == 'Windows':
+                if ' ' in arg:
+                    api_quoted_args.append(f'"{arg}"')
+                else:
+                    api_quoted_args.append(arg)
+            else:
+                if ' ' in arg or any(c in arg for c in '*?[]{}():,&|;<>~`!$'):
+                    api_quoted_args.append(f"'{arg}'")
+                else:
+                    api_quoted_args.append(arg)
+        
+        # Add the API arguments to the full command
+        ToolState.FULL_COMMAND += f" {' '.join(api_quoted_args)}"
+    
     return
 
 def run_tool(script_name, args_dict, log_output=None):
@@ -1179,16 +1211,114 @@ def select_project_dialog(on_project_selected=None):
     # Show the dialog
     project_dialog.open()
 
+def show_api_settings_dialog():
+    """
+    Display a dialog for configuring Claude API settings.
+    """
+    # Ensure defaults are initialized
+    api_config = ToolState.initialize_claude_api_defaults()
+    
+    # Create the dialog
+    api_settings_dialog = ui.dialog()
+
+    # Show a warning notification
+    ui.notify(
+        "Warning: Changing API settings may affect cost and response quality.", 
+        type="warning",
+        position="top"
+    )
+
+    with api_settings_dialog, ui.card().classes('w-full max-w-3xl p-4'):
+        # Header with title and close button
+        with ui.row().classes('w-full justify-between items-center mb-4'):
+            ui.label('Claude API Settings').classes('text-h6')
+            ui.button(icon='close', on_click=api_settings_dialog.close).props('flat round no-caps')
+        
+        with ui.column().classes('w-full gap-4'):
+            # Create input fields for each setting
+            max_retries = ui.number(
+                label='Max Retries',
+                value=api_config.get('max_retries', 1),
+                min=1,
+                max=10
+            ).classes('w-full')
+            
+            request_timeout = ui.number(
+                label='Request Timeout (seconds)',
+                value=api_config.get('request_timeout', 300),
+                min=30,
+                max=600
+            ).classes('w-full')
+            
+            context_window = ui.number(
+                label='Context Window (tokens)',
+                value=api_config.get('context_window', 200000),
+                min=1000,
+                max=200000
+            ).classes('w-full')
+            
+            thinking_budget = ui.number(
+                label='Thinking Budget (tokens)',
+                value=api_config.get('thinking_budget_tokens', 32000),
+                min=1000,
+                max=100000
+            ).classes('w-full')
+            
+            betas_max = ui.number(
+                label='Betas Max Tokens',
+                value=api_config.get('betas_max_tokens', 128000),
+                min=1000,
+                max=200000
+            ).classes('w-full')
+            
+            desired_output = ui.number(
+                label='Desired Output Tokens',
+                value=api_config.get('desired_output_tokens', 12000),
+                min=1000,
+                max=100000
+            ).classes('w-full')
+            
+            # Bottom buttons
+            with ui.row().classes('w-full justify-end gap-2 mt-4'):
+                ui.button('Cancel', on_click=api_settings_dialog.close).props('flat no-caps').classes('text-grey')
+                
+                # Save button
+                def save_api_settings():
+                    # Collect the settings
+                    new_settings = {
+                        'max_retries': int(max_retries.value),
+                        'request_timeout': int(request_timeout.value),
+                        'context_window': int(context_window.value),
+                        'thinking_budget_tokens': int(thinking_budget.value),
+                        'betas_max_tokens': int(betas_max.value),
+                        'desired_output_tokens': int(desired_output.value)
+                    }
+                    
+                    # Update the global settings in ToolState
+                    ToolState.settings_claude_api_configuration = new_settings
+                    
+                    # Save to database
+                    settings = ToolState.settings_table.get(doc_id=1) if ToolState.settings_table.contains(doc_id=1) else {}
+                    settings['claude_api_configuration'] = new_settings
+                    
+                    success = ToolState.save_global_settings(settings)
+                    
+                    if success:
+                        ui.notify('API settings saved successfully', type='positive')
+                    else:
+                        ui.notify('Failed to save API settings', type='negative')
+                    
+                    # Close the dialog
+                    api_settings_dialog.close()
+                
+                ui.button('Save', on_click=save_api_settings).props('color=primary no-caps').classes('text-white')
+    
+    # Show the dialog
+    api_settings_dialog.open()
+
 @ui.page('/', response_timeout=999)
 async def main():
     darkness = ui.dark_mode(True)
-    # with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
-    #     with ui.row().classes('w-full items-center justify-between mb-4'):
-    #         ui.label("Run Tool").classes('text-h4 text-center')
-    #         with ui.row().classes('gap-2'):
-    #             ui.button("Quit", 
-    #                 on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
-    #                 ).props('no-caps flat').classes('text-red-600')
 
     # Create the main UI components
     with ui.column().classes('w-full max-w-3xl mx-auto p-4'):
@@ -1204,12 +1334,14 @@ async def main():
             # Center: Title
             ui.label("Writer's Toolkit").classes('text-h4 text-center')
             
-            # Right side: Config and Quit buttons
+            # Right side: API Settings and Quit buttons
             with ui.row().classes('gap-2'):
-                # ui.button("Config", on_click=show_config_dialog).props('no-caps flat').classes('text-green-600')
+                ui.button("API Settings", 
+                          on_click=show_api_settings_dialog
+                         ).props('no-caps flat').classes('text-blue-600')
                 ui.button("Quit", 
-                    on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
-                    ).props('no-caps flat').classes('text-red-600')
+                          on_click=lambda: [ui.notify("Standby shutting down...", type="warning"), app.shutdown()]
+                         ).props('no-caps flat').classes('text-red-600')
         
         # Project information card
         with ui.card().classes('w-full mb-4 p-3'):
@@ -1244,7 +1376,6 @@ async def main():
         # Combined main card for tool selection and action buttons
         with ui.card().classes('w-full mb-4 p-4'):
             ui.label('Select a tool to run:').classes('text-h6')
-
 
             tools = ToolState.get_tool_options()
             if not tools:
@@ -1286,18 +1417,11 @@ async def main():
             # Action buttons row
             with ui.row().classes('w-full justify-center gap-4 mt-3'):
 
-                run_button = ui.button('Setup then Run', 
+                run_button = ui.button('Setup & Run', 
                                       on_click=lambda: start_runner_ui(selected_tool.value)) \
                     .props('no-caps').classes('bg-green-600 text-white') \
                     .tooltip('Setup settings for a tool run')
-        
-        # # Main content area
-        # with ui.card().classes('w-full'):
-        #     # Description text
-        #     ui.label('Run a selected writing tool.').classes('text-body1 mb-4')
-            
-        #     # File chooser button
-        #     ui.button('Tool Runner', on_click=lambda: start_runner_ui('tokens_words_counter.py'), icon='folder').props('no-caps')
+
 
 if __name__ == "__main__":
     # Check for database initialization
@@ -1308,7 +1432,7 @@ if __name__ == "__main__":
     # Load configuration before starting the app to initialize settings
     load_tools_config(force_reload=True)
 
-    print(f"api={ToolState.settings_claude_api_configuration}")
+    # print(f"api={ToolState.settings_claude_api_configuration}")
 
     # Make sure the projects directory exists
     os.makedirs(ToolState.PROJECTS_DIR, exist_ok=True)
@@ -1320,6 +1444,4 @@ if __name__ == "__main__":
         reload=False,
         show_welcome_message=False,
     )
-
-
 

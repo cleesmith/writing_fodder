@@ -50,13 +50,36 @@ class ToolState:
 
         # Load claude_api_configuration from settings (if available)
         settings = cls.settings_table.get(doc_id=1) if cls.settings_table.contains(doc_id=1) else {}
-        print(f"settings={settings}")
         cls.settings_claude_api_configuration = settings.get('claude_api_configuration', {})
 
         # Reset any stale state
         cls.reset()
 
         return True
+
+    @classmethod
+    def initialize_claude_api_defaults(cls):
+        """Initialize default Claude API settings if they don't exist."""
+        # Default values for Claude API configuration
+        default_config = {
+            "max_retries": 1,
+            "request_timeout": 300,
+            "context_window": 200000,
+            "thinking_budget_tokens": 32000,
+            "betas_max_tokens": 128000,
+            "desired_output_tokens": 12000
+        }
+        
+        # Only initialize if the settings don't exist or are empty
+        if not cls.settings_claude_api_configuration:
+            cls.settings_claude_api_configuration = default_config
+            
+            # Save to database if needed
+            settings = cls.settings_table.get(doc_id=1) if cls.settings_table.contains(doc_id=1) else {}
+            settings['claude_api_configuration'] = default_config
+            cls.save_global_settings(settings)
+            
+        return cls.settings_claude_api_configuration
     
     @classmethod
     def update_tool_setup(cls, option_values):
@@ -237,4 +260,3 @@ class ToolState:
         except Exception as e:
             print(f"Error saving settings: {str(e)}")
             return False
-
