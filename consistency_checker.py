@@ -356,20 +356,19 @@ def run_consistency_check(check_type, outline_content, world_content, manuscript
     if thinking_budget < args.thinking_budget_tokens:
         print(f"Error: prompt is too large to have a {args.thinking_budget_tokens} thinking budget!")
         sys.exit(1)
+
+    print(f"\nprompt:\n{prompt}\n")
+    sys.exit(1)
     
     full_response = ""
     thinking_content = ""
-    
-    system_prompt = "NO Markdown! Never respond with Markdown formatting, plain text only."
     
     start_time = time.time()
     print(f"Sending request to Claude API...")
     
     try:
-        # But we DO include the system parameter here where it is supported
         with client.beta.messages.stream(
             model="claude-3-7-sonnet-20250219",
-            system=system_prompt,  # so far this does not work, so use strip_markdown!
             max_tokens=max_tokens,
             messages=[{"role": "user", "content": prompt}],
             thinking={
@@ -398,7 +397,6 @@ def run_consistency_check(check_type, outline_content, world_content, manuscript
     report_word_count = count_words(full_response)
     print(f"\nCompleted in {minutes}m {seconds:.2f}s. Report has {report_word_count} words.")
     
-    # Get token count for response - again, no system parameter here
     report_token_count = 0
     try:
         response = client.beta.messages.count_tokens(

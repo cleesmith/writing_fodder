@@ -1,3 +1,4 @@
+# world_writer --title "A Darker Roast" --pov "third-person omniscient point of view"  --outline_file outline.txt --characters_file characters.txt --detailed
 # world_writer --title "Tracking the Dead Wax" --pov "third person perspective" --outline_file outline.txt --characters_file characters.txt --detailed
 # python -B world_writer.py --outline_file outline.txt --detailed
 # pip install anthropic

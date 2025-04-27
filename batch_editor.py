@@ -13,9 +13,9 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Very thorough thinking about something.')
 parser.add_argument('--prompt',             type=str, default="prompt.txt", help="Path to prompt file (default: prompt.txt)")
-parser.add_argument('--thinking_budget',    type=int, default=96000, help='Maximum tokens for AI thinking (default: 96000)')
-parser.add_argument('--max_tokens',         type=int, default=20000, help='Maximum tokens for output (default: 20000)')
-parser.add_argument('--context_window',     type=int, default=204648, help='Context window for Claude 3.7 Sonnet (default: 204648)')
+parser.add_argument('--context_window',     type=int, default=200000, help='Context window for Claude 3.7 Sonnet (default: 200000)')
+parser.add_argument('--thinking_budget',    type=int, default=64000, help='Maximum tokens for AI thinking (default: 64000)')
+parser.add_argument('--max_tokens',         type=int, default=90000, help='Maximum tokens for output (default: 20000)')
 parser.add_argument('--save_dir',           type=str, default=".")
 args = parser.parse_args()
 
@@ -36,6 +36,9 @@ def create_batch_request(client, prompt, max_tokens, thinking_budget):
         # print(response)
         # return response.id
 
+        print(f"\n*******************************************************\n")
+        print(f"max_tokens={max_tokens}\nthinking_budget={thinking_budget}\nprompt:\n{prompt}\n...\n")
+        print(f"*******************************************************\n")
         response = client.beta.messages.batches.create(
             # betas=["output-128k-2025-02-19", "batch-messages-2025-02-19"],
             betas=["output-128k-2025-02-19"],
@@ -88,10 +91,10 @@ except Exception as e:
     print(f"Error reading prompt file '{args.prompt}': {e}")
     sys.exit(1)
 
-# calculate a safe max_tokens value
-estimated_input_tokens = int(len(prompt) // 5.5)
-max_safe_tokens = max(5000, args.context_window - estimated_input_tokens - 1000)  # 1000 token buffer for safety
-max_tokens = int(min(args.max_tokens, max_safe_tokens))
+# # calculate a safe max_tokens value
+# estimated_input_tokens = int(len(prompt) // 5.5)
+# max_safe_tokens = max(5000, args.context_window - estimated_input_tokens - 1000)  # 1000 token buffer for safety
+# max_tokens = int(min(args.max_tokens, max_safe_tokens))
 
 absolute_path = os.path.abspath(args.save_dir)
 os.makedirs(args.save_dir, exist_ok=True)  # Create the save directory if it doesn't exist
@@ -100,14 +103,14 @@ print(f"Read prompt from '{args.prompt}' ({len(prompt)} characters)")
 print(f"Max AI model context window: {args.context_window} tokens")
 print(f"AI model thinking budget: {args.thinking_budget} tokens")
 print(f"Max output tokens: {args.max_tokens} tokens")
-print(f"*** Setting max_tokens to: {max_tokens} (requested: {args.max_tokens}, calculated safe maximum: {max_safe_tokens})")
+# print(f"*** Setting max_tokens to: {max_tokens} (requested: {args.max_tokens}, calculated safe maximum: {max_safe_tokens})")
 
-# ensure max_tokens is always greater than thinking budget
-if max_tokens <= args.thinking_budget:
-    max_tokens = args.thinking_budget + args.max_tokens
-    print(f"Adjusted max_tokens to {max_tokens} to exceed thinking budget of {args.thinking_budget} (room for thinking/writing)")
+# # ensure max_tokens is always greater than thinking budget
+# if max_tokens <= args.thinking_budget:
+#     max_tokens = args.thinking_budget + args.max_tokens
+#     print(f"Adjusted max_tokens to {max_tokens} to exceed thinking budget of {args.thinking_budget} (room for thinking/writing)")
 
-print(f"Estimated input/prompt tokens: {estimated_input_tokens}")
+# print(f"Estimated input/prompt tokens: {estimated_input_tokens}")
 
 client = anthropic.Anthropic(max_retries=0)  # no retries = tokens = $'s
 
@@ -126,7 +129,7 @@ try:
 except Exception as e:
     print(f"Error:\n{e}\n")
 
-message_id = create_batch_request(client, prompt, max_tokens, args.thinking_budget)
+message_id = create_batch_request(client, prompt, args.max_tokens, args.thinking_budget)
 print(f"\nBatch request created with message ID: {message_id}")
 
 save_message_id(message_id, prompt)
